@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.teiid</groupId>
+    <groupId>org.teiid.authoring</groupId>
     <artifactId>teiid-authoring-deps</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <relativePath>../teiid-authoring-deps/pom.xml</relativePath>
@@ -48,7 +48,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.teiid</groupId>
+      <groupId>org.teiid.authoring</groupId>
       <artifactId>teiid-authoring-webapp</artifactId>
       <type>war</type>
     </dependency>

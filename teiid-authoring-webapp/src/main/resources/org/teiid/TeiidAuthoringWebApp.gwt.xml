@@ -5,4 +5,5 @@
   <inherits name="org.uberfire.UberfireClientAll"/>
   <inherits name="org.uberfire.UberfireNSWEManager" />
 
+  <source path='authoring/client' />
 </module>

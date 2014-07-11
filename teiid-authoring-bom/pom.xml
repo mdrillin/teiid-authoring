@@ -4,7 +4,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.teiid</groupId>
+    <groupId>org.teiid.authoring</groupId>
     <artifactId>teiid-authoring-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
   </parent>
@@ -33,9 +33,9 @@
         Always declare the sources jar too and optionally the test-jar.
       -->
 
-      <!-- Showcase WebApp -->
+      <!-- WebApp -->
       <dependency>
-        <groupId>org.teiid</groupId>
+        <groupId>org.teiid.authoring</groupId>
         <artifactId>teiid-authoring-webapp</artifactId>
         <version>${project.version}</version>
         <type>war</type>

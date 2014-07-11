@@ -30,7 +30,7 @@ We use Maven 3.x to build our software. The following command compiles all the c
 
 ## Running teiid-authoring
 
-    $ cd dashbuilder-showcase/dashbuilder-webapp
+    $ cd teiid-authoring-webapp
     $ mvn gwt:run
 
 Login
