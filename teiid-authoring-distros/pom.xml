@@ -3,10 +3,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.teiid</groupId>
-    <artifactId>teiid-authoring-showcase</artifactId>
+    <artifactId>teiid-authoring-deps</artifactId>
     <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../teiid-authoring-deps/pom.xml</relativePath>
   </parent>
 
   <artifactId>teiid-authoring-distros</artifactId>
