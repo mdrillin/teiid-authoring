@@ -28,6 +28,15 @@ We use Maven 3.x to build our software. The following command compiles all the c
 
 	$ mvn clean install
 
+## Running teiid-authoring
+
+    $ cd dashbuilder-showcase/dashbuilder-webapp
+    $ mvn gwt:run
+
+Login
+
+    admin / admin
+
 ## Contribute fixes and features
 
 teiid-authoring is open source, and we welcome anybody who wants to participate and contribute!

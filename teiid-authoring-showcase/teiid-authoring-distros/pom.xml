@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.teiid</groupId>
+    <artifactId>teiid-authoring-showcase</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>teiid-authoring-distros</artifactId>
+  <packaging>pom</packaging>
+
+  <name>Teiid Authoring Distribution WARs</name>
+  <description>
+    This module builds the download wars for different application servers.
+  </description>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <finalName>teiid-authoring-${project.version}</finalName>
+          <descriptors>
+            <descriptor>src/main/assembly/assembly-tomcat-7_0.xml</descriptor>
+            <descriptor>src/main/assembly/assembly-jboss-as-7_0.xml</descriptor>
+          </descriptors>
+          <archive>
+            <addMavenDescriptor>false</addMavenDescriptor>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.teiid</groupId>
+      <artifactId>teiid-authoring-webapp</artifactId>
+      <type>war</type>
+    </dependency>
+  </dependencies>
+
+</project>

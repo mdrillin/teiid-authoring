@@ -1,0 +1,13 @@
+filter:
+   - pattern: /admin/**
+     access: ADMIN
+   - pattern: /config/**
+     access: ADMIN, USER
+   - pattern: /private/**
+
+exclude:
+   - /*.ico
+   - /org.teiid.TeiidAuthoringWebApp/images/**
+   - /org.teiid.TeiidAuthoringWebApp/css/**
+   - /css/**
+   - /plugins/**
