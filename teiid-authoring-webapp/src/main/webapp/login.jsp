@@ -142,7 +142,7 @@
 
 <div id="login-wrapper" class="png_bg">
   <div id="login-top">
-    <img src="<%=request.getContextPath()%>/org.teiid.TeiidAuthoringWebApp/images/teiid-logo.png" alt="Logo" title="Powered By Teiid"/>
+    <img src="<%=request.getContextPath()%>/org.teiid.TeiidAuthoringWebApp/images/teiid_logo.png" alt="Logo" title="Powered By Teiid"/>
   </div>
 
   <div id="login-content">
