@@ -18,7 +18,7 @@
   <dependencySets>
     <dependencySet>
       <includes>
-        <include>org.teiid:teiid-authoring-webapp:war</include>
+        <include>org.teiid.authoring:teiid-authoring-webapp:war</include>
       </includes>
       <outputDirectory>.</outputDirectory>
       <unpack>true</unpack>
