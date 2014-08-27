@@ -17,6 +17,17 @@
   <name>Teiid Authoring WebApp</name>
   
   <dependencies>
+  
+     <dependency>
+      <groupId>org.jboss.errai</groupId>
+      <artifactId>errai-ui</artifactId>
+    </dependency>
+  
+    <dependency>
+      <groupId>org.jboss.errai</groupId>
+      <artifactId>errai-data-binding</artifactId>
+    </dependency>
+
     <!-- UberFire -->
     <dependency>
       <groupId>org.uberfire</groupId>

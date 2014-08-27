@@ -16,18 +16,21 @@
 package org.teiid.authoring.client.screens;
 
 import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Observes;
 
-import com.github.gwtbootstrap.client.ui.Label;
-import com.google.gwt.user.client.ui.IsWidget;
+import org.teiid.authoring.share.Mood;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
+
+import com.github.gwtbootstrap.client.ui.Label;
+import com.google.gwt.user.client.ui.IsWidget;
 
 @Dependent
 @WorkbenchScreen(identifier = "HomeScreen")
 public class HomeScreen {
 
-    private static final String ORIGINAL_TEXT = "Welcome to Teiid Authoring!";
+    private static final String ORIGINAL_TEXT = "    Welcome!";
 
     private Label label = new Label( ORIGINAL_TEXT );
 
@@ -39,5 +42,9 @@ public class HomeScreen {
     @WorkbenchPartView
     public IsWidget getView() {
         return label;
+    }
+    
+    public void onMoodChange(@Observes Mood mood) {
+        label.setText("I understand you are feeling " + mood.getText());
     }
 }

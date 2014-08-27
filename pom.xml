@@ -48,6 +48,7 @@
     <module>teiid-authoring-bom</module>
     <module>teiid-authoring-deps</module>
     <module>teiid-authoring-webapp</module>
+    <module>teiid-authoring-distros</module>
   </modules>
 
   <!-- Repositories -->

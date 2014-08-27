@@ -6,4 +6,5 @@
   <inherits name="org.uberfire.UberfireNSWEManager" />
 
   <source path='authoring/client' />
+  <source path='authoring/share' />
 </module>
