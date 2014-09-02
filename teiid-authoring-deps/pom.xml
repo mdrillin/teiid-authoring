@@ -19,8 +19,11 @@
   </description>
 
   <properties>
-    <version.org.jboss.integration-platform>6.0.0.CR10</version.org.jboss.integration-platform>
+    <version.org.jboss.integration-platform>6.0.0.CR8</version.org.jboss.integration-platform>
     <version.org.uberfire>0.4.0.CR2</version.org.uberfire>
+    <version.org.jboss.teiid>8.5.0.Final</version.org.jboss.teiid>
+    <version.jboss-as-cli>7.2.0.Final</version.jboss-as-cli>
+    <version.jboss-as-controller>7.2.0.Final</version.jboss-as-controller>
     <version.org.mortbay.jetty>6.1.25</version.org.mortbay.jetty>
   </properties>
 
@@ -53,7 +56,36 @@
         <version>${version.org.uberfire}</version>
         <scope>import</scope>
       </dependency>
-
+      
+   <!-- Teiid -->
+    <dependency>
+       <groupId>org.jboss.teiid</groupId>
+       <artifactId>teiid-common-core</artifactId>
+       <version>${version.org.jboss.teiid}</version>
+    </dependency>
+    <dependency>
+       <groupId>org.jboss.teiid</groupId>
+       <artifactId>teiid-client</artifactId>
+       <version>${version.org.jboss.teiid}</version>
+    </dependency>
+    <dependency>
+       <groupId>org.jboss.teiid</groupId>
+       <artifactId>teiid-admin</artifactId>
+       <version>${version.org.jboss.teiid}</version>
+    </dependency>
+    
+      <!-- Third party libraries -->
+      <dependency>
+        <groupId>org.jboss.as</groupId>
+        <artifactId>jboss-as-cli</artifactId>
+        <version>${version.jboss-as-cli}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.as</groupId>
+        <artifactId>jboss-as-controller</artifactId>
+        <version>${version.jboss-as-controller}</version>
+      </dependency>
+      
       <!-- CDI Development Utils -->
       <!-- This must be placed above com.google.gwt:gwt-dev to override the
          Jetty that is present there -->

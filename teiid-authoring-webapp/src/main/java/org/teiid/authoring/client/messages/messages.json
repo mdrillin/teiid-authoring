@@ -1,0 +1,6 @@
+{
+  "no-value" : "<no value>",
+  "datasources.breadcrumb.datasources" : "Data Sources",
+  "datasources.breadcrumb.dashboard" : "Data Virtualization Dashboard",
+  "datasources.error-searching" : "Error searching for DataSources.",
+}

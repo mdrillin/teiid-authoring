@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link href="../../../../../css/datavirt-ui.css" rel="stylesheet"></link>
+    <!-- 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+    <link href="../../../../../../../../webapp/bootstrap-2.3.1/css/bootstrap.min.css" rel="stylesheet" media="screen"></link>
+    <link href="../../../../../../../../webapp/bootstrap-2.3.1/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen"></link>
+    <link href="../../../../../../../../webapp/bootstrap-2.3.1/css/bootstrap-datepicker.css" rel="stylesheet" media="screen"></link>
+    <link href="../../../../../../../../webapp/bootstrap-2.3.1/css/bootstrap-fileupload.min.css" rel="stylesheet" media="screen"></link>
+    <link href="../../../../../../../../webapp/css/datavirt-ui.css" rel="stylesheet"></link>
+    <link href="../../../../../../../../webapp/css/datavirt-ui-responsive.css" rel="stylesheet"></link>
+    -->
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!-- 
+    <script type="text/javascript" src="../../../../../../../../webapp/jquery-1.8.3/jquery-1.8.3.min.js"></script>
+    <script type="text/javascript" src="../../../../../../../../webapp/bootstrap-2.3.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../../../../../../webapp/bootstrap-2.3.1/js/bootstrap-datepicker.js"></script>
+    <script type="text/javascript" src="../../../../../../../../webapp/bootstrap-2.3.1/js/bootstrap-fileupload.min.js"></script>
+    <script type="text/javascript" src="../../../../../../../../webapp/js/datavirt-responsive.js"></script>
+    <script type="text/javascript" src="../../../../../../../../webapp/js/datavirt-widgets.js"></script>
+    -->
+  </head>
+
+  <body>
+    <div id="page" data-field="page">
+
+      <!-- Common Tab Bar -->
+      <!--  
+      <ul id="appNavTabs" class="nav nav-tabs datavirt-nav-tabs">
+        <li class=""><a data-field="to-datasources-page" href="datasources.html"><span data-i18n-key="datasources">Data Sources</span></a></li>
+        <li class="active"><a data-field="to-vdbs-page" href="virtualdatabases.html"><span data-i18n-key="vdbs">Virtual Databases</span></a></li>
+        <li class=""><a data-field="to-querytest-page" href="querytest.html"><span data-i18n-key="querytest">Test</span></a></li>
+      </ul>
+      -->
+      
+      <!-- Content area with footer-->
+      <div id="page-content">
+      
+         <!-- Page Title Info -->
+         <div>
+            <h2 data-i18n-key="datasources.page.title">Data Sources</h2>
+            <p data-i18n-key="datasources.page.description">
+              Data Sources are your local or cloud-based data stores that you want to be able to virtualize.  See our list of <a href="http://www.jboss.org/products/datavirt.html">supported data sources.</a>
+            </p>
+            <p class="graytext">
+              Data Sources are your local or cloud-based data stores.
+            </p>
+          </div>
+         
+         <!-- TEMP data sources -->
+         <div>
+            <button data-field="btn-get-sources">Get Sources</button>
+            <input data-field="textbox-sources" placeholder="Nada"></input>
+          </div>
+         
+          <!-- The VDBs table -->
+          <!-- <div class="span9"> -->
+                        
+              <!-- Actions Bar -->
+              <!--  
+              <div class="row-fluid datavirt-items">
+                <div class="span12 datavirt-items-actions">
+                  <div class="span6 datavirt-search">
+                    <input data-field="vdb-search-box" id="vdb-search-box" type="text" class="span12 datavirt-search-box" placeholder="Filter..."></input>
+                  </div>
+                  <div class="pull-right">
+                    <button data-field="btn-new-vdb" id="btn-new-vdb" class="btn btn-focus requires-fileupload" data-i18n-key="new">New</button>
+                    <button data-field="btn-upload-vdb" id="btn-upload-vdb" class="btn btn-focus requires-fileupload" data-i18n-key="upload">Upload</button>
+                    <button data-field="btn-remove-vdb" id="btn-remove-vdb" class="btn btn-focus requires-fileupload" data-i18n-key="remove">Remove</button>
+                    <button data-field="btn-test-vdb" id="btn-test-vdb" class="btn btn-focus requires-fileupload" data-i18n-key="test">Test</button>
+                    <button data-field="btn-refresh" class="btn"><i class="icon-refresh"></i></button>
+                  </div>
+                </div>
+              </div>
+              -->
+              
+              <!-- Messages -->
+              <!--  
+              <div data-field="datavirt-virtualdatabases-none" style="display:none" class="datavirt-items-none">
+                <span data-i18n-key="no-virtualdatabases">No Virtual Databases found.</span>
+              </div>
+              <div data-field="datavirt-virtualdatabases-searching" style="display:none" class="datavirt-items-searching">
+                <span class="spinner" data-i18n-key="finding-virtualdatabases">Finding Virtual DBs, please wait...</span>
+              </div>
+              -->
+
+              <!-- VDBs Table -->
+              <table data-field="datavirt-datasources-table">
+                <thead>
+                  <tr>
+                    <th style="width:20px" data-i18n-key="select"></th>
+                    <th data-i18n-key="name">Name</th>
+                    <th data-i18n-key="type">VDB Type</th>
+                    <th data-i18n-key="status">Status</th>
+                  </tr>
+                </thead>
+                <tbody data-role="dummy">
+                  <tr>
+                    <td></td>
+                    <td><a href="vdb-details.html">VDB 1</a></td>
+                    <td>dynamic</td>
+                    <td>ACTIVE</td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td><a href="vdb-details.html">VDB 2</a></td>
+                    <td>archive</td>
+                    <td>INACTIVE</td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td><a href="vdb-details.html">VDB 3</a></td>
+                    <td>dynamic</td>
+                    <td>ACTIVE</td>
+                  </tr>
+                </tbody>
+              </table>
+              
+              <!-- Pager -->
+              <!-- 
+              <div data-field="datavirt-virtualdatabases-pager" class="pagination" data-role="dummy">
+                <ul>
+                  <li class="disabled"><a>&#x00AB;</a></li>
+                  <li class="active"><a>1</a></li>
+                  <li><a>2</a></li>
+                  <li><a>3</a></li>
+                  <li><a>4</a></li>
+                  <li><a>&#x00BB;</a></li>
+                </ul>
+              </div>
+              -->
+            
+          <!--  </div> -->
+        </div>
+
+        <!-- Footer -->
+        <footer>
+          <hr />
+          <p data-i18n-key="footer">&copy; JBoss Data Virtualization 2014</p>
+        </footer>
+        
+      </div> <!-- /container -->
+      
+    </div> <!-- /page -->
+
+
+    <!-- Some scripting to add functionality to the live template -->
+    <script>
+      $(document).ready(function() {
+    	  $('.datavirt-date').datepicker({
+    		  autoclose: true,
+    		  todayBtn: true,
+    		  todayHighlight: true
+    	  });
+      });
+    </script>
+
+  </body>
+</html>

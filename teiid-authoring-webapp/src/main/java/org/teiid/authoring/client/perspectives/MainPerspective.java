@@ -8,14 +8,12 @@ import org.uberfire.client.annotations.WorkbenchPerspective;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.workbench.model.PanelType;
 import org.uberfire.workbench.model.PerspectiveDefinition;
-import org.uberfire.workbench.model.Position;
-import org.uberfire.workbench.model.impl.PanelDefinitionImpl;
 import org.uberfire.workbench.model.impl.PartDefinitionImpl;
 import org.uberfire.workbench.model.impl.PerspectiveDefinitionImpl;
-
-/**
- * A Perspective to show File Explorer
- */
+  
+// /**
+// * A Perspective to show File Explorer
+// */
 @ApplicationScoped
 @WorkbenchPerspective(identifier = "MainPerspective", isDefault = true)
 public class MainPerspective {
@@ -33,17 +31,17 @@ public class MainPerspective {
     }
 
     public PerspectiveDefinition buildPerspective() {
-        perspective = new PerspectiveDefinitionImpl( PanelType.ROOT_STATIC);
+        perspective = new PerspectiveDefinitionImpl( PanelType.ROOT_STATIC );
         perspective.setTransient(true);
         perspective.setName("MainPerspective");
-        perspective.getRoot().addPart(new PartDefinitionImpl(new DefaultPlaceRequest("HomeScreen")));
+        perspective.getRoot().addPart(new PartDefinitionImpl(new DefaultPlaceRequest("DataSourcesScreen")));
 
-        PanelDefinitionImpl westPanel = new PanelDefinitionImpl(PanelType.MULTI_LIST);
-        perspective.getRoot().insertChild(Position.WEST, westPanel);
-        westPanel.setWidth(250);
-        westPanel.addPart(
-                new PartDefinitionImpl(
-                        new DefaultPlaceRequest("MoodScreen")));
+//        PanelDefinitionImpl westPanel = new PanelDefinitionImpl(PanelType.MULTI_LIST);
+//        perspective.getRoot().insertChild(Position.WEST, westPanel);
+//        westPanel.setWidth(250);
+//        westPanel.addPart(
+//                new PartDefinitionImpl(
+//                        new DefaultPlaceRequest("MoodScreen")));
 
         return perspective;
     }
