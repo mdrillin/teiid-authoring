@@ -28,6 +28,11 @@
       <artifactId>errai-data-binding</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+    </dependency>
+
     <!-- UberFire -->
     <dependency>
       <groupId>org.uberfire</groupId>
@@ -46,7 +51,13 @@
       <scope>provided</scope>
     </dependency>
 
-   <!-- Teiid -->
+    <!-- KIE Widgets (PagedTable) -->
+    <dependency>
+      <groupId>org.kie.uberfire</groupId>
+      <artifactId>kie-uberfire-widgets-commons</artifactId>
+    </dependency>
+
+    <!-- Teiid -->
     <dependency>
        <groupId>org.jboss.teiid</groupId>
        <artifactId>teiid-common-core</artifactId>

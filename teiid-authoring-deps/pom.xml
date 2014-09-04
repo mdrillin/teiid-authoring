@@ -21,6 +21,7 @@
   <properties>
     <version.org.jboss.integration-platform>6.0.0.CR8</version.org.jboss.integration-platform>
     <version.org.uberfire>0.4.0.CR2</version.org.uberfire>
+    <version.org.kie>6.2.0.Beta1</version.org.kie>
     <version.org.jboss.teiid>8.5.0.Final</version.org.jboss.teiid>
     <version.jboss-as-cli>7.2.0.Final</version.jboss-as-cli>
     <version.jboss-as-controller>7.2.0.Final</version.jboss-as-controller>
@@ -56,24 +57,31 @@
         <version>${version.org.uberfire}</version>
         <scope>import</scope>
       </dependency>
-      
-   <!-- Teiid -->
-    <dependency>
-       <groupId>org.jboss.teiid</groupId>
-       <artifactId>teiid-common-core</artifactId>
-       <version>${version.org.jboss.teiid}</version>
-    </dependency>
-    <dependency>
-       <groupId>org.jboss.teiid</groupId>
-       <artifactId>teiid-client</artifactId>
-       <version>${version.org.jboss.teiid}</version>
-    </dependency>
-    <dependency>
-       <groupId>org.jboss.teiid</groupId>
-       <artifactId>teiid-admin</artifactId>
-       <version>${version.org.jboss.teiid}</version>
-    </dependency>
-    
+
+      <!-- KIE -->
+      <dependency>
+        <groupId>org.kie.uberfire</groupId>
+        <artifactId>kie-uberfire-widgets-commons</artifactId>
+        <version>${version.org.kie}</version>
+      </dependency>
+
+      <!-- Teiid -->
+      <dependency>
+        <groupId>org.jboss.teiid</groupId>
+        <artifactId>teiid-common-core</artifactId>
+        <version>${version.org.jboss.teiid}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.teiid</groupId>
+        <artifactId>teiid-client</artifactId>
+        <version>${version.org.jboss.teiid}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.teiid</groupId>
+        <artifactId>teiid-admin</artifactId>
+        <version>${version.org.jboss.teiid}</version>
+      </dependency>
+
       <!-- Third party libraries -->
       <dependency>
         <groupId>org.jboss.as</groupId>
@@ -85,7 +93,12 @@
         <artifactId>jboss-as-controller</artifactId>
         <version>${version.jboss-as-controller}</version>
       </dependency>
-      
+      <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>3.0</version>
+      </dependency>
+
       <!-- CDI Development Utils -->
       <!-- This must be placed above com.google.gwt:gwt-dev to override the
          Jetty that is present there -->

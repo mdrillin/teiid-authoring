@@ -5,6 +5,8 @@
   <inherits name="org.uberfire.UberfireClientAll"/>
   <inherits name="org.uberfire.UberfireNSWEManager" />
 
+  <inherits name="org.kie.uberfire.KIEUberfireWidgetsCommons"/>
+
   <source path='authoring/client' />
   <source path='authoring/share' />
 </module>
