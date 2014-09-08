@@ -21,10 +21,13 @@ import java.util.Map;
 
 import org.jboss.errai.bus.server.annotations.Remote;
 import org.teiid.authoring.share.beans.DataSourceDetailsBean;
+import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.beans.DataSourceResultSetBean;
 import org.teiid.authoring.share.beans.DataSourceTypeResultSetBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
+import org.uberfire.paging.PageRequest;
+import org.uberfire.paging.PageResponse;
 
 /**
  * Provides a way to get and set DataSources and related info
@@ -34,6 +37,8 @@ import org.teiid.authoring.share.exceptions.DataVirtUiException;
 @Remote
 public interface IDataSourceService {
 
+    public PageResponse<DataSourcePageRow> getDSs( final PageRequest pageRequest, final String filters) throws DataVirtUiException;
+    		
     /**
      * Get the Data Sources using the provided info.
      * @param searchText

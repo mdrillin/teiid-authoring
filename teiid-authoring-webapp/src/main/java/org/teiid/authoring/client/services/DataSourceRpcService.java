@@ -26,8 +26,11 @@ import org.jboss.errai.common.client.api.RemoteCallback;
 import org.teiid.authoring.client.services.rpc.DelegatingErrorCallback;
 import org.teiid.authoring.client.services.rpc.DelegatingRemoteCallback;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
+import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 import org.teiid.authoring.share.services.IDataSourceService;
+import org.uberfire.paging.PageRequest;
+import org.uberfire.paging.PageResponse;
 
 /**
  * Client-side service for making RPC calls to the remote DataSource service.
@@ -88,6 +91,16 @@ public class DataSourceRpcService {
 //            errorCallback.error(null, e);
 //        }
 //    }
+    
+    public void getDSs(final PageRequest request, final String filter, final IRpcServiceInvocationHandler<PageResponse<DataSourcePageRow>> handler) {
+        RemoteCallback<PageResponse<DataSourcePageRow>> successCallback = new DelegatingRemoteCallback<PageResponse<DataSourcePageRow>>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteDataSourceService.call(successCallback, errorCallback).getDSs(request,filter);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
     
     public void getDataSources(final IRpcServiceInvocationHandler<List<String>> handler) {
         RemoteCallback<List<String>> successCallback = new DelegatingRemoteCallback<List<String>>(handler);

@@ -1,6 +1,5 @@
 package org.teiid.authoring.client.perspectives;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 
 import org.uberfire.client.annotations.Perspective;
@@ -11,9 +10,9 @@ import org.uberfire.workbench.model.PerspectiveDefinition;
 import org.uberfire.workbench.model.impl.PartDefinitionImpl;
 import org.uberfire.workbench.model.impl.PerspectiveDefinitionImpl;
   
-// /**
-// * A Perspective to show File Explorer
-// */
+/**
+ * The MainPerspective for Teiid Web application
+ */
 @ApplicationScoped
 @WorkbenchPerspective(identifier = "MainPerspective", isDefault = true)
 public class MainPerspective {
@@ -23,14 +22,7 @@ public class MainPerspective {
         PerspectiveDefinition perspective = new PerspectiveDefinitionImpl( PanelType.ROOT_STATIC );
         perspective.setTransient(true);
         perspective.setName("MainPerspective");
-        perspective.getRoot().addPart(new PartDefinitionImpl(new DefaultPlaceRequest("DataSourcesScreen")));
-
-//        PanelDefinitionImpl westPanel = new PanelDefinitionImpl(PanelType.MULTI_LIST);
-//        perspective.getRoot().insertChild(Position.WEST, westPanel);
-//        westPanel.setWidth(250);
-//        westPanel.addPart(
-//                new PartDefinitionImpl(
-//                        new DefaultPlaceRequest("MoodScreen")));
+        perspective.getRoot().addPart(new PartDefinitionImpl(new DefaultPlaceRequest("DataServicesLibraryScreen")));
 
         return perspective;
     }

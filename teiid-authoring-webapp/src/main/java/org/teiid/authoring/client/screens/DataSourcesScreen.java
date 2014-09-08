@@ -15,33 +15,19 @@
  */
 package org.teiid.authoring.client.screens;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 
 import org.jboss.errai.ui.shared.api.annotations.DataField;
-import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
-import org.teiid.authoring.client.services.DataSourceRpcService;
-import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
-import org.teiid.authoring.share.beans.DataSourceResultSetBean;
-import org.teiid.authoring.share.beans.DataSourceSummaryBean;
+import org.teiid.authoring.client.widgets.DataSourceTableDisplayer;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.TextBox;
-import com.google.inject.Inject;
 
 /**
  * The default "DataSources" page.
@@ -62,19 +48,25 @@ public class DataSourcesScreen extends Composite {
 
 //    @Inject
 //    protected ClientMessages i18n;
-    @Inject
-    protected DataSourceRpcService dataSourceService;
+//    @Inject
+//    protected DataSourceRpcService dataSourceService;
 //    @Inject
 //    protected NotificationService notificationService;
 //    @Inject
 //    protected ApplicationStateService stateService;
  
-    @Inject @DataField("btn-get-sources")
-    protected Button getSourcesButton;
+//    @Inject @DataField("btn-get-sources")
+//    protected Button getSourcesButton;
+//    
+//    @Inject @DataField("textbox-sources")
+//    protected TextBox sourcesTextBox;
+
+    @Inject @DataField("table-datasources")
+    protected DataSourceTableDisplayer dsTable;
+
+//    private AsyncDataProvider<DataSourcePageRow> tableProvider;
     
-    @Inject @DataField("textbox-sources")
-    protected TextBox sourcesTextBox;
-	
+    
 //    @Inject @DataField("datasource-search-box")
 //    protected TextBox searchBox;
 //
@@ -98,15 +90,15 @@ public class DataSourcesScreen extends Composite {
 //    protected HtmlSnippet noDataSourcesMessage;
 //    @Inject @DataField("datavirt-datasources-searching")
 //    protected HtmlSnippet datasourceSearchInProgressMessage;
-    @Inject @DataField("datavirt-datasources-table")
-    protected FlexTable dataSourcesTable;
+//    @Inject @DataField("datavirt-datasources-table")
+//    protected FlexTable dataSourcesTable;
 //
 //    @Inject @DataField("datavirt-datasources-pager")
 //    protected DVPager sourcesPager;
 
-    private int currentDataSourcePage = 1;
-    private Collection<String> allDsNames = new ArrayList<String>();
-    private Map<String, Boolean> sourceTestableMap = new HashMap<String,Boolean>();
+//    private int currentDataSourcePage = 1;
+//    private Collection<String> allDsNames = new ArrayList<String>();
+//    private Map<String, Boolean> sourceTestableMap = new HashMap<String,Boolean>();
 
     @Override
     @WorkbenchPartTitle
@@ -181,34 +173,34 @@ public class DataSourcesScreen extends Composite {
 
     }
 
-    /**
-     * Event handler that fires when the user clicks the AddSource button.
-     * @param event
-     */
-    @EventHandler("btn-get-sources")
-    public void onGetSourcesClick(ClickEvent event) {
-    	doGetDataSources();
-    }
-    
-    /**
-     * Populate the DataSource ListBox
-     */
-    protected void doGetDataSources() {
-        dataSourceService.getDataSources(new IRpcServiceInvocationHandler<List<String>>() {
-            @Override
-            public void onReturn(List<String> sources) {
-            	StringBuffer sb = new StringBuffer();
-            	for(String ds : sources) {
-            		sb.append(ds+" : ");
-            	}
-            	sourcesTextBox.setText(sb.toString());
-            }
-            @Override
-            public void onError(Throwable error) {
-//                notificationService.sendErrorNotification(i18n.format("addSourceModelDialog.error-populating-datasources"), error); //$NON-NLS-1$
-            }
-        });
-    }
+//    /**
+//     * Event handler that fires when the user clicks the AddSource button.
+//     * @param event
+//     */
+//    @EventHandler("btn-get-sources")
+//    public void onGetSourcesClick(ClickEvent event) {
+//    	doGetDataSources();
+//    }
+//    
+//    /**
+//     * Populate the DataSource ListBox
+//     */
+//    protected void doGetDataSources() {
+//        dataSourceService.getDataSources(new IRpcServiceInvocationHandler<List<String>>() {
+//            @Override
+//            public void onReturn(List<String> sources) {
+//            	StringBuffer sb = new StringBuffer();
+//            	for(String ds : sources) {
+//            		sb.append(ds+" : ");
+//            	}
+//            	sourcesTextBox.setText(sb.toString());
+//            }
+//            @Override
+//            public void onError(Throwable error) {
+////                notificationService.sendErrorNotification(i18n.format("addSourceModelDialog.error-populating-datasources"), error); //$NON-NLS-1$
+//            }
+//        });
+//    }
     
     /**
      * Event handler that fires when the user clicks the AddSource button.
@@ -501,28 +493,28 @@ public class DataSourcesScreen extends Composite {
 //        this.noDataSourcesMessage.setVisible(false);
 //    }
 
-    /**
-     * Updates the table of Data Sources with the given data. Also updates sourceTestableMap.
-     * @param data
-     */
-    protected void updateDataSourcesTable(DataSourceResultSetBean data) {
-        this.dataSourcesTable.clear();
-        this.sourceTestableMap.clear();
-        //this.datasourceSearchInProgressMessage.setVisible(false);
-        if (data.getDataSources().size() > 0) {
-            for (DataSourceSummaryBean dataSourceSummaryBean : data.getDataSources()) {
-                //this.dataSourcesTable.addRow(dataSourceSummaryBean);
-                if(dataSourceSummaryBean.isTestable()) {
-                	this.sourceTestableMap.put(dataSourceSummaryBean.getName(), true);
-                } else {
-                	this.sourceTestableMap.put(dataSourceSummaryBean.getName(), false);
-                }
-            }
-            this.dataSourcesTable.setVisible(true);
-        } else {
-            //this.noDataSourcesMessage.setVisible(true);
-        }
-    }
+//    /**
+//     * Updates the table of Data Sources with the given data. Also updates sourceTestableMap.
+//     * @param data
+//     */
+//    protected void updateDataSourcesTable(DataSourceResultSetBean data) {
+//        this.dataSourcesTable.clear();
+//        this.sourceTestableMap.clear();
+//        //this.datasourceSearchInProgressMessage.setVisible(false);
+//        if (data.getDataSources().size() > 0) {
+//            for (DataSourceSummaryBean dataSourceSummaryBean : data.getDataSources()) {
+//                //this.dataSourcesTable.addRow(dataSourceSummaryBean);
+//                if(dataSourceSummaryBean.isTestable()) {
+//                	this.sourceTestableMap.put(dataSourceSummaryBean.getName(), true);
+//                } else {
+//                	this.sourceTestableMap.put(dataSourceSummaryBean.getName(), false);
+//                }
+//            }
+//            this.dataSourcesTable.setVisible(true);
+//        } else {
+//            //this.noDataSourcesMessage.setVisible(true);
+//        }
+//    }
 
     /**
      * Updates the pager with the given data.

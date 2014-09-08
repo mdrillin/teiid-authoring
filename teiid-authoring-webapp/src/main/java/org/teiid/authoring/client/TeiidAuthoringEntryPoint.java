@@ -71,8 +71,8 @@ public class TeiidAuthoringEntryPoint {
 
     private void setupMenu( @Observes final ApplicationReadyEvent event ) {
         final PerspectiveActivity defaultPerspective = getDefaultPerspectiveActivity();
-
-        final Menus menus =
+        
+        Menus menus =
                 newTopLevelMenu("Home").respondsWith(new Command() {
                     public void execute() {
                         if (defaultPerspective != null) {
@@ -81,8 +81,13 @@ public class TeiidAuthoringEntryPoint {
                             Window.alert("Default perspective not found.");
                         }
                     }
-                }).endMenu().
-                build();
+                }).endMenu()
+                .newTopLevelMenu("Screens")
+                  .menus()
+                    .menu("DataSourcesScreen").respondsWith(makeGoToPlaceCommand("DataSourcesScreen")).endMenu()
+                  .endMenus()
+                .endMenu()
+              .build();
 
         menubar.addMenus( menus );
     }
@@ -126,5 +131,13 @@ public class TeiidAuthoringEntryPoint {
     public static native void redirect( String url )/*-{
         $wnd.location = url;
     }-*/;
-
+    
+    private Command makeGoToPlaceCommand(final String placeId) {
+      return new Command() {
+        @Override
+        public void execute() {
+          placeManager.goTo(placeId);
+        }
+      };
+    }
 }

@@ -4,6 +4,7 @@
 <module>
   <inherits name="org.uberfire.UberfireClientAll"/>
   <inherits name="org.uberfire.UberfireNSWEManager" />
+  <inherits name="org.kie.uberfire.KIEUberfireWidgetsCommons"/>
 
   <inherits name="org.kie.uberfire.KIEUberfireWidgetsCommons"/>
 
