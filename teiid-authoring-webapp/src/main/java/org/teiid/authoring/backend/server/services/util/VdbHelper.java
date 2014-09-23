@@ -114,14 +114,17 @@ public class VdbHelper {
 	 * Create a View Model
 	 * @param modelName the name of the Model
 	 * @param ddl the DDL which defines the view
+	 * @param isVisible 'true' if the model is to be visible, 'false' if not.
 	 * @return the ModelMetaData
 	 */
-	public ModelMetaData createViewModel(String modelName, String ddl) {
+	public ModelMetaData createViewModel(String modelName, String description, String ddl, boolean isVisible) {
 		ModelMetaData modelMetaData = new ModelMetaData();
 		modelMetaData.setName(modelName);
+		modelMetaData.setDescription(description);
 		modelMetaData.setModelType(Model.Type.VIRTUAL);
 		modelMetaData.setSchemaSourceType("DDL");
 		modelMetaData.setSchemaText(ddl);
+		modelMetaData.setVisible(isVisible);
 		return modelMetaData;
 	}
 	
@@ -164,7 +167,9 @@ public class VdbHelper {
 				
 				ModelMetaData modelMeta = (ModelMetaData)model;
 				String modelName = modelMeta.getName();
+				String modelDescription = modelMeta.getDescription();
 				String modelType = modelMeta.getModelType().toString();
+				boolean isVisible = modelMeta.isVisible();
 				String jndiName = null;
 				String translatorName = null;
 				String modelStatus = null;
@@ -226,11 +231,13 @@ public class VdbHelper {
 					}
 				}
 				modelBean.setName(modelName);
+				modelBean.setDescription(modelDescription);
 				modelBean.setType(modelType);
 				modelBean.setJndiSource(jndiName);
 				modelBean.setTranslator(translatorName);
 				modelBean.setStatus(modelStatus);
 				modelBean.setDdl(ddl);
+				modelBean.setVisible(isVisible);
 				
 				vdbDetailsBean.addModel(modelBean);
 			}
@@ -379,11 +386,12 @@ public class VdbHelper {
 	/**
 	 * Adds the ViewModel to supplied VDB deployment. The new VDB is returned.
 	 * @param vdb the VDB
-	 * @param importVdbName the name of the VDB to import
-	 * @param importVdbVersion the version of the VDB to import
+	 * @param viewModelName the name of the View Model
+	 * @param ddlString the view DDL
+	 * @param isVisible 'true' if the model is to be visible, 'false' if not.
 	 * @return the new VDB
 	 */
-	public VDBMetaData addViewModel(VDBMetaData vdb, String viewModelName, String ddlString) {
+	public VDBMetaData addViewModel(VDBMetaData vdb, String viewModelName, String description, String ddlString, boolean isVisible) {
 		String vdbName = vdb.getName();
 		int vdbVersion = vdb.getVersion();
 		
@@ -402,7 +410,7 @@ public class VdbHelper {
 		VDBMetaData newVdb = createVdb(vdbName,vdbVersion);
 
 	    // Create View Model and add to current view models
-	    ModelMetaData modelMetaData = createViewModel(viewModelName,ddlString);
+	    ModelMetaData modelMetaData = createViewModel(viewModelName,description,ddlString,isVisible);
 	    currentViewModels.add(modelMetaData);
 	    
 	    // Set ViewModels on new VDB

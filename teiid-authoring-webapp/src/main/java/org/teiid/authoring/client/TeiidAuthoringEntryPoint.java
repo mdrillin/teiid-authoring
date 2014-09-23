@@ -82,11 +82,11 @@ public class TeiidAuthoringEntryPoint {
                         }
                     }
                 }).endMenu()
-                .newTopLevelMenu("Screens")
-                  .menus()
-                    .menu("DataSourcesScreen").respondsWith(makeGoToPlaceCommand("DataSourcesScreen")).endMenu()
-                  .endMenus()
-                .endMenu()
+//                .newTopLevelMenu("Screens")
+//                  .menus()
+//                    .menu("DataSourcesScreen").respondsWith(makeGoToPlaceCommand("DataSourcesScreen")).endMenu()
+//                  .endMenus()
+//                .endMenu()
               .build();
 
         menubar.addMenus( menus );

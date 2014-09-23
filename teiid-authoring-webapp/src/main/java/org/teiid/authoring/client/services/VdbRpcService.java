@@ -16,6 +16,7 @@
 package org.teiid.authoring.client.services;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -29,6 +30,7 @@ import org.teiid.authoring.client.services.rpc.DelegatingRemoteCallback;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbResultSetBean;
+import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 import org.teiid.authoring.share.services.IVdbService;
 
@@ -72,11 +74,31 @@ public class VdbRpcService {
         }
     }
     
+    public void getVdbDetails(String vdbName, final IRpcServiceInvocationHandler<VdbDetailsBean> handler) {
+        RemoteCallback<VdbDetailsBean> successCallback = new DelegatingRemoteCallback<VdbDetailsBean>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteVdbService.call(successCallback, errorCallback).getVdbDetails(vdbName);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
     public void getVdbDetails(String vdbName, int modelsPage, final IRpcServiceInvocationHandler<VdbDetailsBean> handler) {
         RemoteCallback<VdbDetailsBean> successCallback = new DelegatingRemoteCallback<VdbDetailsBean>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
         	remoteVdbService.call(successCallback, errorCallback).getVdbDetails(vdbName,modelsPage);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
+    public void getTranslatorsForSrcVdbs(List<String> vdbNames, final IRpcServiceInvocationHandler<List<String>> handler) {
+        RemoteCallback<List<String>> successCallback = new DelegatingRemoteCallback<List<String>>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteVdbService.call(successCallback, errorCallback).getTranslatorsForSrcVdbs(vdbNames);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }
@@ -123,12 +145,11 @@ public class VdbRpcService {
         }
     }
     
-    public void addOrReplaceViewModelAndRedeploy(String vdbName, int modelsPageNumber, String viewModelName, String ddlString, 
-    		final IRpcServiceInvocationHandler<VdbDetailsBean> handler) {
+    public void addOrReplaceViewModelAndRedeploy(final String vdbName, final int modelsPageNumber, final ViewModelRequestBean viewModelRequest, final IRpcServiceInvocationHandler<VdbDetailsBean> handler) {
         RemoteCallback<VdbDetailsBean> successCallback = new DelegatingRemoteCallback<VdbDetailsBean>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
-        	remoteVdbService.call(successCallback, errorCallback).addOrReplaceViewModelAndRedeploy(vdbName, modelsPageNumber,viewModelName, ddlString);
+        	remoteVdbService.call(successCallback, errorCallback).addOrReplaceViewModelAndRedeploy(vdbName, modelsPageNumber,viewModelRequest);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }

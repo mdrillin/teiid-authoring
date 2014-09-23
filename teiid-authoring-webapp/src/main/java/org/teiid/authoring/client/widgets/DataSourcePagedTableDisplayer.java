@@ -42,7 +42,7 @@ import com.google.gwt.view.client.Range;
 /**
  * Composite for display of DataSources
  */
-public class DataSourceTableDisplayer extends Composite {
+public class DataSourcePagedTableDisplayer extends Composite {
 
 	private static int NUMBER_ROWS = 10;
 	private static String COLUMN_HEADER_NAME = "Name";
@@ -56,7 +56,7 @@ public class DataSourceTableDisplayer extends Composite {
 
     private PagedTable<DataSourcePageRow> table;
 
-    public DataSourceTableDisplayer() {
+    public DataSourcePagedTableDisplayer() {
         initWidget( panel );
         panel.add(createTablePanel());
     }
@@ -123,7 +123,7 @@ public class DataSourceTableDisplayer extends Composite {
     			PageRequest request = new PageRequest( range.getStart(),
     					range.getLength() );
 
-    			dataSourceService.getDSs(request, "test", new IRpcServiceInvocationHandler<PageResponse<DataSourcePageRow>>() {
+    			dataSourceService.getDataSources(request, "test", new IRpcServiceInvocationHandler<PageResponse<DataSourcePageRow>>() {
     				@Override
     				public void onReturn(final PageResponse<DataSourcePageRow> response) {
     					updateRowCount( response.getTotalRowSize(),

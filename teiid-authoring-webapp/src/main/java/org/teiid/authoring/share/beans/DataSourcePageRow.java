@@ -27,9 +27,6 @@ public class DataSourcePageRow extends AbstractPageRow {
 
     private String name;
     private String type;
-    //private String path;
-    //private GAV gav;
-    //private Date lastModified;
 
     public String getName() {
         return name;
@@ -46,29 +43,5 @@ public class DataSourcePageRow extends AbstractPageRow {
     public void setType( String type ) {
         this.type = type;
     }
-
-//    public String getPath() {
-//        return path;
-//    }
-//
-//    public void setPath( String path ) {
-//        this.path = path;
-//    }
-
-/*    public GAV getGav() {
-        return gav;
-    }
-
-    public void setGav(GAV gav) {
-        this.gav = gav;
-    }*/
-
-//    public Date getLastModified() {
-//        return lastModified;
-//    }
-//
-//    public void setLastModified( Date lastModified ) {
-//        this.lastModified = lastModified;
-//    }
 
 }

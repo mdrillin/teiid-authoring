@@ -15,22 +15,37 @@
  */
 package org.teiid.authoring.client.screens;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.services.VdbRpcService;
+import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
+import org.teiid.authoring.client.widgets.QueryResultPagedTableDisplayer;
+import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.beans.VdbDetailsBean;
+import org.teiid.authoring.share.beans.VdbModelBean;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
+import org.uberfire.lifecycle.OnStartup;
+import org.uberfire.mvp.PlaceRequest;
+import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 
 /**
@@ -42,18 +57,39 @@ import com.google.gwt.user.client.ui.TextBox;
 @WorkbenchScreen(identifier = "DataServiceDetailsScreen")
 public class DataServiceDetailsScreen extends Composite {
 
+	private String serviceName;
+	private String serviceSampleSQL;
+	
     @Inject
     private PlaceManager placeManager;
     
+    @Inject
+    private VdbRpcService vdbService;
+
+    @Inject @DataField("label-service-details-pagetitle")
+    protected Label pageTitleLabel;
+    
+    @Inject @DataField("label-service-details-description")
+    protected Label pageDescription;
+
     @Inject @DataField("anchor-goto-library")
     protected Anchor goToLibraryAnchor;
     
     @Inject @DataField("btn-edit-service")
     protected Button editServiceButton;
         
+    @Inject @DataField("textarea-service-details-jdbc-snippet")
+    protected TextArea jdbcSnippetArea;
+    
+    @Inject @DataField("textbox-service-details-rest")
+    protected TextBox restLinkTextBox;
+    
     @Inject @DataField("textbox-service-details-odata")
     protected TextBox odataLinkTextBox;
     
+    @Inject @DataField("table-service-details-queryResults")
+    protected QueryResultPagedTableDisplayer queryResultsTablePaged;
+
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
@@ -63,6 +99,84 @@ public class DataServiceDetailsScreen extends Composite {
     @WorkbenchPartView
     public IsWidget getView() {
         return this;
+    }
+    
+    @OnStartup
+    public void onStartup( final PlaceRequest place ) {
+    	serviceName = place.getParameter(Constants.SERVICE_NAME_KEY, "[unknown]");
+    	doGetDataServiceDetails(serviceName);    	
+    }
+    
+    /**
+     * Get the Data Service details to populate the page
+     * @param serviceName the name of the service
+     */
+    protected void doGetDataServiceDetails(final String serviceName) {
+    	String servicesVdb = Constants.SERVICES_VDB;
+        vdbService.getVdbDetails(servicesVdb, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+            @Override
+            public void onReturn(VdbDetailsBean vdbDetailsBean) {
+            	Collection<VdbModelBean> vdbModels = vdbDetailsBean.getModels();
+            	for(VdbModelBean vdbModel : vdbModels) {
+            		if(vdbModel.getName().equals(serviceName)) {
+            			StringBuilder titleBuilder = new StringBuilder();
+            			titleBuilder.append("Data Service "+serviceName);
+            			if(vdbModel.isVisible()) {
+            				titleBuilder.append(" (External)");
+            			} else {
+            				titleBuilder.append(" (Internal)");
+            			}
+             			
+    	                pageTitleLabel.setText(titleBuilder.toString());
+            			
+            			String description = vdbModel.getDescription();
+            			pageDescription.setText(description);
+            			           			
+            			jdbcSnippetArea.setText(getJDBCConnectionString(Constants.SERVICES_VDB));
+            			
+            			restLinkTextBox.setText(getRestLink(Constants.SERVICES_VDB,1,serviceName));
+            			odataLinkTextBox.setText(getODataLink(Constants.SERVICES_VDB,1,serviceName));
+            			
+            			serviceSampleSQL = "SELECT * FROM "+serviceName+"."+Constants.SERVICE_VIEW_NAME+" LIMIT 10";
+            	    	queryResultsTablePaged.setDataProvider(Constants.SERVICES_VDB_JNDI, serviceSampleSQL);
+            		}
+            	}
+            }
+            @Override
+            public void onError(Throwable error) {
+//                notificationService.sendErrorNotification(i18n.format("vdbdetails.error-retrieving-details"), error); //$NON-NLS-1$
+//                noDataMessage.setVisible(true);
+//            	getModelsInProgressMessage.setVisible(false);
+//                pageTitle.setText(Constants.STATUS_UNKNOWN);
+//            	breadcrumbLabel.setText(Constants.STATUS_UNKNOWN);            	
+//                vdbStatusLabel.setText(Constants.STATUS_UNKNOWN);
+            }
+        });       
+    }
+    
+    private String getJDBCConnectionString(String vdbName) {
+    	StringBuilder sb = new StringBuilder();
+    	sb.append("jdbc:teiid:"+vdbName+"@mm://[HOSTNAME]:[PORT];[prop-name=prop-value;]");
+    	return sb.toString();
+    }
+    
+    private String getRestLink(String vdbName,int vdbVersion,String modelName) {
+        StringBuilder sb = new StringBuilder();
+    	sb.append("http://localhost:8080/");
+    	sb.append(vdbName.toLowerCase()+"_"+vdbVersion+'/');
+    	sb.append(modelName.toLowerCase()+'/');
+    	// This is the uri property for the generated rest procedure
+    	sb.append("procUriProperty");
+    	return sb.toString();
+    }
+    
+    private String getODataLink(String vdbName,int vdbVersion,String modelName) {
+        StringBuilder sb = new StringBuilder();
+    	sb.append("http://localhost:8080/");
+    	sb.append(vdbName.toLowerCase()+"."+vdbVersion+'/');
+    	sb.append(modelName.toLowerCase()+'/');
+    	sb.append(Constants.SERVICE_VIEW_NAME.toLowerCase());
+    	return sb.toString();
     }
     
     /**
@@ -78,7 +192,10 @@ public class DataServiceDetailsScreen extends Composite {
      * Create Service - transitions to CreateDataServiceScreen
      */
     protected void doEditService() {
-    	placeManager.goTo("EditDataServiceScreen");
+    	Map<String,String> parameters = new HashMap<String,String>();
+    	parameters.put(Constants.SERVICE_NAME_KEY, serviceName);
+    	
+    	placeManager.goTo(new DefaultPlaceRequest("EditDataServiceScreen",parameters));
     }
     
     /**

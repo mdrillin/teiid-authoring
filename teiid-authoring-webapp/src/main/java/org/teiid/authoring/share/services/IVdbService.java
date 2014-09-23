@@ -16,11 +16,13 @@
 package org.teiid.authoring.share.services;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.jboss.errai.bus.server.annotations.Remote;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbResultSetBean;
+import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 
 /**
@@ -42,6 +44,10 @@ public interface IVdbService {
      */
     public VdbResultSetBean search(String searchText, int page, boolean showDataVirtUiVDBs, String sortColumnId, boolean sortAscending) throws DataVirtUiException;
 
+    public VdbDetailsBean getVdbDetails(String vdbName) throws DataVirtUiException;
+
+    public List<String> getTranslatorsForSrcVdbs(List<String> srcVdbNames) throws DataVirtUiException;
+    
     /**
      * Gets the VDB Details for the supplied vdb name
      * @param vdbName
@@ -57,7 +63,7 @@ public interface IVdbService {
 
     public VdbDetailsBean deploySourceVDBAddImportAndRedeploy(String vdbName, int modelsPageNumber, String sourceVDBName, String modelName, String dataSourceName, String translator) throws DataVirtUiException;
 
-    public VdbDetailsBean addOrReplaceViewModelAndRedeploy(String vdbName, int modelsPageNumber, String viewModelName, String ddlString) throws DataVirtUiException;
+    public VdbDetailsBean addOrReplaceViewModelAndRedeploy(final String vdbName, final int modelsPageNumber, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException;
 
     public VdbDetailsBean removeModelsAndRedeploy(String vdbName, int modelsPageNumber, Map<String,String> removeModelNameAndTypeMap) throws DataVirtUiException;               
 

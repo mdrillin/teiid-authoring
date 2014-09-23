@@ -15,13 +15,17 @@
  */
 package org.teiid.authoring.client.screens;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
-import org.teiid.authoring.client.widgets.DataSourceTableDisplayer;
+import org.teiid.authoring.client.widgets.DataSourceNamesTable;
+import org.teiid.authoring.client.widgets.DataSourcePagedTableDisplayer;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
@@ -61,8 +65,11 @@ public class DataSourcesScreen extends Composite {
 //    @Inject @DataField("textbox-sources")
 //    protected TextBox sourcesTextBox;
 
+    @Inject @DataField("table-datasources-paged")
+    protected DataSourcePagedTableDisplayer dsTablePaged;
+
     @Inject @DataField("table-datasources")
-    protected DataSourceTableDisplayer dsTable;
+    protected DataSourceNamesTable dsTable;
 
 //    private AsyncDataProvider<DataSourcePageRow> tableProvider;
     
@@ -116,6 +123,15 @@ public class DataSourcesScreen extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
+    	
+    	List<String> rows = new ArrayList<String>();
+            	
+    	rows.add("ds1");
+    	rows.add("ds2");
+    	
+    	dsTable.setData(rows);
+    	dsTable.setWidth("200px");
+    	    	
 //        searchBox.addKeyUpHandler(new KeyUpHandler() {
 //            @Override
 //            public void onKeyUp(KeyUpEvent event) {

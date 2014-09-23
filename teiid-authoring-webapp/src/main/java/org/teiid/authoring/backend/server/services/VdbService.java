@@ -40,8 +40,10 @@ import org.teiid.authoring.backend.server.services.util.JdbcSourceHelper;
 import org.teiid.authoring.backend.server.services.util.VdbHelper;
 import org.teiid.authoring.share.beans.Constants;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
+import org.teiid.authoring.share.beans.VdbModelBean;
 import org.teiid.authoring.share.beans.VdbResultSetBean;
 import org.teiid.authoring.share.beans.VdbSummaryBean;
+import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 import org.teiid.authoring.share.services.IVdbService;
 import org.teiid.authoring.share.services.StringUtils;
@@ -150,6 +152,21 @@ public class VdbService implements IVdbService {
     }
     
     @Override
+    public VdbDetailsBean getVdbDetails(String vdbName) throws DataVirtUiException {
+    	VDBMetaData vdb = null;
+
+    	try {
+        	vdb = clientAccessor.getClient().getVDB(vdbName,1);
+    	} catch (Exception e) {
+			throw new DataVirtUiException(e.getMessage());
+    	}
+    	
+    	VdbDetailsBean vdbDetailsBean = vdbHelper.getVdbDetails(vdb);
+
+        return vdbDetailsBean;
+    }
+    
+    @Override
     public VdbDetailsBean getVdbDetails(String vdbName, int page) throws DataVirtUiException {
         int pageSize = Constants.VDB_MODELS_TABLE_PAGE_SIZE;
     	
@@ -177,6 +194,37 @@ public class VdbService implements IVdbService {
         vdbDetailsBean.setEndIndex(page_endIndex);
 
         return vdbDetailsBean;
+    }
+    
+    @Override
+    public List<String> getTranslatorsForSrcVdbs(List<String> srcVdbNames) throws DataVirtUiException {
+    	VDBMetaData vdb = null;
+    	List<String> translators = new ArrayList<String>(srcVdbNames.size());
+    	
+    	for(String srcVdbName : srcVdbNames) {
+    		try {
+    			vdb = clientAccessor.getClient().getVDB(srcVdbName,1);
+    		} catch (Exception e) {
+    			throw new DataVirtUiException(e.getMessage());
+    		}
+    		
+    		// Details for this VDB
+    		VdbDetailsBean vdbDetailsBean = vdbHelper.getVdbDetails(vdb);
+    		// The modelName in VDB is same as VDB, but without the prefix
+    		String physModelName = srcVdbName.substring(srcVdbName.indexOf(Constants.SERVICE_SOURCE_VDB_PREFIX)+Constants.SERVICE_SOURCE_VDB_PREFIX.length());
+    		
+    		// Get source models from VDB, find matching model and get translator
+    		Collection<VdbModelBean> vdbModels = vdbDetailsBean.getModels();
+    		for(VdbModelBean vdbModel : vdbModels) {
+    			String modelName = vdbModel.getName();
+    			if(modelName.equals(physModelName)) {
+        			String modelTranslator = vdbModel.getTranslator();
+        			translators.add(modelTranslator);
+    			}
+    		}
+    	}
+
+        return translators;
     }
     
     /**
@@ -207,8 +255,6 @@ public class VdbService implements IVdbService {
 
     		// Only deploy the VDB if it was not found
     		if(vdb==null) {
-    			// Deployment name for vdb must end in '-vdb.xml'
-    			String deploymentName = vdbName + Constants.DYNAMIC_VDB_SUFFIX;
 
     			// Deploy the VDB
     			VDBMetaData newVdb = vdbHelper.createVdb(vdbName,1);
@@ -217,19 +263,21 @@ public class VdbService implements IVdbService {
     			String deployString = vdbHelper.getVdbString(newVdb);
 
     			// Deploys the VDB, waits for it to load and deploys corresponding source
-    			deployVdb(deploymentName, new ByteArrayInputStream(deployString.getBytes("UTF-8")));
+    			deployVdb(vdbName, new ByteArrayInputStream(deployString.getBytes("UTF-8")));
     		}
     	} catch (Exception e) {
 			throw new DataVirtUiException(e.getMessage());
     	}
     }
     
-    public void deployVdb(String vdbFileName, InputStream vdbContent) throws DataVirtUiException {
+    private void deployVdb(String vdbName, InputStream vdbContent) throws DataVirtUiException {
+		// Deployment name for vdb must end in '-vdb.xml'
+		String deploymentName = vdbName + Constants.DYNAMIC_VDB_SUFFIX;
 
     	// Deploy the VDB
 		InputStream contentStream = null;
 		try {
-			clientAccessor.getClient().deploy(vdbFileName, vdbContent);
+			clientAccessor.getClient().deploy(deploymentName, vdbContent);
 		} catch(AdminApiClientException e) {
 			throw new DataVirtUiException(e.getMessage());
 		} finally {
@@ -237,12 +285,10 @@ public class VdbService implements IVdbService {
 		}
 		
         // This wait method takes deploymentName
-        waitForVDBDeploymentToLoad(vdbFileName, Constants.VDB_LOADING_TIMEOUT_SECS);
+        waitForVDBDeploymentToLoad(deploymentName, Constants.VDB_LOADING_TIMEOUT_SECS);
 
-        // Add the VDB Source. If it exists, it is deleted first - then re-added.
-//        String vdbName = getVDBNameForDeployment(fileName);
-//        addVDBSource(vdbName);
-    	
+        // Create the Vdb data source
+        createVdbDataSource(vdbName);
     }
     
     /*
@@ -588,7 +634,7 @@ public class VdbService implements IVdbService {
      * @param ddlString the DDL string to use for the view model
      * @return the VdbDetails
      */
-    public VdbDetailsBean addOrReplaceViewModelAndRedeploy(String vdbName, int modelsPageNumber, String viewModelName, String ddlString) throws DataVirtUiException {
+    public VdbDetailsBean addOrReplaceViewModelAndRedeploy(final String vdbName, final int modelsPageNumber, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException {
     	// Get deployed VDB and check status
     	VDBMetaData theVDB;
     	try {
@@ -596,8 +642,8 @@ public class VdbService implements IVdbService {
     	} catch (AdminApiClientException e) {
     		throw new DataVirtUiException(e.getMessage());
     	}
-
-    	VDBMetaData newVdb = vdbHelper.addViewModel(theVDB, viewModelName, ddlString);
+  	
+    	VDBMetaData newVdb = vdbHelper.addViewModel(theVDB, viewModelRequest.getName(), viewModelRequest.getDescription(), viewModelRequest.getDdl(), viewModelRequest.isVisible());
 
     	// Re-Deploy the VDB
     	redeployVDB(vdbName, newVdb);

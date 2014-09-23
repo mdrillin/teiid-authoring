@@ -30,6 +30,12 @@ public class Constants {
 	
 	public static final String SOURCE_VDB_PREFIX = "DataVirtUI";
 
+	public static final String SERVICES_VDB = "ServicesVDB";
+	public static final String SERVICES_VDB_JNDI = "java:/ServicesVDB";
+	public static final String SERVICE_NAME_KEY = "service-name";
+	public static final String SERVICE_VIEW_NAME = "SvcView";
+	public static final String SERVICE_SOURCE_VDB_PREFIX = "SvcSrcVdb_";
+	
 	public static final String OK = "OK";
 	public static final String QUESTION_MARK = "?";
 	public static final String SUCCESS = "success";
@@ -44,6 +50,7 @@ public class Constants {
 	
 	public static final int VDB_LOADING_TIMEOUT_SECS = 300;
 	public static final String NO_TYPE_SELECTION = "[Select a Type]";
+	public static final String NO_TRANSLATOR_SELECTION = "[Select a Translator]";
 
 	public static final String SORT_COLID_NAME = "name"; //$NON-NLS-1$
     public static final String SORT_COLID_MODIFIED_ON = "lastModifiedTimestamp"; //$NON-NLS-1$

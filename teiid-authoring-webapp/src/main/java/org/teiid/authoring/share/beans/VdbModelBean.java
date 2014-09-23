@@ -28,11 +28,13 @@ import org.jboss.errai.databinding.client.api.Bindable;
 public class VdbModelBean {
 
     private String name;
+    private String description;
     private String status;
     private String type;
     private String translator;
     private String jndiSource;
     private String ddl;
+    private boolean isVisible = false;
 
 	/**
      * Constructor.
@@ -48,6 +50,13 @@ public class VdbModelBean {
     }
 
     /**
+     * @return the description
+     */
+    public String getDescription() {
+		return description;
+	}
+
+	/**
      * @return the status
      */
     public String getStatus() {
@@ -87,6 +96,13 @@ public class VdbModelBean {
     }
 
     /**
+     * @param description the description to set
+     */
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+    /**
      * @param status the status to set
      */
     public void setStatus(String status) {
@@ -118,7 +134,15 @@ public class VdbModelBean {
 		this.ddl = ddl;
 	}
 
-    /**
+    public boolean isVisible() {
+		return isVisible;
+	}
+
+	public void setVisible(boolean isVisible) {
+		this.isVisible = isVisible;
+	}
+
+	/**
      * @see java.lang.Object#hashCode()
      */
     @Override

@@ -196,11 +196,15 @@ public class AdminApiClient {
 			
 			// DataSource jndiName
 			String jndiName = getDataSourceJndiName(dsProps); 
-		    summaryProperties.put("jndi-name", jndiName);
+			if(jndiName!=null) {
+				summaryProperties.put("jndi-name", jndiName);
+			}
 			
 			// DataSource type
 			String sourceType = getDataSourceType(dsProps);
-			summaryProperties.put("type",sourceType);
+			if(sourceType!=null) {
+				summaryProperties.put("type",sourceType);
+			}
 			
 			dsSummaryPropCollection.add(summaryProperties);
 		}

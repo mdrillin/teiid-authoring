@@ -67,11 +67,11 @@ public class DataSourceService implements IDataSourceService {
     public DataSourceService() {
     }
 
-    public PageResponse<DataSourcePageRow> getDSs( final PageRequest pageRequest, final String filters ) {
+    public PageResponse<DataSourcePageRow> getDataSources( final PageRequest pageRequest, final String filters ) {
 
     	List<String> filteredDsList = new ArrayList<String>();
 		try {
-			List<String> allDSList = getDataSources();
+			List<String> allDSList = getDataSourceNames();
 			for(String sourceName : allDSList) {
 				if(sourceName!=null && !sourceName.isEmpty() && !sourceName.startsWith("PREVIEW_")) {
 					filteredDsList.add(sourceName);
@@ -123,7 +123,51 @@ public class DataSourceService implements IDataSourceService {
 
     	return response;
     }
+    
+    public List<DataSourcePageRow> getDataSources( final String filters ) {
 
+    	List<String> filteredDsList = new ArrayList<String>();
+		try {
+			List<String> allDSList = getDataSourceNames();
+			for(String sourceName : allDSList) {
+				if(sourceName!=null && !sourceName.isEmpty() && !sourceName.startsWith("PREVIEW_")) {
+					filteredDsList.add(sourceName);
+				}
+			}
+			// Sort the list
+			Collections.sort(filteredDsList);
+		} catch (DataVirtUiException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		List<String> typeList = new ArrayList<String>(filteredDsList.size());
+		for(String sourceName : filteredDsList) {
+			// Get Data Source properties
+			Properties dsProps = null;
+			try {
+				dsProps = clientAccessor.getClient().getDataSourceProperties(sourceName);
+			} catch (AdminApiClientException e) {
+			}
+
+			// Determine type/driver from properties
+			String dsType = getDataSourceType(dsProps);
+			typeList.add(dsType);
+		}
+
+    	final List<DataSourcePageRow> resultDSPageRowList = new ArrayList<DataSourcePageRow>();
+
+    	int i = 0;
+    	for ( String dsName : filteredDsList ) {
+    		DataSourcePageRow dataSourcePageRow = new DataSourcePageRow();
+    		dataSourcePageRow.setName( dsName );
+    		dataSourcePageRow.setType(typeList.get(i));
+    		resultDSPageRowList.add( dataSourcePageRow );
+    		i++;
+    	}
+
+    	return resultDSPageRowList;
+    }
+    
     @Override
     public DataSourceResultSetBean search(String searchText, int page, String sortColumnId, boolean sortAscending) throws DataVirtUiException {
         int pageSize = Constants.DATASOURCES_TABLE_PAGE_SIZE; 
@@ -308,7 +352,7 @@ public class DataSourceService implements IDataSourceService {
      * Gets the current DataSources
      * @throws DataVirtUiException
      */
-    public List<String> getDataSources( ) throws DataVirtUiException {
+    public List<String> getDataSourceNames( ) throws DataVirtUiException {
     	List<String> dsList = new ArrayList<String>();
     	
 		Collection<String> sourceNames = null;
@@ -328,7 +372,7 @@ public class DataSourceService implements IDataSourceService {
 
     	return dsList;    	
    }
-
+    
     /**
      * Gets the 'testable' DataSources - those that are jdbc sources
      * @throws DataVirtUiException

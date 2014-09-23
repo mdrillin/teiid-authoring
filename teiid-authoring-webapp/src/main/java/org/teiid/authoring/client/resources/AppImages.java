@@ -26,5 +26,8 @@ public interface AppImages extends ClientBundle {
 
     @Source("images/teiid_user_logo.png")
     ImageResource ufUserLogo();
+    
+    @Source("images/EmptyLibraryImage.jpg")
+    ImageResource emptyLibraryImage();
 
 }

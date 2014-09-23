@@ -19,9 +19,12 @@ import java.util.List;
 
 import org.jboss.errai.bus.server.annotations.Remote;
 import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
+import org.teiid.authoring.share.beans.QueryResultPageRow;
 import org.teiid.authoring.share.beans.QueryResultSetBean;
 import org.teiid.authoring.share.beans.QueryTableProcBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
+import org.uberfire.paging.PageRequest;
+import org.uberfire.paging.PageResponse;
 
 /**
  * Provides service for running queries against jdbc sources on the server
@@ -39,10 +42,14 @@ public interface IQueryService {
      */
     public List<String> getDataSourceNames(boolean teiidOnly) throws DataVirtUiException;
 
-    public List<QueryTableProcBean> getTablesAndProcedures(String dataSource) throws DataVirtUiException;
+    public List<QueryTableProcBean> getTablesAndProcedures(String dataSourceJndiName, String dsName) throws DataVirtUiException;
 
     public QueryColumnResultSetBean getQueryColumnResultSet(int page, String filterText, String dataSource, String fullTableName) throws DataVirtUiException;
 
     public QueryResultSetBean executeSql(int page, String dataSource, String sql) throws DataVirtUiException;
+
+    public List<String> getColumnNames( String dataSource, String sql ) throws DataVirtUiException;
+
+    public PageResponse<QueryResultPageRow> getQueryResults( final PageRequest pageRequest, String dataSource, String sql ) throws DataVirtUiException;
 
 }

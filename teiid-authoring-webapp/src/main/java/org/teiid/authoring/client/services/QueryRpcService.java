@@ -27,10 +27,13 @@ import org.teiid.authoring.client.services.rpc.DelegatingErrorCallback;
 import org.teiid.authoring.client.services.rpc.DelegatingRemoteCallback;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
+import org.teiid.authoring.share.beans.QueryResultPageRow;
 import org.teiid.authoring.share.beans.QueryResultSetBean;
 import org.teiid.authoring.share.beans.QueryTableProcBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 import org.teiid.authoring.share.services.IQueryService;
+import org.uberfire.paging.PageRequest;
+import org.uberfire.paging.PageResponse;
 
 /**
  * Client-side service for making RPC calls to the remote Query service.
@@ -59,11 +62,11 @@ public class QueryRpcService {
         }
     }
     
-    public void getTablesAndProcedures(final String sourceName, final IRpcServiceInvocationHandler<List<QueryTableProcBean>> handler) {
+    public void getTablesAndProcedures(final String sourceJndiName, final String sourceName, final IRpcServiceInvocationHandler<List<QueryTableProcBean>> handler) {
         RemoteCallback<List<QueryTableProcBean>> successCallback = new DelegatingRemoteCallback<List<QueryTableProcBean>>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
-        	remoteQueryService.call(successCallback, errorCallback).getTablesAndProcedures(sourceName);
+        	remoteQueryService.call(successCallback, errorCallback).getTablesAndProcedures(sourceJndiName,sourceName);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }
@@ -95,5 +98,25 @@ public class QueryRpcService {
             errorCallback.error(null, e);
         }
     }
-
+    
+    public void getColumnNames(final String dataSource, final String sql, final IRpcServiceInvocationHandler<List<String>> handler) {
+        RemoteCallback<List<String>> successCallback = new DelegatingRemoteCallback<List<String>>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteQueryService.call(successCallback, errorCallback).getColumnNames(dataSource,sql);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
+    public void getQueryResults(final PageRequest request, final String dataSource, final String sql, final IRpcServiceInvocationHandler<PageResponse<QueryResultPageRow>> handler) {
+        RemoteCallback<PageResponse<QueryResultPageRow>> successCallback = new DelegatingRemoteCallback<PageResponse<QueryResultPageRow>>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteQueryService.call(successCallback, errorCallback).getQueryResults(request,dataSource,sql);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
 }
