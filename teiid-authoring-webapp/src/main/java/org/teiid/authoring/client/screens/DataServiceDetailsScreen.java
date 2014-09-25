@@ -40,6 +40,7 @@ import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
@@ -84,8 +85,14 @@ public class DataServiceDetailsScreen extends Composite {
     @Inject @DataField("textbox-service-details-rest")
     protected TextBox restLinkTextBox;
     
+    @Inject @DataField("btn-service-details-open-rest")
+    protected Button openRestButton;
+    
     @Inject @DataField("textbox-service-details-odata")
     protected TextBox odataLinkTextBox;
+   
+    @Inject @DataField("btn-service-details-open-odata")
+    protected Button openODataButton;
     
     @Inject @DataField("table-service-details-queryResults")
     protected QueryResultPagedTableDisplayer queryResultsTablePaged;
@@ -131,11 +138,17 @@ public class DataServiceDetailsScreen extends Composite {
             			
             			String description = vdbModel.getDescription();
             			pageDescription.setText(description);
-            			           			
-            			jdbcSnippetArea.setText(getJDBCConnectionString(Constants.SERVICES_VDB));
             			
-            			restLinkTextBox.setText(getRestLink(Constants.SERVICES_VDB,1,serviceName));
-            			odataLinkTextBox.setText(getODataLink(Constants.SERVICES_VDB,1,serviceName));
+            			String serverHostName = vdbDetailsBean.getServerHost();
+            			           			
+            			jdbcSnippetArea.setText(getJDBCConnectionString(serverHostName, Constants.SERVICES_VDB));
+            			
+            			restLinkTextBox.setText(getRestLink(serverHostName,Constants.SERVICES_VDB,1,serviceName));
+            			odataLinkTextBox.setText(getODataLink(serverHostName,Constants.SERVICES_VDB,1,serviceName));
+            			
+            			// Rest controls disabled.  May remove completely
+            			restLinkTextBox.setEnabled(false);
+            			openRestButton.setEnabled(false);
             			
             			serviceSampleSQL = "SELECT * FROM "+serviceName+"."+Constants.SERVICE_VIEW_NAME+" LIMIT 10";
             	    	queryResultsTablePaged.setDataProvider(Constants.SERVICES_VDB_JNDI, serviceSampleSQL);
@@ -154,15 +167,37 @@ public class DataServiceDetailsScreen extends Composite {
         });       
     }
     
-    private String getJDBCConnectionString(String vdbName) {
+    /**
+     * Event handler that fires when the user clicks the Open REST in Browser button.
+     * @param event
+     */
+    @EventHandler("btn-service-details-open-rest")
+    public void onOpenRestButtonClick(ClickEvent event) {
+    	String restLink = restLinkTextBox.getText();
+        Window.open(restLink, "_blank", "");
+    }
+    
+    /**
+     * Event handler that fires when the user clicks the Open OData in Browser button.
+     * @param event
+     */
+    @EventHandler("btn-service-details-open-odata")
+    public void onOpenODataButtonClick(ClickEvent event) {
+    	String oDataLink = odataLinkTextBox.getText();
+        Window.open(oDataLink, "_blank", "");
+    }
+    
+    private String getJDBCConnectionString(String serverHostName, String vdbName) {
     	StringBuilder sb = new StringBuilder();
-    	sb.append("jdbc:teiid:"+vdbName+"@mm://[HOSTNAME]:[PORT];[prop-name=prop-value;]");
+    	sb.append("jdbc:teiid:"+vdbName);
+    	sb.append("@mm://");
+    	sb.append(serverHostName+":31000;[prop-name=prop-value;]");
     	return sb.toString();
     }
     
-    private String getRestLink(String vdbName,int vdbVersion,String modelName) {
+    private String getRestLink(String serverHostName, String vdbName,int vdbVersion,String modelName) {
         StringBuilder sb = new StringBuilder();
-    	sb.append("http://localhost:8080/");
+    	sb.append("http://"+serverHostName+":8080/");
     	sb.append(vdbName.toLowerCase()+"_"+vdbVersion+'/');
     	sb.append(modelName.toLowerCase()+'/');
     	// This is the uri property for the generated rest procedure
@@ -170,12 +205,13 @@ public class DataServiceDetailsScreen extends Composite {
     	return sb.toString();
     }
     
-    private String getODataLink(String vdbName,int vdbVersion,String modelName) {
+    private String getODataLink(String serverHostName, String vdbName,int vdbVersion,String modelName) {
         StringBuilder sb = new StringBuilder();
-    	sb.append("http://localhost:8080/");
+    	sb.append("http://"+serverHostName+":8080/odata/");
     	sb.append(vdbName.toLowerCase()+"."+vdbVersion+'/');
-    	sb.append(modelName.toLowerCase()+'/');
-    	sb.append(Constants.SERVICE_VIEW_NAME.toLowerCase());
+    	sb.append(modelName+'.');
+    	sb.append(Constants.SERVICE_VIEW_NAME);
+    	sb.append("?$format=JSON");
     	return sb.toString();
     }
     

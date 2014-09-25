@@ -31,6 +31,7 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 
 	private static final String MORE_ACTIONS = "More Actions";
 	private static final String EDIT_ACTION = "Edit Service";
+	private static final String DUPLICATE_ACTION = "Duplicate Service";
 	private static final String TEST_ACTION = "Test Service";
 	private static final String DELETE_ACTION = "Delete Service";
 	
@@ -76,6 +77,8 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
         		String action = getSelectedAction();    
         		if(action.equals(EDIT_ACTION)) {
         			doEditService();
+        		} else if(action.equals(DUPLICATE_ACTION)) {
+        			doCloneService();
         		} else if(action.equals(TEST_ACTION)) {
         			doViewService();
         		} else if(action.equals(DELETE_ACTION)) {
@@ -94,8 +97,9 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 
     	moreActionsListBox.insertItem(MORE_ACTIONS, 0);
     	moreActionsListBox.insertItem(EDIT_ACTION, 1);
-    	moreActionsListBox.insertItem(TEST_ACTION, 2);
-    	moreActionsListBox.insertItem(DELETE_ACTION, 3);
+    	moreActionsListBox.insertItem(DUPLICATE_ACTION, 2);
+    	moreActionsListBox.insertItem(TEST_ACTION, 3);
+    	moreActionsListBox.insertItem(DELETE_ACTION, 4);
     	
     	// Initialize by setting the selection to the first item.
     	moreActionsListBox.setSelectedIndex(0);
@@ -130,6 +134,14 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 		placeManager.goTo(new DefaultPlaceRequest("DataServiceDetailsScreen",parameters));
 	}
     
+    protected void doCloneService( ) {
+		String svcName = getModel().getName();
+		Map<String,String> parameters = new HashMap<String,String>();
+		parameters.put(Constants.CLONE_SERVICE_KEY, svcName);
+		
+		placeManager.goTo(new DefaultPlaceRequest("DataServicesLibraryScreen",parameters));
+    }
+    
 	/**
 	 * Edit Service - transitions to EditDataServiceScreen
 	 */
@@ -144,7 +156,7 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
     protected void doRemoveService( ) {
 		String svcName = getModel().getName();
 		Map<String,String> parameters = new HashMap<String,String>();
-		parameters.put(Constants.SERVICE_NAME_KEY, svcName);
+		parameters.put(Constants.DELETE_SERVICE_KEY, svcName);
 		
 		placeManager.goTo(new DefaultPlaceRequest("DataServicesLibraryScreen",parameters));
     }

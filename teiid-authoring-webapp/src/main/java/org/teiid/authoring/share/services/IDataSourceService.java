@@ -24,7 +24,6 @@ import org.teiid.authoring.share.beans.DataSourceDetailsBean;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.beans.DataSourceResultSetBean;
-import org.teiid.authoring.share.beans.DataSourceTranslatorConnectionPageRow;
 import org.teiid.authoring.share.beans.DataSourceTypeResultSetBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 import org.uberfire.paging.PageRequest;

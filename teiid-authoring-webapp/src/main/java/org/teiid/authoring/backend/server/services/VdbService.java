@@ -56,6 +56,8 @@ import org.teiid.authoring.share.services.StringUtils;
 @Service
 public class VdbService implements IVdbService {
 
+    private static final String LOCALHOST = "127.0.0.1";
+    
     @Inject
     private AdminApiClientAccessor clientAccessor;
 
@@ -162,8 +164,22 @@ public class VdbService implements IVdbService {
     	}
     	
     	VdbDetailsBean vdbDetailsBean = vdbHelper.getVdbDetails(vdb);
+    	
+    	String serverHost = getServerHost();
+    	vdbDetailsBean.setServerHost(serverHost);
 
         return vdbDetailsBean;
+    }
+    
+    private String getServerHost() {
+    	String serverHost = LOCALHOST;
+    	
+   		String serverIP = System.getProperty("jboss.bind.address");
+    	// If the server bind address is set, override the default 'localhost'
+    	if(!StringUtils.isEmpty(serverIP)) {
+    		serverHost = serverIP;
+    	}
+    	return serverHost;
     }
     
     @Override
@@ -684,6 +700,32 @@ public class VdbService implements IVdbService {
 	    		throw new DataVirtUiException(e.getMessage());
 	    	}
 		}
+    	
+    	// Return details
+    	return getVdbDetails(vdbName, modelsPageNumber);
+    }
+    
+    /*
+     * Removes the models from the supplied VDB deployment - if they exist. Redeploys the VDB after
+     * models are removed.
+     * @param vdbName name of the VDB
+     * @param viewModelNames the list of view model names to clone
+     * @return the VdbDetails
+     */
+    public VdbDetailsBean cloneViewModelAndRedeploy(String vdbName, int modelsPageNumber, String viewModelName) throws DataVirtUiException {                
+    	// Get deployed VDB and check status
+    	VDBMetaData theVDB;
+    	try {
+    		theVDB = clientAccessor.getClient().getVDB(vdbName,1);
+    	} catch (AdminApiClientException e) {
+    		throw new DataVirtUiException(e.getMessage());
+    	}
+
+    	// Clone the View Models and get the new VDB
+    	VDBMetaData newVdb = vdbHelper.cloneViewModel(theVDB, viewModelName);
+    	
+    	// Re-Deploy the VDB
+    	redeployVDB(vdbName, newVdb);
     	
     	// Return details
     	return getVdbDetails(vdbName, modelsPageNumber);

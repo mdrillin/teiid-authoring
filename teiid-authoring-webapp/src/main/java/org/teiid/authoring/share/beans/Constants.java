@@ -35,6 +35,8 @@ public class Constants {
 	public static final String SERVICE_NAME_KEY = "service-name";
 	public static final String SERVICE_VIEW_NAME = "SvcView";
 	public static final String SERVICE_SOURCE_VDB_PREFIX = "SvcSrcVdb_";
+	public static final String CLONE_SERVICE_KEY = "clone-service";
+	public static final String DELETE_SERVICE_KEY = "delete-service";
 	
 	public static final String OK = "OK";
 	public static final String QUESTION_MARK = "?";

@@ -96,9 +96,13 @@ public class DataServicesLibraryScreen extends Composite {
     
     @OnStartup
     public void onStartup( final PlaceRequest place ) {
-    	String serviceName = place.getParameter(Constants.SERVICE_NAME_KEY, "NONE");
-    	if(!serviceName.equals("NONE")) {
-    		doRemoveService(serviceName);
+    	// Process delete and clone requests from serviceWidget
+    	String deleteName = place.getParameter(Constants.DELETE_SERVICE_KEY, "NONE");
+    	String cloneName = place.getParameter(Constants.CLONE_SERVICE_KEY, "NONE");
+    	if(!deleteName.equals("NONE")) {
+    		doRemoveService(deleteName);
+    	} else if(!cloneName.equals("NONE")) {
+    		doCloneService(cloneName);
     	} else {
     		doGetServices();
     	}
@@ -175,6 +179,43 @@ public class DataServicesLibraryScreen extends Composite {
     	modelNameTypeMap.put(serviceName, Constants.VIRTUAL);
     	
     	vdbService.removeModelsAndRedeploy(Constants.SERVICES_VDB, 1, modelNameTypeMap, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+    		@Override
+    		public void onReturn(VdbDetailsBean vdbDetailsBean) {
+    			List<ServiceRow> serviceTableRows = new ArrayList<ServiceRow>();
+    			
+    			Collection<VdbModelBean> modelList = vdbDetailsBean.getModels();
+    			for(VdbModelBean model : modelList) {
+    				String modelName = model.getName();
+    				String description = model.getDescription();
+    				String modelType = model.getType();
+    				boolean isVisible = model.isVisible();
+    				if(modelType.equals(Constants.VIRTUAL)) {
+						ServiceRow srow = new ServiceRow();
+						srow.setName(modelName);
+						srow.setDescription(description);
+						srow.setVisible(isVisible);
+						serviceTableRows.add(srow);
+    				}
+    			}
+    			if(serviceTableRows.isEmpty()) {
+    				placeManager.goTo("DataServicesEmptyLibraryScreen");
+
+    			} else {
+    		     	populateGrid(serviceTableRows);
+    				//servicesTable.setData(serviceTableRows);
+    			}
+    		}
+    		@Override
+    		public void onError(Throwable error) {
+//    			notificationService.completeProgressNotification(notificationBean.getUuid(),
+//    					i18n.format("vdbdetails.delete-error"), //$NON-NLS-1$
+//    					error);
+    		}
+    	});
+    }
+    
+    protected void doCloneService(String serviceName) {
+    	vdbService.cloneViewModelAndRedeploy(Constants.SERVICES_VDB, 1, serviceName, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
     		@Override
     		public void onReturn(VdbDetailsBean vdbDetailsBean) {
     			List<ServiceRow> serviceTableRows = new ArrayList<ServiceRow>();

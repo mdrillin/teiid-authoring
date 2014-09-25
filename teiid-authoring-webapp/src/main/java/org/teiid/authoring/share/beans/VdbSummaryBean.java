@@ -42,6 +42,7 @@ public class VdbSummaryBean {
     private Date updatedOn;
     private Map<String, String> properties = new HashMap<String, String>();
     private boolean testable = false;
+    private String serverHost;
     
     /**
      * Constructor.
@@ -126,6 +127,14 @@ public class VdbSummaryBean {
      */
     public boolean isTestable() {
         return testable;
+    }
+    
+    /**
+     * Get the server hostname this vdb is running on
+     * @return the server hostname
+     */
+    public String getServerHost() {
+        return serverHost;
     }
 
     /**
@@ -220,6 +229,14 @@ public class VdbSummaryBean {
      */
     public void setTestable(boolean testable) {
         this.testable = testable;
+    }
+    
+    /**
+     * Set the server hostname this vdb is running on
+     * @return the server hostname
+     */
+    public void setServerHost(String hostName) {
+        this.serverHost = hostName;
     }
 
     /**

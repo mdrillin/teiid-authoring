@@ -278,8 +278,13 @@ public class EditDataServiceScreen extends Composite {
     	sb.append(theCols+"\n");
     	
     	List<String> colNames = columnsTable.getSelectedColumnNames();
+    	// Types hardcoded to string for now
+    	List<String> typeNames = new ArrayList<String>(colNames.size());
+    	for(String colName : colNames) {
+    		typeNames.add("string");
+    	}
     	
-    	String viewString = DdlHelper.getViewDdl(Constants.SERVICE_VIEW_NAME, null, theTable, colNames);
+    	String viewString = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, typeNames);
     	viewDdlTextArea.setText(viewString);    	
     }
     

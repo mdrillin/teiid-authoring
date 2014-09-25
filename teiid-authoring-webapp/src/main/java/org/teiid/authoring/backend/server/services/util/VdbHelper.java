@@ -536,7 +536,92 @@ public class VdbHelper {
 
 		return newVdb;
 	}
+	
+	/**
+	 * Clone the supplied view models from the supplied VDB - if they exist. The new VDB is returned.
+	 * @param vdb the VDB
+	 * @param viewModelNames the List of View Model names to clone in the supplied vdb
+	 * @return the new VDB
+	 */
+	public VDBMetaData cloneViewModel(VDBMetaData vdb, String viewModelName) {                
+		String vdbName = vdb.getName();
+		int vdbVersion = vdb.getVersion();
+		
+		// Get current vdb imports
+		List<VDBImportMetadata> currentVdbImports = getVdbImports(vdb);
+		List<ModelMetaData> currentViewModels = getVdbViewModels(vdb);
+		List<String> existingViewNames = new ArrayList<String>(currentViewModels.size());
+		for(ModelMetaData modelMeta : currentViewModels) {
+			existingViewNames.add(modelMeta.getName());
+		}
+		Properties currentProperties = getVdbProperties(vdb);
 
+		// Clear any prior Model Messages (needed for successful redeploy)
+		clearModelMessages(currentViewModels);
+
+		// Create a new vdb
+		VDBMetaData newVdb = createVdb(vdbName,vdbVersion);
+
+		// The new View Model list is all current models, plus clones
+		List<ModelMetaData> newViewModels = new ArrayList<ModelMetaData>();
+		// Iterate the list of names to clone
+		for(Model model: currentViewModels) {
+			ModelMetaData modelMeta = (ModelMetaData)model;
+			// Add existing view model
+			newViewModels.add(modelMeta);
+
+			// Find the model and clone it
+			String theModelName = model.getName();
+			if(theModelName.equals(viewModelName)) {
+				// Create View Model and add to current view models
+				String newViewName = generateUniqueName(theModelName,existingViewNames);
+				String description = model.getDescription();
+				boolean isVisible = model.isVisible();
+				String ddlString = modelMeta.getSchemaText();
+				ModelMetaData modelMetaData = createViewModel(newViewName,description,ddlString,isVisible);
+
+				newViewModels.add(modelMetaData);
+			}
+		}
+
+		newVdb.setModels(newViewModels);
+
+		// Transfer the existing properties
+		newVdb.setProperties(currentProperties);
+
+		// The imports are unchanged
+		List<VDBImportMetadata> newImports = new ArrayList<VDBImportMetadata>();
+		for(VDBImportMetadata vdbImport: currentVdbImports) {
+			newImports.add((VDBImportMetadata)vdbImport);
+		}
+		newVdb.getVDBImports().addAll(newImports);
+
+		return newVdb;
+	}
+
+	private String generateUniqueName(String origName, List<String> existingNames) {
+		// If the name is already unique, return it.
+		if(!existingNames.contains(origName)) {
+			return origName;
+		}
+		// Iterate generating new names until a good one is found
+		String newName = null;
+		boolean success = false;
+		int i = 1;
+		while(!success) {
+			if(i==1) {
+			    newName = origName + "_copy";
+			} else {
+				newName = origName + "_copy" + i;
+			}
+			if(!existingNames.contains(newName)) {
+				success=true;
+			}
+			i++;
+		}
+		return newName;
+	}
+	
 	public String getVDBStatusMessage(VDBMetaData vdb) throws DataVirtUiException {
     	if(vdb!=null) {
     		Status vdbStatus = vdb.getStatus();

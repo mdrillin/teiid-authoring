@@ -165,5 +165,16 @@ public class VdbRpcService {
             errorCallback.error(null, e);
         }
     }
+    
+    public void cloneViewModelAndRedeploy(String vdbName, int modelsPageNumber, String viewModelName, 
+    		final IRpcServiceInvocationHandler<VdbDetailsBean> handler) {
+        RemoteCallback<VdbDetailsBean> successCallback = new DelegatingRemoteCallback<VdbDetailsBean>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteVdbService.call(successCallback, errorCallback).cloneViewModelAndRedeploy(vdbName, modelsPageNumber,viewModelName);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
 
 }
