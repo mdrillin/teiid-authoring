@@ -32,7 +32,7 @@ import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.VdbRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.utils.DdlHelper;
-import org.teiid.authoring.client.widgets.ColRow;
+import org.teiid.authoring.client.widgets.CheckableNameRow;
 import org.teiid.authoring.client.widgets.ColumnNamesTable;
 import org.teiid.authoring.client.widgets.DataSourceNamesTable;
 import org.teiid.authoring.client.widgets.TablesProcNamesTable;
@@ -44,6 +44,7 @@ import org.teiid.authoring.share.beans.QueryTableProcBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbModelBean;
 import org.teiid.authoring.share.beans.ViewModelRequestBean;
+import org.teiid.authoring.share.services.StringUtils;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
@@ -53,9 +54,12 @@ import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.KeyUpEvent;
+import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.view.client.SelectionChangeEvent;
@@ -72,7 +76,6 @@ public class EditDataServiceScreen extends Composite {
 
 	private Map<String,String> sourceNameToJndiMap = new HashMap<String,String>();
 	private Map<String,String> shortToLongTableNameMap = new HashMap<String,String>();
-	private String selectedDataSource = null;
 	private String selectedTable = null;
 	
     @Inject
@@ -94,6 +97,9 @@ public class EditDataServiceScreen extends Composite {
     @Inject @DataField("radios-edit-service-visibility")
     protected VisibilityRadios serviceVisibleRadios;
     
+    @Inject @DataField("label-edit-service-status")
+    protected Label statusLabel;
+    
     @Inject @DataField("table-datasources")
     protected DataSourceNamesTable dsTable;
     
@@ -106,6 +112,9 @@ public class EditDataServiceScreen extends Composite {
     @Inject @DataField("btn-edit-service-createDdl")
     protected Button createDdlButton;
     
+    @Inject @DataField("btn-edit-service-addToDdl")
+    protected Button addToDdlButton;
+        
     @Inject @DataField("btn-edit-service-manage-sources")
     protected Button manageSourceButton;
     
@@ -140,16 +149,15 @@ public class EditDataServiceScreen extends Composite {
     	doGetQueryableSources(false);
 
     	// SelectionModel to handle Source selection 
-    	final SingleSelectionModel<String> dsSelectionModel = new SingleSelectionModel<String>();
+    	final SingleSelectionModel<CheckableNameRow> dsSelectionModel = new SingleSelectionModel<CheckableNameRow>();
     	dsTable.setSelectionModel(dsSelectionModel); 
     	dsSelectionModel. addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
     		public void onSelectionChange( SelectionChangeEvent event) { 
     			tablesAndProcsTable.clear();
     			columnsTable.clear();
-    			String selected = dsSelectionModel.getSelectedObject();
-    			selectedDataSource = selected;
-    			if (selected != null) {
-    				doGetTablesAndProcs(selected);
+    			CheckableNameRow selectedRow = dsSelectionModel.getSelectedObject();
+    			if (selectedRow != null) {
+    				doGetTablesAndProcs(selectedRow.getName());
     			}
     		} });
 
@@ -161,11 +169,26 @@ public class EditDataServiceScreen extends Composite {
     			String selected = tableSelectionModel.getSelectedObject();
     			selectedTable = selected;
     			if (selected != null) {
-    				String theSource = dsSelectionModel.getSelectedObject();
+    				CheckableNameRow theSource = dsSelectionModel.getSelectedObject();
     				String longTableName = shortToLongTableNameMap.get(selected);
-    				doGetTableColumns(theSource, longTableName, 1);
+    				doGetTableColumns(theSource.getName(), longTableName, 1);
     			}
     		} });
+    	
+    	
+    	serviceNameTextBox.addKeyUpHandler(new KeyUpHandler() {
+            @Override
+            public void onKeyUp(KeyUpEvent event) {
+            	updateStatus();
+            }
+        });
+    	
+    	viewDdlTextArea.addKeyUpHandler(new KeyUpHandler() {
+            @Override
+            public void onKeyUp(KeyUpEvent event) {
+            	updateStatus();
+            }
+        });
     	
     	doGetDataServiceDetails(serviceName);
     }
@@ -179,10 +202,10 @@ public class EditDataServiceScreen extends Composite {
             public void onReturn(Map<String,String> sourceToJndiMap) {
             	sourceNameToJndiMap.clear();
             	sourceNameToJndiMap.putAll(sourceToJndiMap);
-            	List<String> dsList = new ArrayList<String>();
+            	List<CheckableNameRow> dsList = new ArrayList<CheckableNameRow>();
             	for(String dsName : sourceNameToJndiMap.keySet()) {
             		if(dsName.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX)) {
-            			dsList.add(dsName);
+            			dsList.add(createCheckableNameRow(dsName, false));
             		}
             	}
             	dsTable.setData(dsList);
@@ -193,7 +216,14 @@ public class EditDataServiceScreen extends Composite {
             }
         });
     }
-    
+ 
+    private CheckableNameRow createCheckableNameRow(String name, boolean isSelected) {
+		CheckableNameRow cRow = new CheckableNameRow();
+		cRow.setName(name);
+		cRow.setChecked(isSelected);
+		return cRow;
+    }
+
     /**
      * Get the Tables and Procs for the supplied data source
      * @param dataSourceName the name of the source
@@ -237,10 +267,10 @@ public class EditDataServiceScreen extends Composite {
         			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
         		@Override
         		public void onReturn(QueryColumnResultSetBean data) {
-        			List<ColRow> colList = new ArrayList<ColRow>();
+        			List<CheckableNameRow> colList = new ArrayList<CheckableNameRow>();
         			List<QueryColumnBean> qColumns = data.getQueryColumns();
         			for(QueryColumnBean col : qColumns) {
-        				ColRow cRow = new ColRow();
+        				CheckableNameRow cRow = new CheckableNameRow();
         				cRow.setName(col.getName());
         				colList.add(cRow);
         			}
@@ -258,24 +288,12 @@ public class EditDataServiceScreen extends Composite {
     }
     
     /**
-     * Event handler that fires when the user clicks the showView button.
+     * Event handler that fires when the user clicks the create markup button.
      * @param event
      */
     @EventHandler("btn-edit-service-createDdl")
-    public void onShowViewButtonClick(ClickEvent event) {
-    	StringBuilder sb = new StringBuilder();
-    	sb.append(" DataSource: ");
-    	String theSource = (selectedDataSource==null) ? "NULL" : selectedDataSource;
-    	sb.append(theSource+"\n");
-    	
-    	sb.append(" Table: ");
+    public void onCreateDdlButtonClick(ClickEvent event) {
     	String theTable = (selectedTable==null) ? "NULL" : selectedTable;
-    	sb.append(theTable+"\n");
-    	
-    	sb.append(" Columns: ");
-    	String colString = columnsTable.getSelectedRowString();
-    	String theCols = (colString==null) ? "NONE SELECTED" : colString;
-    	sb.append(theCols+"\n");
     	
     	List<String> colNames = columnsTable.getSelectedColumnNames();
     	// Types hardcoded to string for now
@@ -285,9 +303,53 @@ public class EditDataServiceScreen extends Composite {
     	}
     	
     	String viewString = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, typeNames);
-    	viewDdlTextArea.setText(viewString);    	
+    	viewDdlTextArea.setText(viewString);  
+    	
+    	updateStatus();
     }
     
+    /**
+     * Event handler that fires when the user clicks the Add to markup button.
+     * @param event
+     */
+    @EventHandler("btn-edit-service-addToDdl")
+    public void onAddToDdlButtonClick(ClickEvent event) {
+    	String colString = columnsTable.getSelectedRowString();
+
+    	String currentDdl = viewDdlTextArea.getText();
+    	
+    	viewDdlTextArea.setText(currentDdl+"\n"+colString);  
+    	
+    	updateStatus();
+    }
+    
+    private void updateStatus( ) {
+    	boolean isOK = true;
+    	
+    	// Warning for missing service name
+    	String serviceName = serviceNameTextBox.getText();
+    	if(StringUtils.isEmpty(serviceName)) {
+    		statusLabel.setText("Please enter a name for your service");
+    		isOK = false;
+    	}
+    	
+		// Check for missing view DDL - if serviceName passed
+    	if(isOK) {
+    		String viewDdl = viewDdlTextArea.getText();
+    		if(StringUtils.isEmpty(viewDdl)) {
+    			statusLabel.setText("Please create the View markup");
+    			isOK = false;
+    		}
+    	}
+    	
+    	if(isOK) {
+    		statusLabel.setText("Click 'Save Changes' to save your service");
+    		saveServiceButton.setEnabled(true);
+    	} else {
+    		saveServiceButton.setEnabled(false);
+    	}
+    }
+        
     /**
      * Get the Data Service details to populate the page
      * @param serviceName the name of the service
@@ -310,6 +372,9 @@ public class EditDataServiceScreen extends Composite {
             			viewDdlTextArea.setText(ddl);
             		}
             	}
+            	
+            	// Set the initial status
+            	updateStatus();
 //            	currentVdbDetails = vdbDetailsBean;
 //            	String title = "Virtual Database : "+vdbDetailsBean.getName();
 //            	pageTitle.setText(title);
@@ -343,12 +408,14 @@ public class EditDataServiceScreen extends Composite {
     	final String viewModel = serviceName;
     	String viewDdl = viewDdlTextArea.getText();
     	boolean isVisible = serviceVisibleRadios.isVisibleSelected();
+    	List<String> rqdImportVdbNames = dsTable.getSelectedSourceNames();
     	
     	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
     	viewModelRequest.setName(serviceName);
     	viewModelRequest.setDescription(serviceDescription);
     	viewModelRequest.setDdl(viewDdl);
     	viewModelRequest.setVisible(isVisible);
+    	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
     	    	
         vdbService.addOrReplaceViewModelAndRedeploy("ServicesVDB", 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override

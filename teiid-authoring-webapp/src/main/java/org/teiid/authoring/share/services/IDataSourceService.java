@@ -25,6 +25,7 @@ import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.beans.DataSourceResultSetBean;
 import org.teiid.authoring.share.beans.DataSourceTypeResultSetBean;
+import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 import org.uberfire.paging.PageRequest;
 import org.uberfire.paging.PageResponse;
@@ -37,7 +38,7 @@ import org.uberfire.paging.PageResponse;
 @Remote
 public interface IDataSourceService {
 
-    public List<DataSourcePageRow> getDataSources( final String filters) throws DataVirtUiException;
+    public List<DataSourcePageRow> getDataSources( final String filters, final String sourceVdbPrefix) throws DataVirtUiException;
 
     public PageResponse<DataSourcePageRow> getDataSources( final PageRequest pageRequest, final String filters) throws DataVirtUiException;
     		
@@ -52,6 +53,8 @@ public interface IDataSourceService {
     public DataSourceResultSetBean search(String searchText, int page, String sortColumnId, boolean sortAscending) throws DataVirtUiException;
 
     public DataSourceDetailsBean getDataSourceDetails(String dsName) throws DataVirtUiException;
+    
+    public DataSourceWithVdbDetailsBean getDataSourceWithVdbDetails(String dsName) throws DataVirtUiException;
 
     public List<String> getDataSourceTypes( ) throws DataVirtUiException;
 
@@ -68,6 +71,8 @@ public interface IDataSourceService {
     public List<DataSourcePropertyBean> getDataSourceTypeProperties(String dsType) throws DataVirtUiException;
 
     public void createDataSource(DataSourceDetailsBean dataSource) throws DataVirtUiException;
+    
+    public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean dataSourceWithVdb) throws DataVirtUiException;
 
     public void deleteDataSource(String dsName) throws DataVirtUiException;
 

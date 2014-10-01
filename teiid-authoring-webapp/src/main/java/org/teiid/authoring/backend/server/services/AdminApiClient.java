@@ -614,6 +614,7 @@ public class AdminApiClient {
      */
 	public void deleteVDB(String vdbName) throws AdminApiClientException {
 		VDBMetaData vdb = getVDB(vdbName,1);
+		if(vdb==null) return;
 		
 		// Get the VDB deployment name
 		VdbHelper vdbHelper = VdbHelper.getInstance();

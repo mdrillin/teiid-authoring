@@ -32,10 +32,15 @@
         <form class="form-horizontal" role="form">
 	    
         <!-- Page Title Info -->
-        <h2>Edit Data Service</h2>
-        <p>
-          A custom data service containing data you need to access in your applications.
-        </p>
+        <h3>Edit Data Service</h3>
+        <div>A custom data service containing data you need to access in your applications.</div>
+        
+        <div class="form-group">
+          <div class="col-md-6">
+            <div class="alert alert-info" role="alert" data-field="label-edit-service-status"></div>
+          </div>
+          <div class="col-md-6"></div>
+        </div>
         
         <div class="form-group">
           <div class="col-md-3">
@@ -71,7 +76,6 @@
         
         <div class="form-group">
           <div class="col-md-12">
-            <button data-field="btn-edit-service-createDdl" class="btn btn-default"><span class="glyphicon glyphicon-arrow-up"></span>Generate View</button>
             <button data-field="btn-edit-service-manage-sources" class="btn btn-default">Manage Sources</button>
           </div>
         </div>
@@ -88,6 +92,14 @@
           </div>
         </div>
 
+        <div class="form-group">
+          <div class="col-md-3"></div>
+          <div class="col-md-9">
+            <button data-field="btn-edit-service-createDdl" class="btn btn-default">Create markup</button>
+            <button data-field="btn-edit-service-addToDdl" class="btn btn-default">Add fields to markup</button>
+          </div>
+        </div>
+        
         <div class="form-group">
           <div class="col-md-12">
             <button data-field="btn-edit-service-save" class="btn btn-primary">Save Changes</button>

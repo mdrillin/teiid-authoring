@@ -29,5 +29,62 @@ public interface AppImages extends ClientBundle {
     
     @Source("images/EmptyLibraryImage.jpg")
     ImageResource emptyLibraryImage();
+    
+    @Source("images/Error_16x16.png")
+    ImageResource errorIcon16x16Image();
+    
+    @Source("images/Error_32x32.png")
+    ImageResource errorIcon32x32Image();
+    
+    @Source("images/Warning_16x16.png")
+    ImageResource warningIcon16x16Image();
+    
+    @Source("images/Warning_32x32.png")
+    ImageResource warningIcon32x32Image();
+    
+    @Source("images/Ok_16x16.png")
+    ImageResource okIcon16x16Image();
+    
+    @Source("images/Ok_32x32.png")
+    ImageResource okIcon32x32Image();
+    
+    @Source("images/dstype_blankbox.png")
+    ImageResource dsType_blankbox_Image();
+
+    @Source("images/dstype_google.png")
+    ImageResource dsType_google_Image();
+
+    @Source("images/dstype_h2.png")
+    ImageResource dsType_h2_Image();
+
+    @Source("images/dstype_infinispan.png")
+    ImageResource dsType_infinispan_Image();
+
+    @Source("images/dstype_modeshape.png")
+    ImageResource dsType_modeshape_Image();
+
+    @Source("images/dstype_mongodb.png")
+    ImageResource dsType_mongodb_Image();
+
+    @Source("images/dstype_mysql.png")
+    ImageResource dsType_mysql_Image();
+
+    @Source("images/dstype_postgres.png")
+    ImageResource dsType_postgres_Image();
+
+    @Source("images/dstype_salesforce.png")
+    ImageResource dsType_salesforce_Image();
+
+    @Source("images/dstype_teiid.png")
+    ImageResource dsType_teiid_Image();
+    
+    @Source("images/dstype_ldap.png")
+    ImageResource dsType_ldap_Image();
+    
+    @Source("images/dstype_file.png")
+    ImageResource dsType_file_Image();
+    
+    @Source("images/dstype_webservice.png")
+    ImageResource dsType_webservice_Image();
 
 }

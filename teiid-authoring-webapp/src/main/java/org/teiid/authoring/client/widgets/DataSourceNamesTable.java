@@ -15,10 +15,14 @@
  */
 package org.teiid.authoring.client.widgets;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.gwt.cell.client.CheckboxCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -37,7 +41,7 @@ public class DataSourceNamesTable extends Composite {
     protected FlowPanel panel = new FlowPanel();
     protected Label label = new Label();
 
-    private SimpleTable<String> table;
+    private SimpleTable<CheckableNameRow> table;
 
     public DataSourceNamesTable() {
         initWidget( panel );
@@ -49,10 +53,32 @@ public class DataSourceNamesTable extends Composite {
      * @return the panel widget
      */
     protected Widget createTablePanel() {
-    	table = new SimpleTable<String>();
-        TextColumn<String> nameColumn = new TextColumn<String>() {
-            public String getValue( String row ) {
-                return row;
+    	table = new SimpleTable<CheckableNameRow>();
+    	
+        // Add Checkbox column
+    	Column<CheckableNameRow, Boolean> checkboxColumn= new Column<CheckableNameRow, Boolean>(new CheckboxCell(true,false))
+    			{
+    		@Override
+    		public Boolean getValue(CheckableNameRow object)
+    		{
+    			if(object == null) return false;
+    			return object.isChecked();
+    		}
+    	};
+    	checkboxColumn.setFieldUpdater(new FieldUpdater<CheckableNameRow, Boolean>() {
+    	    public void update(int index, CheckableNameRow object, Boolean value) {
+    	    	object.setChecked(value);
+    	    }
+    	});
+    	table.addColumn(checkboxColumn, "");
+    	table.setColumnWidth(checkboxColumn, 40, Unit.PX);
+    		        
+        // --------------
+    	// Name Column
+    	// --------------
+        TextColumn<CheckableNameRow> nameColumn = new TextColumn<CheckableNameRow>() {
+            public String getValue( CheckableNameRow row ) {
+                return row.getName();
             }
         };
         table.addColumn( nameColumn, COLUMN_HEADER_NAME );
@@ -70,7 +96,20 @@ public class DataSourceNamesTable extends Composite {
     	setData(Collections.EMPTY_LIST);
     }
     
-    public void setData(List<String> rows) {
+    public List<String> getSelectedSourceNames() {
+    	List<String> colNames = new ArrayList<String>();
+    	
+    	List<CheckableNameRow> rows = table.getRowData();
+    	for(CheckableNameRow row : rows) {
+    		if(row.isChecked() && row.getName()!=null) {
+    			colNames.add(row.getName());
+    		}
+    	}
+    	
+    	return colNames;
+    }
+    
+    public void setData(List<CheckableNameRow> rows) {
     	table.setRowData(rows);
     }
     

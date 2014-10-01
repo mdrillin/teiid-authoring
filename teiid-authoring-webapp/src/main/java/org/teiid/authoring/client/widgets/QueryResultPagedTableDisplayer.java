@@ -28,6 +28,7 @@ import org.uberfire.paging.PageResponse;
 
 import com.github.gwtbootstrap.client.ui.Button;
 import com.github.gwtbootstrap.client.ui.constants.IconType;
+import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -105,6 +106,7 @@ public class QueryResultPagedTableDisplayer extends Composite {
             }
         } );
         table.getToolbar().add( refreshButton );
+        table.setWidth("100%");
         
         VerticalPanel verticalPanel = new VerticalPanel();
         verticalPanel.add(table);
@@ -131,6 +133,7 @@ public class QueryResultPagedTableDisplayer extends Composite {
 		    			}
 		    		};
 		    		table.addColumn(col,colNames.get(i));
+		    		table.setColumnWidth(col, 200, Style.Unit.PX);
 		    	}
 	    		
 	            final Button refreshButton = new Button();
@@ -142,6 +145,7 @@ public class QueryResultPagedTableDisplayer extends Composite {
 	                }
 	            } );
 	            table.getToolbar().add( refreshButton );
+	            table.setWidth("100%");
 	           
 	            verticalPanel.add(table);
 	            tableWidget = verticalPanel;

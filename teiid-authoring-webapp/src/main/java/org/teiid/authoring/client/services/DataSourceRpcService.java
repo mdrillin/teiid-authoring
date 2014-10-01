@@ -15,6 +15,7 @@
  */
 package org.teiid.authoring.client.services;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.share.beans.DataSourceDetailsBean;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
+import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 import org.teiid.authoring.share.services.IDataSourceService;
 import org.uberfire.paging.PageRequest;
@@ -74,16 +76,26 @@ public class DataSourceRpcService {
 //            errorCallback.error(null, e);
 //        }
 //    }
-//    
-//    public void getDataSourceDetails(String dsName, final IRpcServiceInvocationHandler<DataSourceDetailsBean> handler) {
-//        RemoteCallback<DataSourceDetailsBean> successCallback = new DelegatingRemoteCallback<DataSourceDetailsBean>(handler);
-//        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
-//        try {
-//        	remoteDataSourceService.call(successCallback, errorCallback).getDataSourceDetails(dsName);
-//        } catch (DataVirtUiException e) {
-//            errorCallback.error(null, e);
-//        }
-//    }
+    
+    public void getDataSourceDetails(String dsName, final IRpcServiceInvocationHandler<DataSourceDetailsBean> handler) {
+        RemoteCallback<DataSourceDetailsBean> successCallback = new DelegatingRemoteCallback<DataSourceDetailsBean>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteDataSourceService.call(successCallback, errorCallback).getDataSourceDetails(dsName);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
+    public void getDataSourceWithVdbDetails(String dsName, final IRpcServiceInvocationHandler<DataSourceWithVdbDetailsBean> handler) {
+        RemoteCallback<DataSourceWithVdbDetailsBean> successCallback = new DelegatingRemoteCallback<DataSourceWithVdbDetailsBean>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteDataSourceService.call(successCallback, errorCallback).getDataSourceWithVdbDetails(dsName);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
 
     public void getDataSourceTypes(final IRpcServiceInvocationHandler<List<String>> handler) {
         RemoteCallback<List<String>> successCallback = new DelegatingRemoteCallback<List<String>>(handler);
@@ -95,11 +107,11 @@ public class DataSourceRpcService {
         }
     }
     
-    public void getDataSources(final String filter, final IRpcServiceInvocationHandler<List<DataSourcePageRow>> handler) {
+    public void getDataSources(final String filter, final String srcVdbPrefix, final IRpcServiceInvocationHandler<List<DataSourcePageRow>> handler) {
         RemoteCallback<List<DataSourcePageRow>> successCallback = new DelegatingRemoteCallback<List<DataSourcePageRow>>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
-        	remoteDataSourceService.call(successCallback, errorCallback).getDataSources(filter);
+        	remoteDataSourceService.call(successCallback, errorCallback).getDataSources(filter,srcVdbPrefix);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }
@@ -145,16 +157,16 @@ public class DataSourceRpcService {
         }
     }
 
-//    public void getDefaultTranslatorMap(final IRpcServiceInvocationHandler<Map<String,String>> handler) {
-//        RemoteCallback<Map<String,String>> successCallback = new DelegatingRemoteCallback<Map<String,String>>(handler);
-//        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
-//        try {
-//        	remoteDataSourceService.call(successCallback, errorCallback).getDefaultTranslatorMap();
-//        } catch (DataVirtUiException e) {
-//            errorCallback.error(null, e);
-//        }
-//    }
-//
+    public void getDefaultTranslatorMap(final IRpcServiceInvocationHandler<Map<String,String>> handler) {
+        RemoteCallback<Map<String,String>> successCallback = new DelegatingRemoteCallback<Map<String,String>>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteDataSourceService.call(successCallback, errorCallback).getDefaultTranslatorMap();
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+
 //    public void getDataSourceTypeResultSet(int page, String sortColumnId, boolean sortAscending, 
 //    		final IRpcServiceInvocationHandler<DataSourceTypeResultSetBean> handler) {
 //        RemoteCallback<DataSourceTypeResultSetBean> successCallback = new DelegatingRemoteCallback<DataSourceTypeResultSetBean>(handler);
@@ -185,17 +197,27 @@ public class DataSourceRpcService {
             errorCallback.error(null, e);
         }
     }
+    
+    public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean dataSourceWithVdb, final IRpcServiceInvocationHandler<Void> handler) {
+        RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteDataSourceService.call(successCallback, errorCallback).createDataSourceWithVdb(dataSourceWithVdb);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
 
-//    public void deleteDataSources(Collection<String> dsNames, final IRpcServiceInvocationHandler<Void> handler) {
-//        RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
-//        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
-//        try {
-//        	remoteDataSourceService.call(successCallback, errorCallback).deleteDataSources(dsNames);
-//        } catch (DataVirtUiException e) {
-//            errorCallback.error(null, e);
-//        }
-//    }
-//    
+    public void deleteDataSources(Collection<String> dsNames, final IRpcServiceInvocationHandler<Void> handler) {
+        RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteDataSourceService.call(successCallback, errorCallback).deleteDataSources(dsNames);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
 //    public void deleteTypes(Collection<String> dsTypes, final IRpcServiceInvocationHandler<Void> handler) {
 //        RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
 //        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);

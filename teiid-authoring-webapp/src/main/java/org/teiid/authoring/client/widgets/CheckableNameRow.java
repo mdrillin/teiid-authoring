@@ -1,6 +1,6 @@
 package org.teiid.authoring.client.widgets;
 
-public class ColRow {
+public class CheckableNameRow {
 	
 	private String name;
 	private boolean isChecked = false;

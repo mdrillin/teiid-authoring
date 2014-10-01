@@ -27,10 +27,12 @@ import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
 import org.teiid.adminapi.PropertyDefinition;
+import org.teiid.adminapi.impl.VDBMetaData;
 import org.teiid.authoring.backend.server.api.AdminApiClientAccessor;
 import org.teiid.authoring.backend.server.services.util.FilterUtil;
 import org.teiid.authoring.backend.server.services.util.JdbcSourceHelper;
 import org.teiid.authoring.backend.server.services.util.TranslatorHelper;
+import org.teiid.authoring.backend.server.services.util.VdbHelper;
 import org.teiid.authoring.share.beans.Constants;
 import org.teiid.authoring.share.beans.DataSourceDetailsBean;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
@@ -39,6 +41,9 @@ import org.teiid.authoring.share.beans.DataSourceResultSetBean;
 import org.teiid.authoring.share.beans.DataSourceSummaryBean;
 import org.teiid.authoring.share.beans.DataSourceTypeBean;
 import org.teiid.authoring.share.beans.DataSourceTypeResultSetBean;
+import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
+import org.teiid.authoring.share.beans.VdbDetailsBean;
+import org.teiid.authoring.share.beans.VdbModelBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 import org.teiid.authoring.share.services.IDataSourceService;
 import org.teiid.authoring.share.services.StringUtils;
@@ -60,6 +65,9 @@ public class DataSourceService implements IDataSourceService {
 
     @Inject
     private AdminApiClientAccessor clientAccessor;
+    
+    @Inject
+    private VdbService vdbService;
 
     /**
      * Constructor.
@@ -124,8 +132,15 @@ public class DataSourceService implements IDataSourceService {
     	return response;
     }
     
-    public List<DataSourcePageRow> getDataSources( final String filters ) {
+    /**
+     * Find all of the 'raw' server sources (not preview sources).  For each source, get the type.
+     * Also, check for a corresponding VDB with the supplied prefix.  If found, set the VDB flag and translator
+     * @param filters filter string
+     * @param srcVdbPrefix source VDB prefix for the corresponding src vdb
+     */
+    public List<DataSourcePageRow> getDataSources( final String filters, final String srcVdbPrefix ) {
 
+    	// Get list of all Server Sources (except preview vdb sources)
     	List<String> filteredDsList = new ArrayList<String>();
 		try {
 			List<String> allDSList = getDataSourceNames();
@@ -140,7 +155,10 @@ public class DataSourceService implements IDataSourceService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		// Get types corresponding to the sources
 		List<String> typeList = new ArrayList<String>(filteredDsList.size());
+		List<Boolean> hasSrcVdbList = new ArrayList<Boolean>(filteredDsList.size());
 		for(String sourceName : filteredDsList) {
 			// Get Data Source properties
 			Properties dsProps = null;
@@ -152,22 +170,32 @@ public class DataSourceService implements IDataSourceService {
 			// Determine type/driver from properties
 			String dsType = getDataSourceType(dsProps);
 			typeList.add(dsType);
+			
+			// Determine type/driver from properties
+			boolean hasSrcVdb = hasSourceVdb(sourceName,srcVdbPrefix,filteredDsList);
+			hasSrcVdbList.add(Boolean.valueOf(hasSrcVdb));
 		}
 
-    	final List<DataSourcePageRow> resultDSPageRowList = new ArrayList<DataSourcePageRow>();
-
+		// Create the result list
+    	List<DataSourcePageRow> resultDSPageRowList = new ArrayList<DataSourcePageRow>();
     	int i = 0;
     	for ( String dsName : filteredDsList ) {
     		DataSourcePageRow dataSourcePageRow = new DataSourcePageRow();
     		dataSourcePageRow.setName( dsName );
     		dataSourcePageRow.setType(typeList.get(i));
+    		dataSourcePageRow.setHasVdb(hasSrcVdbList.get(i));
     		resultDSPageRowList.add( dataSourcePageRow );
     		i++;
     	}
-
+    	
     	return resultDSPageRowList;
     }
     
+    private boolean hasSourceVdb(String dsName, String vdbPrefix, List<String> allDsNames) {
+    	String srcVdbName = vdbPrefix + dsName;
+    	return allDsNames.contains(srcVdbName);
+    }
+        
     @Override
     public DataSourceResultSetBean search(String searchText, int page, String sortColumnId, boolean sortAscending) throws DataVirtUiException {
         int pageSize = Constants.DATASOURCES_TABLE_PAGE_SIZE; 
@@ -346,6 +374,81 @@ public class DataSourceService implements IDataSourceService {
     	dsDetailsBean.setProperties(dataSourcePropertyBeans);
 
     	return dsDetailsBean;
+    }
+    
+    @Override
+    public DataSourceWithVdbDetailsBean getDataSourceWithVdbDetails(String dsName) throws DataVirtUiException {
+    	String srcVdbName = Constants.SERVICE_SOURCE_VDB_PREFIX+dsName;
+    	
+    	// Create DataSource Details Bean - set name
+    	DataSourceWithVdbDetailsBean dsWithVdbDetailsBean = new DataSourceWithVdbDetailsBean();
+    	dsWithVdbDetailsBean.setName(dsName);
+
+    	// Get Data Source properties
+    	Properties dsProps = null;
+    	try {
+			dsProps = clientAccessor.getClient().getDataSourceProperties(dsName);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+
+    	// Set jndi name
+    	dsWithVdbDetailsBean.setJndiName(dsProps.getProperty("jndi-name"));
+
+    	// Determine type/driver from properties
+    	String dsType = getDataSourceType(dsProps);
+    	dsWithVdbDetailsBean.setType(dsType);
+    	
+    	// Get the Default Properties for the DS type
+    	List<DataSourcePropertyBean> dataSourcePropertyBeans = getDataSourceTypeProperties(dsType);
+    	    	
+        // Set DS type default property to data source specific value
+        for(DataSourcePropertyBean propBean: dataSourcePropertyBeans) {
+            String propName = propBean.getName();
+            String propValue = dsProps.getProperty(propName);
+            if(dsProps.containsKey(propName)) {
+                propValue = dsProps.getProperty(propName);
+                if(propValue!=null) {
+                	propBean.setValue(propValue);
+                	propBean.setOriginalValue(propValue);
+                }
+            }
+        }
+        dsWithVdbDetailsBean.setProperties(dataSourcePropertyBeans);
+        
+        // Set the translator for the corresponding Src VDB (if it exists)
+        dsWithVdbDetailsBean.setTranslator(getTranslatorForSrcVdb(srcVdbName));
+        dsWithVdbDetailsBean.setSourceVdbName(srcVdbName);
+
+    	return dsWithVdbDetailsBean;
+    }
+    
+    private String getTranslatorForSrcVdb(String srcVdbName) throws DataVirtUiException {
+    	String translator = null;
+    	
+    	VDBMetaData vdb = null;
+    	try {
+    		vdb = clientAccessor.getClient().getVDB(srcVdbName,1);
+    	} catch (Exception e) {
+    		throw new DataVirtUiException(e.getMessage());
+    	}
+
+    	// Details for this VDB
+    	VdbDetailsBean vdbDetailsBean = VdbHelper.getInstance().getVdbDetails(vdb);
+    	// The modelName in VDB is same as VDB, but without the prefix
+    	String physModelName = srcVdbName.substring(srcVdbName.indexOf(Constants.SERVICE_SOURCE_VDB_PREFIX)+Constants.SERVICE_SOURCE_VDB_PREFIX.length());
+
+    	// Get source models from VDB, find matching model and get translator
+    	Collection<VdbModelBean> vdbModels = vdbDetailsBean.getModels();
+    	for(VdbModelBean vdbModel : vdbModels) {
+    		String modelName = vdbModel.getName();
+    		if(modelName.equals(physModelName)) {
+    			translator = vdbModel.getTranslator();
+    			break;
+    		}
+    	}
+
+        return translator;
     }
 
     /**
@@ -635,7 +738,84 @@ public class DataSourceService implements IDataSourceService {
 			throw new DataVirtUiException(e.getMessage());
 		}    	
     }
+    
+    public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean bean) throws DataVirtUiException {
+    	// First delete the server source and corresponding vdb source, if they exist
+    	deleteDataSource(bean.getName());
+    	
+    	// Create the 'Raw' Server source with connection properties
+    	List<DataSourcePropertyBean> dsPropBeans = bean.getProperties();
+    	Properties dsProps = new Properties();
+    	for(DataSourcePropertyBean dsPropBean : dsPropBeans) {
+    		dsProps.put(dsPropBean.getName(),dsPropBean.getValue());
+    	}
+    	try {
+			clientAccessor.getClient().createDataSource(bean.getName(), bean.getType(), dsProps);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}  
+    	
+    	// Get JNDI for the specified DataSource name.  if null choose a default
+    	String jndiName = getSourceJndiName(bean.getName());
+    	if(StringUtils.isEmpty(jndiName)) {
+    		jndiName = "java:/"+bean.getName();
+    	}
+    	
+    	// Delete Source VDB if it already exists
+    	List<String> vdbsToDelete = new ArrayList<String>(1);
+    	vdbsToDelete.add(bean.getSourceVdbName());
+    	vdbService.delete(vdbsToDelete);
+    	// Create the corresponding SrcVdb for the new source
+    	vdbService.deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator());
+    	
+    	// Create the teiid dataSource for the deployed source VDB
+    	createVdbDataSource(bean.getSourceVdbName());
+    }
+    
+    private String getSourceJndiName(String dataSourceName) throws DataVirtUiException {
+    	// Get Data Source properties
+    	Properties dsProps = null;
+    	try {
+			dsProps = clientAccessor.getClient().getDataSourceProperties(dataSourceName);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
 
+    	return dsProps.getProperty("jndi-name");
+    }
+    
+    /*
+     * Create the specified VDB "teiid-local" source on the server. If it already exists, delete it first.
+     * @param vdbName the name of the VDB for the connection
+     */
+    private void createVdbDataSource(String vdbName) throws DataVirtUiException {
+    	Properties vdbProps = new Properties();
+    	vdbProps.put("connection-url","jdbc:teiid:"+vdbName+";useJDBC4ColumnNameAndLabelSemantics=false");
+    	vdbProps.put("user-name","user");
+    	vdbProps.put("password","user");
+
+    	// Create the datasource (deletes first, if it already exists)
+    	addDataSource(vdbName, "teiid-local", vdbProps );
+    }
+    
+    /*
+     * Create the specified source on the server. If it already exists, delete it first - then redeploy
+     * @param sourceName the name of the source to add
+     * @param templateName the name of the template for the source
+     * @param sourcePropMap the map of property values for the specified source
+     */
+    private void addDataSource(String sourceName, String templateName, Properties sourceProps) throws DataVirtUiException {
+    	try {
+			// If 'sourceName' already exists - delete it first...
+			clientAccessor.getClient().deleteDataSource(sourceName);
+
+			// Create the specified datasource
+			clientAccessor.getClient().createDataSource(sourceName,templateName,sourceProps);
+		} catch (Exception e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+    }
+    
     @Override
     public void deleteDataSource(String dsName) throws DataVirtUiException {
     	try {

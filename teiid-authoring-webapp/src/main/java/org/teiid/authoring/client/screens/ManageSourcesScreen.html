@@ -35,55 +35,20 @@
         <form class="form-horizontal" role="form">
         
         <!-- Page Title Info -->
-        <h2>Manage Data Sources</h2>
-        <p>
-          Manage the data sources available for creation of services.
-        </p>
-        
-        <div>
-           <table style="width:40%">
-             <tr>
-               <td><div data-field="table-datasources" /></td>
-             </tr>
-           </table>
-        </div>
-        
-        <div>
-          <h4>Enter Properties for the Data Source</h4>
-          <div class="form-group">
-            <label class="col-md-1 control-label">Name:</label>
-            <div class="col-md-3"><input class="form-control" data-field="textbox-manage-sources-name" placeholder="Enter a name"></input></div>
-            <div class="col-md-8"></div>
-          </div>
-          <div class="form-group">
-            <label class="col-md-1 control-label">Type:</label>
-            <div class="col-md-3" data-field="listbox-manage-sources-types"></div>
-            <div class="col-md-8"></div>
-          </div>
-          <div class="form-group">
-            <label class="col-md-1 control-label">Translator:</label>
-            <div class="col-md-3" data-field="listbox-manage-sources-translator"></div>
-            <div class="col-md-8"></div>
+        <h3>Manage Data Sources</h3>
+        <div class="form-group">
+          <div class="col-md-12">Manage the available data sources.</div>
+          <div class="col-md-12">
+            <button data-field="btn-manage-sources-add" class="btn btn-primary btn-sm">Add Source</button>
+            <button data-field="btn-manage-sources-delete" class="btn btn-danger btn-sm">Delete Source</button>
           </div>
         </div>
         
-        <div>
-          <h4>Core Properties</h4>
-          <table style="width:40%">
-            <tr>
-              <td><div data-field="table-manage-sources-core-properties" /></td>
-            </tr>
-          </table>
-          <h4>Advanced Properties</h4>
-          <table style="width:40%">
-            <tr>
-              <td><div data-field="table-manage-sources-adv-properties" /></td>
-            </tr>
-          </table>
+        <div class="form-group">
+          <div class="col-md-2" data-field="list-datasources"></div>
+          <div class="col-md-10" data-field="details-deckpanel"></div>
         </div>
-         
-        <button data-field="btn-manage-sources-create" class="btn btn-default">Create</button>
-         
+                 
         <!-- Footer -->
         <footer>
           <hr />

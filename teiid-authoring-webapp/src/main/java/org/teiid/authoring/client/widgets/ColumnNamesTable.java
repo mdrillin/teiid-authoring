@@ -41,7 +41,7 @@ public class ColumnNamesTable extends Composite {
     protected FlowPanel panel = new FlowPanel();
     protected Label label = new Label();
 
-    private SimpleTable<ColRow> table;
+    private SimpleTable<CheckableNameRow> table;
 
     public ColumnNamesTable() {
         initWidget( panel );
@@ -53,20 +53,20 @@ public class ColumnNamesTable extends Composite {
      * @return the panel widget
      */
     protected Widget createTablePanel() {
-    	table = new SimpleTable<ColRow>();
+    	table = new SimpleTable<CheckableNameRow>();
     	
         // Add Checkbox column
-    	Column<ColRow, Boolean> checkboxColumn= new Column<ColRow, Boolean>(new CheckboxCell(true,false))
+    	Column<CheckableNameRow, Boolean> checkboxColumn= new Column<CheckableNameRow, Boolean>(new CheckboxCell(true,false))
     			{
     		@Override
-    		public Boolean getValue(ColRow object)
+    		public Boolean getValue(CheckableNameRow object)
     		{
     			if(object == null) return false;
     			return object.isChecked();
     		}
     	};
-    	checkboxColumn.setFieldUpdater(new FieldUpdater<ColRow, Boolean>() {
-    	    public void update(int index, ColRow object, Boolean value) {
+    	checkboxColumn.setFieldUpdater(new FieldUpdater<CheckableNameRow, Boolean>() {
+    	    public void update(int index, CheckableNameRow object, Boolean value) {
     	    	object.setChecked(value);
     	    }
     	});
@@ -76,8 +76,8 @@ public class ColumnNamesTable extends Composite {
         // --------------
     	// Name Column
     	// --------------
-        TextColumn<ColRow> nameColumn = new TextColumn<ColRow>() {
-            public String getValue( ColRow row ) {
+        TextColumn<CheckableNameRow> nameColumn = new TextColumn<CheckableNameRow>() {
+            public String getValue( CheckableNameRow row ) {
                 return row.getName();
             }
         };
@@ -99,8 +99,8 @@ public class ColumnNamesTable extends Composite {
     public String getSelectedRowString() {
     	StringBuilder sb = new StringBuilder();
     	
-    	List<ColRow> rows = table.getRowData();
-    	for(ColRow row : rows) {
+    	List<CheckableNameRow> rows = table.getRowData();
+    	for(CheckableNameRow row : rows) {
     		if(row.isChecked()) {
     			if(!sb.toString().isEmpty()) {
     				sb.append(",");
@@ -115,8 +115,8 @@ public class ColumnNamesTable extends Composite {
     public List<String> getSelectedColumnNames() {
     	List<String> colNames = new ArrayList<String>();
     	
-    	List<ColRow> rows = table.getRowData();
-    	for(ColRow row : rows) {
+    	List<CheckableNameRow> rows = table.getRowData();
+    	for(CheckableNameRow row : rows) {
     		if(row.isChecked() && row.getName()!=null) {
     			colNames.add(row.getName());
     		}
@@ -125,7 +125,7 @@ public class ColumnNamesTable extends Composite {
     	return colNames;
     }
     
-    public void setData(List<ColRow> rows) {
+    public void setData(List<CheckableNameRow> rows) {
     	table.setRowData(rows);
     }
     

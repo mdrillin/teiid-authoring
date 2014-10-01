@@ -92,6 +92,8 @@ public class DataServicesLibraryScreen extends Composite {
     @PostConstruct
     protected void postConstruct() {
     	ensureVdbDeployed(Constants.SERVICES_VDB);
+
+    	servicesPanel.add(serviceFlowListWidget);
     }
     
     @OnStartup
@@ -110,8 +112,6 @@ public class DataServicesLibraryScreen extends Composite {
     
     private void populateGrid(List<ServiceRow> serviceList) {
         serviceFlowListWidget.setItems(serviceList);
-
-        servicesPanel.add(serviceFlowListWidget);
     }
     
     /**

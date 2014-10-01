@@ -27,7 +27,9 @@ public class DataSourcePageRow extends AbstractPageRow {
 
     private String name;
     private String type;
-
+    private boolean hasVdb = false;
+    private String translator;
+    
     public String getName() {
         return name;
     }
@@ -43,5 +45,21 @@ public class DataSourcePageRow extends AbstractPageRow {
     public void setType( String type ) {
         this.type = type;
     }
+
+	public boolean hasVdb() {
+		return hasVdb;
+	}
+
+	public void setHasVdb(boolean hasVdb) {
+		this.hasVdb = hasVdb;
+	}
+
+	public String getTranslator() {
+		return translator;
+	}
+
+	public void setTranslator(String translator) {
+		this.translator = translator;
+	}
 
 }

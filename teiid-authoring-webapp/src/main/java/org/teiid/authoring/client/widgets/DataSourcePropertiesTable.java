@@ -19,6 +19,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
+
+import org.teiid.authoring.share.beans.Constants;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.services.StringUtils;
 
@@ -48,6 +52,8 @@ public class DataSourcePropertiesTable extends Composite {
     private SimpleTable<DataSourcePropertyBean> table;
 
 	private static final String PASSWORD_KEY = "password"; //$NON-NLS-1$
+
+	@Inject Event<DataSourcePropertyBean> propertyChangeEvent;
 	
     public DataSourcePropertiesTable() {
         initWidget( panel );
@@ -68,24 +74,27 @@ public class DataSourcePropertiesTable extends Composite {
         table.addColumn( nameColumn, COLUMN_HEADER_NAME );
         table.setColumnWidth(nameColumn, 200, Unit.PX);
 
-        Column<DataSourcePropertyBean, String> valueColumn = new Column<DataSourcePropertyBean, String>(new TextInputCell()) {
+        Column<DataSourcePropertyBean, String> valColumn = new Column<DataSourcePropertyBean, String>(new TextInputCell()) {
         	@Override
         	public String getValue(DataSourcePropertyBean object) {
+        		if(object==null) return "";
         		return object.getValue();
         	}
         };
-        FieldUpdater<DataSourcePropertyBean, String> valueUpdater = new FieldUpdater<DataSourcePropertyBean, String>() {
-        	@Override
-        	public void update(int index, DataSourcePropertyBean object, String value) {
-        		object.setValue(value);
-        	}
-        };
-        valueColumn.setFieldUpdater(valueUpdater);
+        valColumn.setFieldUpdater(new FieldUpdater<DataSourcePropertyBean, String>() {
+            @Override
+            public void update(int index, DataSourcePropertyBean object, String value) {
+        		if(object!=null) {
+        			object.setValue(value);
+        			propertyChangeEvent.fire(object);
+        		}
+            }
+        });        
         
-        table.addColumn( valueColumn, COLUMN_HEADER_VALUE );
-        table.setColumnWidth(valueColumn, 200, Unit.PX);
+        table.addColumn( valColumn, COLUMN_HEADER_VALUE );
+        table.setColumnWidth(valColumn, 300, Unit.PX);
         
-    	table.setWidth("420px");
+    	table.setWidth("520px");
     	table.setHeight("200px");
     	
         VerticalPanel verticalPanel = new VerticalPanel();
@@ -173,6 +182,46 @@ public class DataSourcePropertiesTable extends Composite {
 
     public void setSelectionModel( final SelectionModel selectionModel ) {
         table.setSelectionModel( selectionModel );
+    }
+    
+    /*
+     * Returns an overall status of the table properties.  Currently the only check is that required properties
+     * have a value, but this can be expanded in the future.  If all properties pass, the status is 'OK'. If not, a
+     * String identifying the problem is returned.
+     * @return the status - 'OK' if no problems.
+     */
+    public String getStatus() {
+    	// Assume 'OK' until a problem is found
+    	String status = Constants.OK;
+
+    	for(DataSourcePropertyBean propBean : getData()) {
+    		String propName = propBean.getName();
+    		String propValue = propBean.getValue();
+    		boolean isRequired = propBean.isRequired();
+
+    		// Check that required properties have a value
+    		if(isRequired) {
+    			if(propValue==null || propValue.trim().length()==0) {
+    				status = "A value is required for property: '"+propName+"'";
+    				break;
+    			}
+    		}
+    	}
+
+    	return status;
+    }
+    
+    public boolean anyPropertyHasChanged() {
+    	boolean hasChanges = false;
+    	for(DataSourcePropertyBean propBean : getData()) {
+    		String originalValue = propBean.getOriginalValue();
+    		String value = propBean.getValue();
+    		if(!StringUtils.valuesAreEqual(value, originalValue)) {
+    			hasChanges = true;
+    			break;
+    		}
+    	}
+    	return hasChanges;
     }
     
 }

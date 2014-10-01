@@ -349,18 +349,16 @@ public class VdbHelper {
 	 * @param importVdbVersion the version of the VDB to import
 	 * @return the new VDB
 	 */
-	public VDBMetaData addImport(VDBMetaData vdb, String importVdbName, int importVdbVersion) {
+	public VDBMetaData addImports(VDBMetaData vdb, List<String> importVdbNames, List<Integer> importVdbVersions) {
 		String vdbName = vdb.getName();
 		int vdbVersion = vdb.getVersion();
 		
-		// First Check the VDB being added. If it has errors, dont add
-//		String sourceStatus = getVDBStatusMessage(importVdbName);
-//		if(!sourceStatus.equals(Constants.SUCCESS)) {
-//			return "<bold>Import Source has errors and was not added:</bold><br>"+sourceStatus;
-//		}
-
 		// Get current vdb imports
 		List<VDBImportMetadata> currentVdbImports = getVdbImports(vdb);
+		List<String> currentVdbImportNames = new ArrayList<String>();
+		for(VDBImportMetadata vdbMeta : currentVdbImports) {
+			currentVdbImportNames.add(vdbMeta.getName());
+		}
 		List<ModelMetaData> currentViewModels = getVdbViewModels(vdb);
 		Properties currentProperties = getVdbProperties(vdb);
 
@@ -376,8 +374,13 @@ public class VdbHelper {
 		// Transfer the existing properties
 		newVdb.setProperties(currentProperties);
 
-		// Add new import to current imports
-		currentVdbImports.add(createVdbImport(importVdbName, importVdbVersion));
+		// Add new import to current imports (if not already present)
+		for(int i=0; i<importVdbNames.size(); i++) {
+			String importToAdd = importVdbNames.get(i);
+			if(!currentVdbImportNames.contains(importToAdd)) {
+				currentVdbImports.add(createVdbImport(importVdbNames.get(i), importVdbVersions.get(i)));
+			}
+		}
 		newVdb.getVDBImports().addAll(currentVdbImports);
 
 		return newVdb;

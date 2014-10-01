@@ -152,6 +152,7 @@ public class DataServiceDetailsScreen extends Composite {
             			
             			serviceSampleSQL = "SELECT * FROM "+serviceName+"."+Constants.SERVICE_VIEW_NAME+" LIMIT 10";
             	    	queryResultsTablePaged.setDataProvider(Constants.SERVICES_VDB_JNDI, serviceSampleSQL);
+            	    	//queryResultsTablePaged.setWidth("600px");
             		}
             	}
             }

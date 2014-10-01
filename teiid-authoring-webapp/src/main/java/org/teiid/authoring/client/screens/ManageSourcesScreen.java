@@ -16,11 +16,14 @@
 package org.teiid.authoring.client.screens;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import org.jboss.errai.ui.shared.api.annotations.DataField;
@@ -30,30 +33,26 @@ import org.teiid.authoring.client.services.DataSourceRpcService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.VdbRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
-import org.teiid.authoring.client.widgets.DataSourcePropertiesTable;
-import org.teiid.authoring.client.widgets.DataSourceTranslatorConnectionTable;
+import org.teiid.authoring.client.widgets.DataSourceListWidget;
+import org.teiid.authoring.client.widgets.DataSourcePropertiesPanel;
 import org.teiid.authoring.share.beans.Constants;
-import org.teiid.authoring.share.beans.DataSourceDetailsBean;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
-import org.teiid.authoring.share.beans.DataSourceTranslatorConnectionPageRow;
-import org.teiid.authoring.share.beans.PropertyBeanComparator;
+import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
 
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.DeckPanel;
+import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.view.client.SelectionChangeEvent;
+import com.google.gwt.view.client.SingleSelectionModel;
 
 /**
  * ManageSourcesScreen - used for management of Data Sources
@@ -64,7 +63,9 @@ import com.google.gwt.user.client.ui.TextBox;
 @WorkbenchScreen(identifier = "ManageSourcesScreen")
 public class ManageSourcesScreen extends Composite {
 
-    private List<DataSourcePropertyBean> currentPropList = new ArrayList<DataSourcePropertyBean>();
+	private Map<String,String> defaultTranslatorMap = new HashMap<String,String>();
+	private SingleSelectionModel<DataSourcePageRow> listSelectionModel;
+	private boolean propPanelVisible = false;
 	
     @Inject
     private PlaceManager placeManager;
@@ -79,23 +80,21 @@ public class ManageSourcesScreen extends Composite {
     @Inject @DataField("anchor-goto-create-service")
     protected Anchor goToCreateServiceAnchor;
     
-    @Inject @DataField("table-datasources")
-    protected DataSourceTranslatorConnectionTable dsInfoTable;
-
-    @Inject @DataField("textbox-manage-sources-name")
-    protected TextBox name;
-    @Inject @DataField("listbox-manage-sources-types")
-    protected ListBox sourceTypeListBox;
-    @Inject @DataField("listbox-manage-sources-translator")
-    protected ListBox translatorListBox;
-    @Inject @DataField("table-manage-sources-core-properties")
-    protected DataSourcePropertiesTable dataSourceCorePropertiesTable;
-    @Inject @DataField("table-manage-sources-adv-properties")
-    protected DataSourcePropertiesTable dataSourceAdvancedPropertiesTable;
+    @Inject @DataField("list-datasources")
+    protected DataSourceListWidget dsList;
     
-    @Inject @DataField("btn-manage-sources-create")
-    protected Button createSource;
-        
+    @Inject @DataField("details-deckpanel")
+    protected DeckPanel detailsDeckPanel;
+    
+    @Inject 
+    protected DataSourcePropertiesPanel propsPanel;
+    
+    @Inject @DataField("btn-manage-sources-add")
+    protected Button addSource;
+    
+    @Inject @DataField("btn-manage-sources-delete")
+    protected Button deleteSource;
+
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
@@ -112,83 +111,103 @@ public class ManageSourcesScreen extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
+        HTMLPanel selectSourcePanel = new HTMLPanel("<h4>Select a Data Source from the list to view or edit</h4>");
+        	      
+    	// Add properties panel and Select label to deckPanel
+    	detailsDeckPanel.add(propsPanel);
+    	detailsDeckPanel.add(selectSourcePanel);
+    	detailsDeckPanel.showWidget(1);
+    	propPanelVisible=false;
+    	
+    	doGetDataSourceInfos(null);
 
-    	doGetDataSourceInfos( );
-    	
-    	doPopulateSourceTypeListBox();
-    	
-    	doPopulateTranslatorListBox();
-    	
-    	dataSourceCorePropertiesTable.clear();
-    	dataSourceAdvancedPropertiesTable.clear();
-    	
-        name.addKeyUpHandler(new KeyUpHandler() {
-            @Override
-            public void onKeyUp(KeyUpEvent event) {
-            	//updateDialogStatus();
-            }
-        });
-        // Change Listener for Type ListBox
-        sourceTypeListBox.addChangeHandler(new ChangeHandler()
-        {
-        	// Changing the Type selection will re-populate property table with defaults for that type
-        	public void onChange(ChangeEvent event)
-        	{
-        		String selectedType = getSelectedSourceType();                                
-        		doPopulatePropertiesTable(selectedType);
-        	}
-        });
-        
-//    	// SelectionModel to handle Source selection 
-//    	final SingleSelectionModel<String> dsSelectionModel = new SingleSelectionModel<String>();
-//    	dsTable.setSelectionModel(dsSelectionModel); 
-//    	dsSelectionModel. addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
-//    		public void onSelectionChange( SelectionChangeEvent event) { 
-//    			tablesAndProcsTable.clear();
-//    			columnsTable.clear();
-//    			String selected = dsSelectionModel.getSelectedObject();
-//    			selectedDataSource = selected;
-//    			if (selected != null) {
-//    				doGetTablesAndProcs(selected);
-//    			}
-//    		} });
-//
-//    	// SelectionModel to handle Table-procedure selection 
-//    	final SingleSelectionModel<String> tableSelectionModel = new SingleSelectionModel<String>();
-//    	tablesAndProcsTable.setSelectionModel(tableSelectionModel); 
-//    	tableSelectionModel. addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
-//    		public void onSelectionChange( SelectionChangeEvent event) { 
-//    			String selected = tableSelectionModel.getSelectedObject();
-//    			selectedTable = selected;
-//    			if (selected != null) {
-//    				String theSource = dsSelectionModel.getSelectedObject();
-//    				doGetTableColumns(theSource, selected, 1);
-//    			}
-//    		} });
-    	
+    	// Selection model for the dsList
+    	listSelectionModel = new SingleSelectionModel<DataSourcePageRow>();
+    	dsList.setSelectionModel(listSelectionModel);
+    	listSelectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
+    		public void onSelectionChange(SelectionChangeEvent event) {
+    			DataSourcePageRow row = listSelectionModel.getSelectedObject();
+    			if(row!=null) {
+        			showPropertiesPanel(row.getName());
+    			} else {
+    				showBlankMessagePanel();
+    			}
+    		}
+    	});
+    }
+    
+    private void showPropertiesPanel(String dsName) {
+		propsPanel.setDataSource(dsName);
+    	if(!propPanelVisible) {
+			detailsDeckPanel.showWidget(0);
+			propPanelVisible=true;
+    	}
+    }
+    
+    private void showBlankMessagePanel() {
+    	if(propPanelVisible) {
+			detailsDeckPanel.showWidget(1);
+			propPanelVisible=false;
+    	}
+    }
+    
+    public void onDSChanged(@Observes String dsName) {
+    	doGetDataSourceInfos(dsName);
     }
     
     /**
      * Event handler that fires when the user clicks the create button.
      * @param event
      */
-    @EventHandler("btn-manage-sources-create")
-    public void onCreateButtonClick(ClickEvent event) {
-    	// Gets details for the new source from the ui
-        DataSourceDetailsBean sourceBean = getDetailsBean();
-        doCreateDataSource(sourceBean);
+    @EventHandler("btn-manage-sources-add")
+    public void onAddButtonClick(ClickEvent event) {
+    	// Add a default Data Source
+    	String newSourceName = getNewSourceName();
+        DataSourceWithVdbDetailsBean sourceWithVdbBean = getDefaultSource(newSourceName);
+        
+        doCreateDataSource(sourceWithVdbBean);
     }
+    
+    private String getNewSourceName() {
+    	String sourceRootName = "MyNewSource";
+    	String newSourceName = "MyNewSource";
+    	Collection<String> existingNames = this.dsList.getDataSourceNames();
+    	int i = 1;
+    	while(existingNames.contains(newSourceName)) {
+    		newSourceName = sourceRootName+i;
+    		i++;
+    	}
+    	return newSourceName;
+    }
+    
+    /**
+     * Event handler that fires when the user clicks the delete button.
+     * @param event
+     */
+    @EventHandler("btn-manage-sources-delete")
+    public void onDeleteButtonClick(ClickEvent event) {
+		DataSourcePageRow row = listSelectionModel.getSelectedObject();
+    	List<String> dsNames = new ArrayList<String>();
+    	String dsName = row.getName();
+		dsNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
+    	dsNames.add(dsName);
+//    	if(row.hasVdb()) {
+//		dsNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
+//    	}
+		doDeleteDataSources(dsNames,null);
+    }
+    
     
     /**
      * Creates a DataSource
      * @param dsDetailsBean the data source details
      */
-    private void doCreateDataSource(DataSourceDetailsBean detailsBean) {
+    private void doCreateDataSource(final DataSourceWithVdbDetailsBean detailsBean) {
 //    	final String dsName = detailsBean.getName();
 //        final NotificationBean notificationBean = notificationService.startProgressNotification(
 //                i18n.format("datasources.creating-datasource-title"), //$NON-NLS-1$
 //                i18n.format("datasources.creating-datasource-msg", dsName)); //$NON-NLS-1$
-        dataSourceService.createDataSource(detailsBean, new IRpcServiceInvocationHandler<Void>() {
+        dataSourceService.createDataSourceWithVdb(detailsBean, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
 //                notificationService.completeProgressNotification(notificationBean.getUuid(),
@@ -196,7 +215,7 @@ public class ManageSourcesScreen extends Composite {
 //                        i18n.format("datasources.create-success-msg")); //$NON-NLS-1$
 //
 //                // Refresh Page
-//            	doGetDataSourceDetails();
+            	doGetDataSourceInfos(detailsBean.getName());
             }
             @Override
             public void onError(Throwable error) {
@@ -207,262 +226,144 @@ public class ManageSourcesScreen extends Composite {
         });
     }
     
-    private String getSelectedSourceType() {
-    	int index = sourceTypeListBox.getSelectedIndex();
-    	return sourceTypeListBox.getValue(index);
+//    private String getSelectedSourceType() {
+//    	int index = sourceTypeListBox.getSelectedIndex();
+//    	return sourceTypeListBox.getValue(index);
+//    }
+    
+    /**
+     * Called when the user confirms the dataSource deletion.
+     */
+    private void doDeleteDataSources(final List<String> dsNames, final String selectedDS) {
+//        final NotificationBean notificationBean = notificationService.startProgressNotification(
+//                i18n.format("datasources.deleting-datasource-title"), //$NON-NLS-1$
+//                i18n.format("datasources.deleting-datasource-msg", dsText)); //$NON-NLS-1$
+        dataSourceService.deleteDataSources(dsNames, new IRpcServiceInvocationHandler<Void>() {
+            @Override
+            public void onReturn(Void data) {
+//                notificationService.completeProgressNotification(notificationBean.getUuid(),
+//                        i18n.format("datasources.datasource-deleted"), //$NON-NLS-1$
+//                        i18n.format("datasources.delete-success-msg")); //$NON-NLS-1$
+//
+//                // Deletion - go back to page 1 - delete could have made current page invalid
+//                doDataSourceFetch(1);
+            	doGetDataSourceInfos(selectedDS);
+            }
+            @Override
+            public void onError(Throwable error) {
+//                notificationService.completeProgressNotification(notificationBean.getUuid(),
+//                        i18n.format("datasources.delete-error"), //$NON-NLS-1$
+//                        error);
+            }
+        });
     }
     
     /**
-     * Populate the DataSource ListBox
+     * Populate the DataSource List.
+     * @param selectedDS the selected DataSource, if selection is desired.
      */
-    protected void doGetDataSourceInfos() {
-    	dataSourceService.getDataSources("filter", new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
+    protected void doGetDataSourceInfos(final String selectedDS) {
+    	dataSourceService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
     		@Override
     		public void onReturn(List<DataSourcePageRow> dsInfos) {
-    			// Create the list of sources to show.  (Not showing teiid local sources)
-    			List<DataSourceTranslatorConnectionPageRow> tableRowList = new ArrayList<DataSourceTranslatorConnectionPageRow>();
+    			// Filter out the sources starting with SERVICE_SOURCE_VDB_PREFIX and SERVICES_VDB 
+    			List<DataSourcePageRow> tableRowList = new ArrayList<DataSourcePageRow>();
     			for(DataSourcePageRow row : dsInfos) {
-    				String serverDsType = row.getType();
-    				if(!serverDsType.equals("teiid-local")) {
-        				DataSourceTranslatorConnectionPageRow tableRow = new DataSourceTranslatorConnectionPageRow();
-        				// The raw server source
-        				String serverDsName = row.getName();
-        				tableRow.setConnection(serverDsName);
-        				tableRow.setTranslator("");
-        				tableRow.setDataSource("");
-        				tableRowList.add(tableRow);
+    				String name = row.getName();
+    				if(!name.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX) && !name.startsWith(Constants.SERVICES_VDB)) {
+    					tableRowList.add(row);
     				}
     			}
-    			
-    			List<String> srcVdbNames = new ArrayList<String>();
-    			// Now look for matching Teiid VDB source, based on name match
-    			for(DataSourceTranslatorConnectionPageRow tableRow : tableRowList) {
-    				String connectionName = tableRow.getConnection();
-    				String srcVdbName = Constants.SERVICE_SOURCE_VDB_PREFIX+connectionName;
-    				for(DataSourcePageRow row : dsInfos) {
-    					if(row.getName().equals(srcVdbName)) {
-    						tableRow.setDataSource(srcVdbName);
-    						srcVdbNames.add(srcVdbName);
-    					}
-    				}
+    			dsList.setData(tableRowList);
+    			if(selectedDS!=null) {
+    				dsList.setSelection(selectedDS);
+    			} else {
+    				showBlankMessagePanel();
     			}
     			
+    	    	doPopulateDefaultTranslatorMappings();
     			// Get translators for list of srcVdbNames
-    			doSetTranslatorNames(tableRowList, srcVdbNames);
+    			//doSetTranslatorNames(tableRowList, srcVdbNames);
     		}
     		@Override
     		public void onError(Throwable error) {
     			//             notificationService.sendErrorNotification(i18n.format("addSourceModelDialog.error-populating-datasources"), error); //$NON-NLS-1$
+    		}
+    	});
+    }
+    
+    /**
+     * Cache the Default Translator Mappings for later use.
+     */
+    protected void doPopulateDefaultTranslatorMappings() {
+    	dataSourceService.getDefaultTranslatorMap(new IRpcServiceInvocationHandler<Map<String,String>>() {
+    		@Override
+    		public void onReturn(Map<String,String> defaultTranslatorsMap) {
+    			defaultTranslatorMap = defaultTranslatorsMap;
+    			propsPanel.setDefaultTranslatorMappings(defaultTranslatorMap);
+    		}
+    		@Override
+    		public void onError(Throwable error) {
+//    			defaultTranslatorMap = new HashMap<String,String>();
+//    			notificationService.sendErrorNotification(i18n.format("addSourceModelDialog.error-populating-translatormappings"), error); //$NON-NLS-1$
     		}
     	});
     }
         
-    private void doSetTranslatorNames(final List<DataSourceTranslatorConnectionPageRow> tableRows, final List<String> srcVdbNames) {
-    	vdbService.getTranslatorsForSrcVdbs(srcVdbNames, new IRpcServiceInvocationHandler<List<String>>() {
-    		@Override
-    		public void onReturn(List<String> translators) {
-    			
-    			for(int i=0; i<srcVdbNames.size(); i++) {
-    				String srcVdbName = srcVdbNames.get(i);
-    				String tName = translators.get(i);
-        			for(DataSourceTranslatorConnectionPageRow row : tableRows) {
-        				String dsName = row.getDataSource();
-        				if(dsName.equals(srcVdbName)) {
-        					row.setTranslator(tName);
-        				}
-        			}
-    			}
-    			dsInfoTable.setData(tableRows);
-    		}
-    		@Override
-    		public void onError(Throwable error) {
-    			//             notificationService.sendErrorNotification(i18n.format("addSourceModelDialog.error-populating-datasources"), error); //$NON-NLS-1$
-    		}
-    	});
-    }
-    
-    /**
-     * Populate the Data Source Type ListBox
-     */
-    protected void doPopulateSourceTypeListBox() {
-        dataSourceService.getDataSourceTypes(new IRpcServiceInvocationHandler<List<String>>() {
-            @Override
-            public void onReturn(List<String> dsTypes) {
-                populateSourceTypeListBox(dsTypes);
-            }
-            @Override
-            public void onError(Throwable error) {
-                //notificationService.sendErrorNotification(i18n.format("adddatasourcedialog.error-populating-types-listbox"), error); //$NON-NLS-1$
-            }
-        });
-    }
-    
-    /**
-     * Populate the Data Source Type ListBox
-     */
-    protected void doPopulateTranslatorListBox() {
-        dataSourceService.getTranslators(new IRpcServiceInvocationHandler<List<String>>() {
-            @Override
-            public void onReturn(List<String> translators) {
-                populateTranslatorListBox(translators);
-            }
-            @Override
-            public void onError(Throwable error) {
-                //notificationService.sendErrorNotification(i18n.format("adddatasourcedialog.error-populating-types-listbox"), error); //$NON-NLS-1$
-            }
-        });
-    }
-    
-    
-    
-    /*
-     * Init the List of DataSource Template Names
-     * @param vdbName the name of the VDB
-     * @param sourceName the source name
-     * @param templateName the template name
-     * @param translatorName the translator name
-     * @param propsMap the property Map of name-value pairs
-     */
-    private void populateSourceTypeListBox(List<String> sourceTypes) {
-    	// Make sure clear first
-    	sourceTypeListBox.clear();
-
-    	sourceTypeListBox.insertItem(Constants.NO_TYPE_SELECTION, 0);
+//    private void doSetTranslatorNames(final List<DataSourceTranslatorConnectionPageRow> tableRows, final List<String> srcVdbNames) {
+//    	vdbService.getTranslatorsForSrcVdbs(srcVdbNames, new IRpcServiceInvocationHandler<List<String>>() {
+//    		@Override
+//    		public void onReturn(List<String> translators) {
+//    			
+//    			for(int i=0; i<srcVdbNames.size(); i++) {
+//    				String srcVdbName = srcVdbNames.get(i);
+//    				String tName = translators.get(i);
+//        			for(DataSourceTranslatorConnectionPageRow row : tableRows) {
+//        				String dsName = row.getDataSource();
+//        				if(dsName.equals(srcVdbName)) {
+//        					row.setTranslator(tName);
+//        				}
+//        			}
+//    			}
+//    			dsList.setData(tableRows);
+//    		}
+//    		@Override
+//    		public void onError(Throwable error) {
+//    			//             notificationService.sendErrorNotification(i18n.format("addSourceModelDialog.error-populating-datasources"), error); //$NON-NLS-1$
+//    		}
+//    	});
+//    }
+        
+	/**
+	 * Create a Default data source connected to the DashboardDS (for now)
+	 * @return
+	 */
+    private DataSourceWithVdbDetailsBean getDefaultSource(String dsName) {
+    	DataSourceWithVdbDetailsBean resultBean = new DataSourceWithVdbDetailsBean();
+    	resultBean.setName(dsName);
+    	resultBean.setSourceVdbName(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
+    	resultBean.setTranslator("jdbc-ansi");
+    	resultBean.setType("h2");
     	
-    	// Repopulate the ListBox. The actual names 
-    	int i = 1;
-    	for(String typeName: sourceTypes) {
-    		sourceTypeListBox.insertItem(typeName, i);
-    		i++;
-    	}
-
-    	// Initialize by setting the selection to the first item.
-    	sourceTypeListBox.setSelectedIndex(0);
-    }
-    
-    private void populateTranslatorListBox(List<String> translators) {
-    	// Make sure clear first
-    	translatorListBox.clear();
-
-    	translatorListBox.insertItem(Constants.NO_TRANSLATOR_SELECTION, 0);
-    	
-    	// Repopulate the ListBox. The actual names 
-    	int i = 1;
-    	for(String translatorName: translators) {
-    		translatorListBox.insertItem(translatorName, i);
-    		i++;
-    	}
-
-    	// Initialize by setting the selection to the first item.
-    	translatorListBox.setSelectedIndex(0);
-    }
-    
-    /**
-     * Populate the properties table for the supplied Source Type
-     * @param selectedType the selected SourceType
-     */
-    protected void doPopulatePropertiesTable(String selectedType) {
-        if(selectedType.equals(Constants.NO_TYPE_SELECTION)) {
-        	dataSourceCorePropertiesTable.clear();
-        	dataSourceAdvancedPropertiesTable.clear();
-        	return;
-        }
-
-        dataSourceService.getDataSourceTypeProperties(selectedType, new IRpcServiceInvocationHandler<List<DataSourcePropertyBean>>() {
-            @Override
-            public void onReturn(List<DataSourcePropertyBean> propList) {
-            	currentPropList.clear();
-            	currentPropList.addAll(propList);
-                populateCorePropertiesTable();
-                populateAdvancedPropertiesTable();
-                //updateDialogStatus();
-            }
-            @Override
-            public void onError(Throwable error) {
-                //notificationService.sendErrorNotification(i18n.format("adddatasourcedialog.error-populating-properties-table"), error); //$NON-NLS-1$
-            }
-        });
-
-    }
-    
-    /*
-     * Populate the core properties table
-     * @param dsDetailsBean the Data Source details
-     */
-    private void populateCorePropertiesTable( ) {
-    	dataSourceCorePropertiesTable.clear();
-
-//        final SortColumn currentSortColumnCore = this.dataSourceCorePropertiesTable.getCurrentSortColumn();
-
-    	// Separate property types, sorted in correct order
-//    	List<DataSourcePropertyBean> corePropList = getPropList(this.currentPropList, true, !currentSortColumnCore.ascending);
-    	List<DataSourcePropertyBean> corePropList = getPropList(this.currentPropList, true, true);
-    	// Populate core properties table
-//    	for(DataSourcePropertyBean defn : corePropList) {
-//    		dataSourceCorePropertiesTable.addRow(defn);
-//    	}
-//    	dataSourceCorePropertiesTable.setValueColTextBoxWidths();
-//    	dataSourceCorePropertiesTable.setVisible(true);
-    	dataSourceCorePropertiesTable.setData(corePropList);
-    }
-
-    /*
-     * Populate the advanced properties table
-     * @param dsDetailsBean the Data Source details
-     */
-    private void populateAdvancedPropertiesTable() {
-    	dataSourceAdvancedPropertiesTable.clear();
-
-//        final SortColumn currentSortColumnAdv = this.dataSourceAdvancedPropertiesTable.getCurrentSortColumn();
-
-    	// Separate property types, sorted in correct order
-//    	List<DataSourcePropertyBean> advPropList = getPropList(this.currentPropList, false, !currentSortColumnAdv.ascending);
-    	List<DataSourcePropertyBean> advPropList = getPropList(this.currentPropList, false, true);
-    	// Populate advanced properties table
-//    	for(DataSourcePropertyBean defn : advPropList) {
-//    		dataSourceAdvancedPropertiesTable.addRow(defn);
-//    	}
-//    	dataSourceAdvancedPropertiesTable.setValueColTextBoxWidths();
-//    	dataSourceAdvancedPropertiesTable.setVisible(true);
-    	dataSourceAdvancedPropertiesTable.setData(advPropList);
-    }
-    
-    /*
-     * Filters the supplied list by correct type and order
-     * @param propList the complete list of properties
-     * @param getCore if 'true', returns the core properties.  if 'false' returns the advanced properties
-     * @param acending if 'true', sorts in ascending name order.  descending if 'false'
-     */
-    private List<DataSourcePropertyBean> getPropList(List<DataSourcePropertyBean> propList, boolean getCore, boolean ascending) {
-    	List<DataSourcePropertyBean> resultList = new ArrayList<DataSourcePropertyBean>();
-    	
-    	// Put only the desired property type into the resultList
-    	for(DataSourcePropertyBean prop : propList) {
-    		if(prop.isCoreProperty() && getCore) {
-    			resultList.add(prop);
-    		} else if(!prop.isCoreProperty() && !getCore) {
-    			resultList.add(prop);    			
-    		}
-    	}
-    	
-    	// Sort by name in the desired order
-    	Collections.sort(resultList,new PropertyBeanComparator(ascending));
-    	
-    	return resultList;
-    }
-    
-    private DataSourceDetailsBean getDetailsBean() {
-    	DataSourceDetailsBean resultBean = new DataSourceDetailsBean();
-    	resultBean.setName(name.getText());
-    	resultBean.setType(getSelectedSourceType());
-
     	List<DataSourcePropertyBean> props = new ArrayList<DataSourcePropertyBean>();
-    	List<DataSourcePropertyBean> coreProps = dataSourceCorePropertiesTable.getBeansWithRequiredOrNonDefaultValue();
-    	List<DataSourcePropertyBean> advancedProps = dataSourceAdvancedPropertiesTable.getBeansWithRequiredOrNonDefaultValue();
-    	props.addAll(coreProps);
-    	props.addAll(advancedProps);
+    	DataSourcePropertyBean urlProp = new DataSourcePropertyBean();
+    	urlProp.setName("connection-url");
+    	urlProp.setValue("jdbc:h2:file:${jboss.server.data.dir}/teiid-dashboard/teiid-dashboard-ds;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1");
 
+    	DataSourcePropertyBean userProp = new DataSourcePropertyBean();
+    	userProp.setName("user-name");
+    	userProp.setValue("sa");
+
+    	DataSourcePropertyBean pwProp = new DataSourcePropertyBean();
+    	pwProp.setName("password");
+    	pwProp.setValue("sa");
+    	
+    	props.add(urlProp);
+    	props.add(userProp);
+    	props.add(pwProp);
+    	
     	resultBean.setProperties(props);
+
     	return resultBean;
     }
     
@@ -475,13 +376,4 @@ public class ManageSourcesScreen extends Composite {
     	placeManager.goTo("CreateDataServiceScreen");
     }
     
-    /**
-     * Event handler that fires when the user clicks the Cancel button.
-     * @param event
-     */
-//    @EventHandler("btn-create-service-cancel")
-//    public void onCancelButtonClick(ClickEvent event) {
-//    	placeManager.goTo("DataServicesLibraryScreen");
-//    }
-        
 }

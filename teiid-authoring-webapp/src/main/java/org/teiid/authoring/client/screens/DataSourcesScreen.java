@@ -24,6 +24,7 @@ import javax.inject.Inject;
 
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.widgets.CheckableNameRow;
 import org.teiid.authoring.client.widgets.DataSourceNamesTable;
 import org.teiid.authoring.client.widgets.DataSourcePagedTableDisplayer;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
@@ -124,10 +125,10 @@ public class DataSourcesScreen extends Composite {
     @PostConstruct
     protected void postConstruct() {
     	
-    	List<String> rows = new ArrayList<String>();
+    	List<CheckableNameRow> rows = new ArrayList<CheckableNameRow>();
             	
-    	rows.add("ds1");
-    	rows.add("ds2");
+    	rows.add(createCheckableNameRow("ds1",false));
+    	rows.add(createCheckableNameRow("ds2",false));
     	
     	dsTable.setData(rows);
     	dsTable.setWidth("200px");
@@ -188,8 +189,14 @@ public class DataSourcesScreen extends Composite {
 //        });
 
     }
-
-//    /**
+    
+    private CheckableNameRow createCheckableNameRow(String name, boolean isSelected) {
+		CheckableNameRow cRow = new CheckableNameRow();
+		cRow.setName(name);
+		cRow.setChecked(isSelected);
+		return cRow;
+    }
+    
 //     * Event handler that fires when the user clicks the AddSource button.
 //     * @param event
 //     */

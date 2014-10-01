@@ -32,7 +32,7 @@ import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.VdbRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.utils.DdlHelper;
-import org.teiid.authoring.client.widgets.ColRow;
+import org.teiid.authoring.client.widgets.CheckableNameRow;
 import org.teiid.authoring.client.widgets.ColumnNamesTable;
 import org.teiid.authoring.client.widgets.DataSourceNamesTable;
 import org.teiid.authoring.client.widgets.TablesProcNamesTable;
@@ -74,7 +74,6 @@ public class CreateDataServiceScreen extends Composite {
 	private Map<String,String> sourceNameToJndiMap = new HashMap<String,String>();
 	private Map<String,String> shortToLongTableNameMap = new HashMap<String,String>();
 	
-	private String selectedDataSource = null;
 	private String selectedTable = null;
 	
     @Inject
@@ -102,6 +101,9 @@ public class CreateDataServiceScreen extends Composite {
     @Inject @DataField("btn-create-service-createDdl")
     protected Button createDdlButton;
     
+    @Inject @DataField("btn-create-service-addToDdl")
+    protected Button addToDdlButton;
+        
     @Inject @DataField("btn-create-service-create")
     protected Button createServiceButton;
     
@@ -146,16 +148,15 @@ public class CreateDataServiceScreen extends Composite {
     	doGetQueryableSources(false);
 
     	// SelectionModel to handle Source selection 
-    	final SingleSelectionModel<String> dsSelectionModel = new SingleSelectionModel<String>();
+    	final SingleSelectionModel<CheckableNameRow> dsSelectionModel = new SingleSelectionModel<CheckableNameRow>();
     	dsNamesTable.setSelectionModel(dsSelectionModel); 
     	dsSelectionModel. addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
     		public void onSelectionChange( SelectionChangeEvent event) { 
     			tablesAndProcsTable.clear();
     			columnsTable.clear();
-    			String selected = dsSelectionModel.getSelectedObject();
-    			selectedDataSource = selected;
-    			if (selected != null) {
-    				doGetTablesAndProcs(selected);
+    			CheckableNameRow selectedRow = dsSelectionModel.getSelectedObject();
+    			if (selectedRow != null) {
+    				doGetTablesAndProcs(selectedRow.getName());
     			}
     		} });
 
@@ -167,9 +168,9 @@ public class CreateDataServiceScreen extends Composite {
     			String selected = tableSelectionModel.getSelectedObject();
     			selectedTable = selected;
     			if (selected != null) {
-    				String theSource = dsSelectionModel.getSelectedObject();
+    				CheckableNameRow theSource = dsSelectionModel.getSelectedObject();
     				String longTableName = shortToLongTableNameMap.get(selected);
-    				doGetTableColumns(theSource, longTableName, 1);
+    				doGetTableColumns(theSource.getName(), longTableName, 1);
     			}
     		} });
     	
@@ -226,7 +227,11 @@ public class CreateDataServiceScreen extends Composite {
     	dataSourceService.getDataSourceNames(new IRpcServiceInvocationHandler<List<String>>() {
     		@Override
     		public void onReturn(List<String> sourceNames) {
-    			dsNamesTable.setData(sourceNames);
+    			List<CheckableNameRow> nameRows = new ArrayList<CheckableNameRow>(sourceNames.size());
+    			for(String dsName : sourceNames) {
+    				nameRows.add(createCheckableNameRow(dsName,false));
+    			}
+    			dsNamesTable.setData(nameRows);
     		}
     		@Override
     		public void onError(Throwable error) {
@@ -244,10 +249,10 @@ public class CreateDataServiceScreen extends Composite {
             public void onReturn(Map<String,String> sourceToJndiMap) {
             	sourceNameToJndiMap.clear();
             	sourceNameToJndiMap.putAll(sourceToJndiMap);
-            	List<String> dsList = new ArrayList<String>();
+            	List<CheckableNameRow> dsList = new ArrayList<CheckableNameRow>();
             	for(String dsName : sourceNameToJndiMap.keySet()) {
             		if(dsName.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX)) {
-            			dsList.add(dsName);
+            			dsList.add(createCheckableNameRow(dsName,false));
             		}
             	}
             	dsNamesTable.setData(dsList);
@@ -302,12 +307,10 @@ public class CreateDataServiceScreen extends Composite {
         			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
         		@Override
         		public void onReturn(QueryColumnResultSetBean data) {
-        			List<ColRow> colList = new ArrayList<ColRow>();
+        			List<CheckableNameRow> colList = new ArrayList<CheckableNameRow>();
         			List<QueryColumnBean> qColumns = data.getQueryColumns();
         			for(QueryColumnBean col : qColumns) {
-        				ColRow cRow = new ColRow();
-        				cRow.setName(col.getName());
-        				colList.add(cRow);
+        				colList.add(createCheckableNameRow(col.getName(),false));
         			}
         			columnsTable.setData(colList);
         		}
@@ -321,26 +324,21 @@ public class CreateDataServiceScreen extends Composite {
 //        }
 
     }
+
+    private CheckableNameRow createCheckableNameRow(String name, boolean isSelected) {
+		CheckableNameRow cRow = new CheckableNameRow();
+		cRow.setName(name);
+		cRow.setChecked(isSelected);
+		return cRow;
+    }
     
     /**
-     * Event handler that fires when the user clicks the showView button.
+     * Event handler that fires when the user clicks the create markup button.
      * @param event
      */
     @EventHandler("btn-create-service-createDdl")
-    public void onShowViewButtonClick(ClickEvent event) {
-    	StringBuilder sb = new StringBuilder();
-    	sb.append(" DataSource: ");
-    	String theSource = (selectedDataSource==null) ? "NULL" : selectedDataSource;
-    	sb.append(theSource+"\n");
-    	
-    	sb.append(" Table: ");
+    public void onCreateDdlButtonClick(ClickEvent event) {
     	String theTable = (selectedTable==null) ? "NULL" : selectedTable;
-    	sb.append(theTable+"\n");
-    	
-    	sb.append(" Columns: ");
-    	String colString = columnsTable.getSelectedRowString();
-    	String theCols = (colString==null) ? "NONE SELECTED" : colString;
-    	sb.append(theCols+"\n");
     	
     	List<String> colNames = columnsTable.getSelectedColumnNames();
     	// Types hardcoded to string for now
@@ -351,6 +349,21 @@ public class CreateDataServiceScreen extends Composite {
     	
     	String viewString = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, typeNames);
     	viewDdlTextArea.setText(viewString);  
+    	
+    	updateStatus();
+    }
+    
+    /**
+     * Event handler that fires when the user clicks the Add to markup button.
+     * @param event
+     */
+    @EventHandler("btn-create-service-addToDdl")
+    public void onAddToDdlButtonClick(ClickEvent event) {
+    	String colString = columnsTable.getSelectedRowString();
+
+    	String currentDdl = viewDdlTextArea.getText();
+    	
+    	viewDdlTextArea.setText(currentDdl+"\n"+colString);  
     	
     	updateStatus();
     }
@@ -372,12 +385,14 @@ public class CreateDataServiceScreen extends Composite {
     	final String viewModel = serviceName;
     	String viewDdl = viewDdlTextArea.getText();
     	boolean isVisible = serviceVisibleRadios.isVisibleSelected();
+    	List<String> rqdImportVdbNames = dsNamesTable.getSelectedSourceNames();
     	
     	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
     	viewModelRequest.setName(serviceName);
     	viewModelRequest.setDescription(serviceDescription);
     	viewModelRequest.setDdl(viewDdl);
     	viewModelRequest.setVisible(isVisible);
+    	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
     	    	
         vdbService.addOrReplaceViewModelAndRedeploy("ServicesVDB", 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override

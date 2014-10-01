@@ -620,7 +620,7 @@ public class VdbService implements IVdbService {
      * @param importVdbVersion the version of the VDB to import
      * @return the success string
      */
-    private String addImportAndRedeploy(String vdbName, String importVdbName, int importVdbVersion) throws DataVirtUiException {
+    public String addImportAndRedeploy(String vdbName, String importVdbName, int importVdbVersion) throws DataVirtUiException {
     	// Get deployed VDB and check status
     	VDBMetaData theVDB;
 		try {
@@ -629,7 +629,11 @@ public class VdbService implements IVdbService {
 			throw new DataVirtUiException(e.getMessage());
 		}
 
-		VDBMetaData newVdb = vdbHelper.addImport(theVDB, importVdbName, importVdbVersion);
+		List<String> importVdbNames = new ArrayList<String>(1);
+		importVdbNames.add(importVdbName);
+		List<Integer> importVdbVersions = new ArrayList<Integer>(1);
+		importVdbVersions.add(importVdbVersion);
+		VDBMetaData newVdb = vdbHelper.addImports(theVDB, importVdbNames, importVdbVersions);
 				
     	// Re-Deploy the VDB
    		redeployVDB(vdbName, newVdb);
@@ -651,7 +655,7 @@ public class VdbService implements IVdbService {
      * @return the VdbDetails
      */
     public VdbDetailsBean addOrReplaceViewModelAndRedeploy(final String vdbName, final int modelsPageNumber, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException {
-    	// Get deployed VDB and check status
+    	// Get deployed VDB
     	VDBMetaData theVDB;
     	try {
     		theVDB = clientAccessor.getClient().getVDB(vdbName,1);
@@ -659,8 +663,16 @@ public class VdbService implements IVdbService {
     		throw new DataVirtUiException(e.getMessage());
     	}
   	
+    	// Add the requested viewModel to the VDB
     	VDBMetaData newVdb = vdbHelper.addViewModel(theVDB, viewModelRequest.getName(), viewModelRequest.getDescription(), viewModelRequest.getDdl(), viewModelRequest.isVisible());
 
+    	// Add the required source import VDBs to the VDB
+    	List<String> rqdImportVdbNames = viewModelRequest.getRequiredImportVdbNames();
+    	List<Integer> rqdImportVdbVersions = viewModelRequest.getRequiredImportVdbVersions();
+    	if(rqdImportVdbNames!=null && !rqdImportVdbNames.isEmpty()) { 
+    		newVdb = vdbHelper.addImports(newVdb, rqdImportVdbNames, rqdImportVdbVersions);
+    	}
+    	
     	// Re-Deploy the VDB
     	redeployVDB(vdbName, newVdb);
 
