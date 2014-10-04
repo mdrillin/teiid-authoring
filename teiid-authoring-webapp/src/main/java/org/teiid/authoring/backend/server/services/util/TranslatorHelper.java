@@ -2,7 +2,7 @@ package org.teiid.authoring.backend.server.services.util;
 
 import java.util.Collection;
 
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
 
 
 public class TranslatorHelper {

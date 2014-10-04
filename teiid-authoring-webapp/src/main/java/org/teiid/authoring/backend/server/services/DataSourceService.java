@@ -33,7 +33,7 @@ import org.teiid.authoring.backend.server.services.util.FilterUtil;
 import org.teiid.authoring.backend.server.services.util.JdbcSourceHelper;
 import org.teiid.authoring.backend.server.services.util.TranslatorHelper;
 import org.teiid.authoring.backend.server.services.util.VdbHelper;
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.DataSourceDetailsBean;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;

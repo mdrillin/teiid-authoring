@@ -14,14 +14,18 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.resources.AppResource;
 import org.teiid.authoring.client.services.DataSourceRpcService;
+import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
+import org.teiid.authoring.share.beans.NotificationBean;
 import org.teiid.authoring.share.beans.PropertyBeanComparator;
 import org.teiid.authoring.share.services.StringUtils;
+import org.uberfire.client.common.Modal;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
@@ -44,6 +48,16 @@ import com.google.gwt.user.client.ui.Widget;
 @Templated("./DataSourcePropertiesPanel.html")
 public class DataSourcePropertiesPanel extends Composite {
 
+    @Inject
+    private ClientMessages i18n;
+    @Inject
+    private NotificationService notificationService;
+    
+	private String statusEnterName = null;
+	private String statusSelectTrans = null;
+	private String statusClickSave = null;
+	private String statusEnterProps = null;
+	
 	// Map of server sourceName to corresponding default translator
 	private Map<String,String> defaultTranslatorMap = new HashMap<String,String>();
 	// Current properties
@@ -57,6 +71,8 @@ public class DataSourcePropertiesPanel extends Composite {
     private String originalType;
     private String originalName;
     private String originalTranslator;
+    
+    Modal modalDialog = new Modal();
     
     @Inject
     protected DataSourceRpcService dataSourceService;
@@ -94,6 +110,11 @@ public class DataSourcePropertiesPanel extends Composite {
     protected void postConstruct() {
     	dsDetailsPanelTitle.setText("Data Source: [New Source]");
     	
+		statusEnterName = i18n.format("ds-properties-panel.status-enter-name");
+		statusSelectTrans = i18n.format("ds-properties-panel.status-select-translator");
+		statusClickSave = i18n.format("ds-properties-panel.status-click-save");
+		statusEnterProps = i18n.format("ds-properties-panel.status-enter-props");
+		
     	doPopulateSourceTypesPanel();
     	
     	doPopulateTranslatorListBox();
@@ -146,6 +167,10 @@ public class DataSourcePropertiesPanel extends Composite {
     }
     
     private void saveChangesButtonClick(ClickEvent event) {
+    	modalDialog = new Modal();
+    	modalDialog.setTitle("Saving Source Changes");
+    	modalDialog.show();
+    	
         DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
         // No name change - create will take care of redeploys
         if(StringUtils.valuesAreEqual(this.originalName, this.name.getText())) {
@@ -207,7 +232,7 @@ public class DataSourcePropertiesPanel extends Composite {
             }
             @Override
             public void onError(Throwable error) {
-                //notificationService.sendErrorNotification(i18n.format("adddatasourcedialog.error-populating-types-listbox"), error); //$NON-NLS-1$
+                notificationService.sendErrorNotification(i18n.format("ds-properties-panel.error-populating-dstypes"), error); //$NON-NLS-1$
             }
         });
     }
@@ -283,7 +308,7 @@ public class DataSourcePropertiesPanel extends Composite {
             }
             @Override
             public void onError(Throwable error) {
-                //notificationService.sendErrorNotification(i18n.format("adddatasourcedialog.error-populating-types-listbox"), error); //$NON-NLS-1$
+                notificationService.sendErrorNotification(i18n.format("ds-properties-panel.error-populating-translators"), error); //$NON-NLS-1$
             }
         });
     }
@@ -363,10 +388,9 @@ public class DataSourcePropertiesPanel extends Composite {
             }
             @Override
             public void onError(Throwable error) {
-                //notificationService.sendErrorNotification(i18n.format("adddatasourcedialog.error-populating-properties-table"), error); //$NON-NLS-1$
+                notificationService.sendErrorNotification(i18n.format("ds-properties-panel.error-populating-properties"), error); //$NON-NLS-1$
             }
         });
-
     }
     
     /**
@@ -374,27 +398,26 @@ public class DataSourcePropertiesPanel extends Composite {
      * @param dsDetailsBean the data source details
      */
     private void doCreateDataSource(final DataSourceWithVdbDetailsBean detailsBean) {
-//    	final String dsName = detailsBean.getName();
-//        final NotificationBean notificationBean = notificationService.startProgressNotification(
-//                i18n.format("datasources.creating-datasource-title"), //$NON-NLS-1$
-//                i18n.format("datasources.creating-datasource-msg", dsName)); //$NON-NLS-1$
+    	final String dsName = detailsBean.getName();
+        final NotificationBean notificationBean = notificationService.startProgressNotification(
+                i18n.format("ds-properties-panel.creating-datasource-title"), //$NON-NLS-1$
+                i18n.format("ds-properties-panel.creating-datasource-msg", dsName)); //$NON-NLS-1$
         dataSourceService.createDataSourceWithVdb(detailsBean, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
-//                notificationService.completeProgressNotification(notificationBean.getUuid(),
-//                        i18n.format("datasources.datasource-created"), //$NON-NLS-1$
-//                        i18n.format("datasources.create-success-msg")); //$NON-NLS-1$
-//
-//                // Refresh Page
-//            	doGetDataSourceInfos();
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("ds-properties-panel.datasource-created"), //$NON-NLS-1$
+                        i18n.format("ds-properties-panel.create-success-msg")); //$NON-NLS-1$
+            	modalDialog.hide();
             	// fire event with the created DataSource name
             	saveEvent.fire(detailsBean.getName());
             }
             @Override
             public void onError(Throwable error) {
-//                notificationService.completeProgressNotification(notificationBean.getUuid(),
-//                        i18n.format("datasources.create-error"), //$NON-NLS-1$
-//                        error);
+            	modalDialog.hide();
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("ds-properties-panel.create-error"), //$NON-NLS-1$
+                        error);
             }
         });
     }
@@ -403,32 +426,22 @@ public class DataSourcePropertiesPanel extends Composite {
      * Called when the user confirms the dataSource deletion.
      */
     private void doDeleteThenCreateDataSource(final List<String> dsNamesToDelete, final DataSourceWithVdbDetailsBean detailsBean) {
-//    	Collection<String> dsNames = this.dataSourcesTable.getSelectedDataSources();
-//    	String dsText = null;
-//    	if(dsNames.size()==1) {
-//    		dsText = "DataSource "+dsNames.iterator().next();
-//    	} else {
-//    		dsText = "DataSource(s)";
-//    	}
-//        final NotificationBean notificationBean = notificationService.startProgressNotification(
-//                i18n.format("datasources.deleting-datasource-title"), //$NON-NLS-1$
-//                i18n.format("datasources.deleting-datasource-msg", dsText)); //$NON-NLS-1$
+        final NotificationBean notificationBean = notificationService.startProgressNotification(
+                i18n.format("ds-properties-panel.creating-datasource-title"), //$NON-NLS-1$
+                i18n.format("ds-properties-panel.creating-datasource-msg")); //$NON-NLS-1$
         dataSourceService.deleteDataSources(dsNamesToDelete, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
-//                notificationService.completeProgressNotification(notificationBean.getUuid(),
-//                        i18n.format("datasources.datasource-deleted"), //$NON-NLS-1$
-//                        i18n.format("datasources.delete-success-msg")); //$NON-NLS-1$
-//
-//                // Deletion - go back to page 1 - delete could have made current page invalid
-//                doDataSourceFetch(1);
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("ds-properties-panel.datasource-created"), //$NON-NLS-1$
+                        i18n.format("ds-properties-panel.create-success-msg")); //$NON-NLS-1$
             	doCreateDataSource(detailsBean);
             }
             @Override
             public void onError(Throwable error) {
-//                notificationService.completeProgressNotification(notificationBean.getUuid(),
-//                        i18n.format("datasources.delete-error"), //$NON-NLS-1$
-//                        error);
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("ds-properties-panel.create-error"), //$NON-NLS-1$
+                        error);
             }
         });
     }
@@ -440,17 +453,7 @@ public class DataSourcePropertiesPanel extends Composite {
     private void populateCorePropertiesTable( ) {
     	dataSourceCorePropertyEditor.clear();
 
-//        final SortColumn currentSortColumnCore = this.dataSourceCorePropertiesTable.getCurrentSortColumn();
-
-    	// Separate property types, sorted in correct order
-//    	List<DataSourcePropertyBean> corePropList = getPropList(this.currentPropList, true, !currentSortColumnCore.ascending);
     	List<DataSourcePropertyBean> corePropList = getPropList(this.currentPropList, true, true);
-    	// Populate core properties table
-//    	for(DataSourcePropertyBean defn : corePropList) {
-//    		dataSourceCorePropertiesTable.addRow(defn);
-//    	}
-//    	dataSourceCorePropertiesTable.setValueColTextBoxWidths();
-//    	dataSourceCorePropertiesTable.setVisible(true);
     	dataSourceCorePropertyEditor.setProperties(corePropList);
     }
 
@@ -461,17 +464,7 @@ public class DataSourcePropertiesPanel extends Composite {
     private void populateAdvancedPropertiesTable() {
     	dataSourceAdvancedPropertyEditor.clear();
 
-//        final SortColumn currentSortColumnAdv = this.dataSourceAdvancedPropertiesTable.getCurrentSortColumn();
-
-    	// Separate property types, sorted in correct order
-//    	List<DataSourcePropertyBean> advPropList = getPropList(this.currentPropList, false, !currentSortColumnAdv.ascending);
     	List<DataSourcePropertyBean> advPropList = getPropList(this.currentPropList, false, true);
-    	// Populate advanced properties table
-//    	for(DataSourcePropertyBean defn : advPropList) {
-//    		dataSourceAdvancedPropertiesTable.addRow(defn);
-//    	}
-//    	dataSourceAdvancedPropertiesTable.setValueColTextBoxWidths();
-//    	dataSourceAdvancedPropertiesTable.setVisible(true);
     	dataSourceAdvancedPropertyEditor.setProperties(advPropList);
     }
     
@@ -540,48 +533,46 @@ public class DataSourcePropertiesPanel extends Composite {
             }
             @Override
             public void onError(Throwable error) {
-//                notificationService.sendErrorNotification(i18n.format("datasourcedetails.error-retrieving"), error); //$NON-NLS-1$
-//                pageTitle.setText("Data Source : Error retrieving");
-//            	breadcrumbLabel.setText("Data Source : Error");
+                notificationService.sendErrorNotification(i18n.format("ds-properties-panel.details-fetch-error"), error); //$NON-NLS-1$
             }
         });       
         
     }
     
     private void updateStatus( ) {
-    	String statusText = "OK";
+    	String statusText = Constants.OK;
     	
     	// Warn for missing source name
     	String serviceName = name.getText();
     	if(StringUtils.isEmpty(serviceName)) {
-    		statusText = "Please enter a name for your source";
+    		statusText = statusEnterName;
     	}
     	
 		// Warn for translator not selected
-    	if(statusText.equals("OK")) {
+    	if(statusText.equals(Constants.OK)) {
         	String translator = getSelectedTranslator();
     		if(translator!=null && translator.equals(Constants.NO_TRANSLATOR_SELECTION)) {
-    			statusText = "Please select a translator";
+    			statusText = statusSelectTrans;
     		}
     	}
     	
 		// Get properties message
-    	if(statusText.equals("OK")) {
+    	if(statusText.equals(Constants.OK)) {
         	statusText = getPropertyStatus();
     	}
     	
     	// Determine if any properties were changed
-    	if(statusText.equals("OK")) {
+    	if(statusText.equals(Constants.OK)) {
     		boolean hasNameChange = hasNameChange();
     		boolean hasTypeChange = hasDataSourceTypeChange();
     		boolean hasTranslatorChange = hasTranslatorChange();
         	boolean hasPropChanges = hasPropertyChanges();
     		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges) {
-    			statusLabel.setText("Click 'Save Changes' to accept changes");
+    			statusLabel.setText(statusClickSave);
         		saveSourceChanges1.setEnabled(true);
         		saveSourceChanges2.setEnabled(true);
     		} else {
-    			statusLabel.setText("Enter property changes for the source, if desired");
+    			statusLabel.setText(statusEnterProps);
         		saveSourceChanges1.setEnabled(false);
         		saveSourceChanges2.setEnabled(false);
     		}

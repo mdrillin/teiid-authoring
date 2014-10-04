@@ -15,7 +15,7 @@ import org.teiid.adminapi.impl.ModelMetaData;
 import org.teiid.adminapi.impl.VDBImportMetadata;
 import org.teiid.adminapi.impl.VDBMetaData;
 import org.teiid.adminapi.impl.VDBMetadataParser;
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbModelBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;

@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.jboss.errai.bus.server.annotations.Remote;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
-import org.teiid.authoring.share.beans.VdbResultSetBean;
 import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 
@@ -33,16 +32,16 @@ import org.teiid.authoring.share.exceptions.DataVirtUiException;
 @Remote
 public interface IVdbService {
 
-    /**
-     * Get the Data Sources using the provided info.
-     * @param searchText
-     * @param page
-     * @param showDataVirtUiVDBs
-     * @param sortColumnId
-     * @param sortAscending
-     * @throws DataVirtUiException
-     */
-    public VdbResultSetBean search(String searchText, int page, boolean showDataVirtUiVDBs, String sortColumnId, boolean sortAscending) throws DataVirtUiException;
+//    /**
+//     * Get the Data Sources using the provided info.
+//     * @param searchText
+//     * @param page
+//     * @param showDataVirtUiVDBs
+//     * @param sortColumnId
+//     * @param sortAscending
+//     * @throws DataVirtUiException
+//     */
+//    public VdbResultSetBean search(String searchText, int page, boolean showDataVirtUiVDBs, String sortColumnId, boolean sortAscending) throws DataVirtUiException;
 
     public VdbDetailsBean getVdbDetails(String vdbName) throws DataVirtUiException;
 

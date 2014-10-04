@@ -27,7 +27,9 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.DataSourceRpcService;
+import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.VdbRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
@@ -37,7 +39,7 @@ import org.teiid.authoring.client.widgets.ColumnNamesTable;
 import org.teiid.authoring.client.widgets.DataSourceNamesTable;
 import org.teiid.authoring.client.widgets.TablesProcNamesTable;
 import org.teiid.authoring.client.widgets.VisibilityRadios;
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.QueryColumnBean;
 import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
 import org.teiid.authoring.share.beans.QueryTableProcBean;
@@ -74,10 +76,18 @@ public class CreateDataServiceScreen extends Composite {
 	private Map<String,String> sourceNameToJndiMap = new HashMap<String,String>();
 	private Map<String,String> shortToLongTableNameMap = new HashMap<String,String>();
 	
+	private String statusEnterName = null;
+	private String statusEnterView = null;
+	private String statusClickCreate = null;
+	
 	private String selectedTable = null;
 	
     @Inject
     private PlaceManager placeManager;
+    @Inject
+    private ClientMessages i18n;
+    @Inject
+    private NotificationService notificationService;
     
     @Inject
     protected DataSourceRpcService dataSourceService;
@@ -141,6 +151,10 @@ public class CreateDataServiceScreen extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
+		statusEnterName = i18n.format("createdataservice.status-label-enter-name");
+		statusEnterView = i18n.format("createdataservice.status-label-enter-view");
+		statusClickCreate = i18n.format("createdataservice.status-label-click-create");
+		
     	serviceVisibleRadios.setValue(true);
     	tablesAndProcsTable.clear();
     	columnsTable.clear();
@@ -199,7 +213,7 @@ public class CreateDataServiceScreen extends Composite {
     	// Warning for missing service name
     	String serviceName = serviceNameTextBox.getText();
     	if(StringUtils.isEmpty(serviceName)) {
-    		statusLabel.setText("Please enter a name for your service");
+    		statusLabel.setText(statusEnterName);
     		isOK = false;
     	}
     	
@@ -207,39 +221,19 @@ public class CreateDataServiceScreen extends Composite {
     	if(isOK) {
     		String viewDdl = viewDdlTextArea.getText();
     		if(StringUtils.isEmpty(viewDdl)) {
-    			statusLabel.setText("Please create the View markup");
+    			statusLabel.setText(statusEnterView);
     			isOK = false;
     		}
     	}
     	
     	if(isOK) {
-    		statusLabel.setText("Click 'Create Data Service' to add your service");
+    		statusLabel.setText(statusClickCreate);
     		createServiceButton.setEnabled(true);
     	} else {
     		createServiceButton.setEnabled(false);
     	}
     }
-        
-    /**
-     * Populate the DataSource ListBox
-     */
-    protected void doGetDataSourceNames() {
-    	dataSourceService.getDataSourceNames(new IRpcServiceInvocationHandler<List<String>>() {
-    		@Override
-    		public void onReturn(List<String> sourceNames) {
-    			List<CheckableNameRow> nameRows = new ArrayList<CheckableNameRow>(sourceNames.size());
-    			for(String dsName : sourceNames) {
-    				nameRows.add(createCheckableNameRow(dsName,false));
-    			}
-    			dsNamesTable.setData(nameRows);
-    		}
-    		@Override
-    		public void onError(Throwable error) {
-    			//             notificationService.sendErrorNotification(i18n.format("addSourceModelDialog.error-populating-datasources"), error); //$NON-NLS-1$
-    		}
-    	});
-    }
-    
+
     /**
      * Populate the DataSource ListBox
      */
@@ -259,7 +253,7 @@ public class CreateDataServiceScreen extends Composite {
             }
             @Override
             public void onError(Throwable error) {
-                //notificationService.sendErrorNotification(i18n.format("queryTest.error-populating-sources"), error); //$NON-NLS-1$
+                notificationService.sendErrorNotification(i18n.format("createdataservice.error-getting-svcsources"), error); //$NON-NLS-1$
             }
         });
     }
@@ -285,7 +279,7 @@ public class CreateDataServiceScreen extends Composite {
 			}
 			@Override
 			public void onError(Throwable error) {
-				//notificationService.sendErrorNotification(i18n.format("queryTest.error-populating-tables"), error); //$NON-NLS-1$
+				notificationService.sendErrorNotification(i18n.format("createdataservice.error-getting-tables-procs"), error); //$NON-NLS-1$
 			}
 		});
 
@@ -297,31 +291,25 @@ public class CreateDataServiceScreen extends Composite {
      */
     protected void doGetTableColumns(String source, String table, int page) {
     	String filterText = "";
-//    	String filterText = (String)stateService.get(ApplicationStateKeys.QUERY_COLUMNS_FILTER_TEXT,"");
-//        stateService.put(ApplicationStateKeys.QUERY_COLUMNS_PAGE, currentQueryColumnsPage);
-        
-//        if(table!=null && table.equalsIgnoreCase(NO_TABLES_FOUND)) {
-//        	clearColumnsTable();
-//        } else {
-        	queryService.getQueryColumnResultSet(page, filterText, sourceNameToJndiMap.get(source), table,
-        			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
-        		@Override
-        		public void onReturn(QueryColumnResultSetBean data) {
-        			List<CheckableNameRow> colList = new ArrayList<CheckableNameRow>();
-        			List<QueryColumnBean> qColumns = data.getQueryColumns();
-        			for(QueryColumnBean col : qColumns) {
-        				colList.add(createCheckableNameRow(col.getName(),false));
-        			}
-        			columnsTable.setData(colList);
-        		}
-        		@Override
-        		public void onError(Throwable error) {
-//        			notificationService.sendErrorNotification(i18n.format("queryTest.error-fetching-columns"), error); //$NON-NLS-1$
-//        		    noColumnsMessage.setVisible(true);
-//        		    columnFetchInProgressMessage.setVisible(false);
-        		}
-        	});
-//        }
+    	// String filterText = (String)stateService.get(ApplicationStateKeys.QUERY_COLUMNS_FILTER_TEXT,"");
+    	queryService.getQueryColumnResultSet(page, filterText, sourceNameToJndiMap.get(source), table,
+    			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
+    		@Override
+    		public void onReturn(QueryColumnResultSetBean data) {
+    			List<CheckableNameRow> colList = new ArrayList<CheckableNameRow>();
+    			List<QueryColumnBean> qColumns = data.getQueryColumns();
+    			for(QueryColumnBean col : qColumns) {
+    				colList.add(createCheckableNameRow(col.getName(),false));
+    			}
+    			columnsTable.setData(colList);
+    		}
+    		@Override
+    		public void onError(Throwable error) {
+    			notificationService.sendErrorNotification(i18n.format("createdataservice.error-getting-tablecols"), error); //$NON-NLS-1$
+    			// noColumnsMessage.setVisible(true);
+    			// columnFetchInProgressMessage.setVisible(false);
+    		}
+    	});
 
     }
 
@@ -397,24 +385,14 @@ public class CreateDataServiceScreen extends Composite {
         vdbService.addOrReplaceViewModelAndRedeploy("ServicesVDB", 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
-//            	currentVdbDetails = vdbDetailsBean;
-//            	setVdbStatus(vdbDetailsBean);
-//                updatePager(vdbDetailsBean);
-//                updateVdbModelsTable(vdbDetailsBean);
-//                doSetButtonEnablements();
-            	
             	Map<String,String> parameters = new HashMap<String,String>();
             	parameters.put(Constants.SERVICE_NAME_KEY, viewModel);
             	placeManager.goTo(new DefaultPlaceRequest("DataServiceDetailsScreen",parameters));
             }
             @Override
             public void onError(Throwable error) {
-//                notificationService.sendErrorNotification(i18n.format("vdbdetails.error-adding-view-model"), error); //$NON-NLS-1$
+                notificationService.sendErrorNotification(i18n.format("createdataservice.error-creating-service"), error); //$NON-NLS-1$
 //                addModelInProgressMessage.setVisible(false);
-//                setVdbStatus(currentVdbDetails);
-//                updatePager(currentVdbDetails);
-//                updateVdbModelsTable(currentVdbDetails);
-//                doSetButtonEnablements();
             }
         });           	
     }

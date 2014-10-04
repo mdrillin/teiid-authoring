@@ -25,10 +25,12 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.messages.ClientMessages;
+import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.VdbRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.widgets.QueryResultPagedTableDisplayer;
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbModelBean;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
@@ -63,6 +65,10 @@ public class DataServiceDetailsScreen extends Composite {
 	
     @Inject
     private PlaceManager placeManager;
+    @Inject
+    private ClientMessages i18n;
+    @Inject
+    private NotificationService notificationService;
     
     @Inject
     private VdbRpcService vdbService;

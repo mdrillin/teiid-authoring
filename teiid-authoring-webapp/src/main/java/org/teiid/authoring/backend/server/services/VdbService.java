@@ -38,7 +38,7 @@ import org.teiid.authoring.backend.server.api.AdminApiClientAccessor;
 import org.teiid.authoring.backend.server.services.util.FilterUtil;
 import org.teiid.authoring.backend.server.services.util.JdbcSourceHelper;
 import org.teiid.authoring.backend.server.services.util.VdbHelper;
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbModelBean;
 import org.teiid.authoring.share.beans.VdbResultSetBean;
@@ -69,89 +69,89 @@ public class VdbService implements IVdbService {
     public VdbService() {
     }
 
-    /**
-     * @see org.jboss.datavirt.ui.client.shared.services.IDataSourceSearchService#search(java.lang.String, int, java.lang.String, boolean)
-     */
-    @Override
-    public VdbResultSetBean search(String searchText, int page, boolean showDataVirtUiVDBs, String sortColumnId, boolean sortAscending) throws DataVirtUiException {
-        int pageSize = Constants.VDBS_TABLE_PAGE_SIZE; 
-        
-        VdbResultSetBean data = new VdbResultSetBean();
-        
-        Collection<Properties> vdbSummaryProps = null;
-        try {
-        	vdbSummaryProps = clientAccessor.getClient().getVdbSummaryPropCollection(true, true, true);
-		} catch (AdminApiClientException e) {
-		}
-        
-        // List of all the names
-        List<Properties> vdbPropsList = new ArrayList<Properties>(vdbSummaryProps);
-        // Save complete list
-        List<String> allVdbNames = new ArrayList<String>(vdbSummaryProps.size());
-        List<String> allVdbNamesSort = new ArrayList<String>(vdbSummaryProps.size());
-        for(Properties vdbProps : vdbPropsList) {
-            String vdbName = vdbProps.getProperty("name");
-            if(!StringUtils.isEmpty(vdbName)) {
-            	// If not showing the DataVirtUi created VDBS, then skip them
-            	if(!showDataVirtUiVDBs && vdbName.startsWith(Constants.SOURCE_VDB_PREFIX)) {
-            		continue;
-            	} else {
-            		allVdbNames.add(vdbName);
-            		if ( FilterUtil.matchFilter(vdbName, searchText) ) {
-            			allVdbNamesSort.add(vdbName.toLowerCase());
-            		}
-            	}
-            }
-        }
-        
-        // Sort alpha by name
-        Collections.sort(allVdbNamesSort);
-        // If reverse alpha, reverse the sorted list
-        if(!sortAscending) {
-        	Collections.reverse(allVdbNamesSort);
-        }    	
-        
-        int totalVdbs = allVdbNamesSort.size();
-        
-        // Start and End Index for this page
-        int page_startIndex = (page - 1) * pageSize;
-        int page_endIndex = page_startIndex + (pageSize-1);
-        // If page endIndex greater than total rows, reset to end
-        if(page_endIndex > (totalVdbs-1)) {
-        	page_endIndex = totalVdbs-1;
-        }
-        
-        // Gets jdbc Jndi names available on the server
-        List<String> jdbcJndiNames = JdbcSourceHelper.getInstance().getJdbcSourceNames(false);
-
-        List<VdbSummaryBean> rows = new ArrayList<VdbSummaryBean>();
-        if(!allVdbNamesSort.isEmpty()) {
-        	for(int i=page_startIndex; i<=page_endIndex; i++) {
-        		VdbSummaryBean summaryBean = new VdbSummaryBean();
-        		String vdbName = allVdbNamesSort.get(i);
-        		for(Properties vdbProps : vdbPropsList) {
-        			String thisVdbName = vdbProps.getProperty("name");
-        			if(thisVdbName.equalsIgnoreCase(vdbName)) {
-        				summaryBean.setName(thisVdbName);
-        				summaryBean.setType(vdbProps.getProperty("type"));
-        				summaryBean.setStatus(vdbProps.getProperty("status"));
-        				if(jdbcJndiNames.contains("java:/"+thisVdbName)) {
-        					summaryBean.setTestable(true);
-        				}
-        				rows.add(summaryBean);
-        				break;
-        			}
-        		}
-        	}
-        }
-        data.setAllVdbNames(allVdbNames);
-        data.setVdbs(rows);
-        data.setItemsPerPage(pageSize);
-        data.setStartIndex(page_startIndex);
-        data.setTotalResults(totalVdbs);
-        
-        return data;
-    }
+//    /**
+//     * @see org.jboss.datavirt.ui.client.shared.services.IDataSourceSearchService#search(java.lang.String, int, java.lang.String, boolean)
+//     */
+//    @Override
+//    public VdbResultSetBean search(String searchText, int page, boolean showDataVirtUiVDBs, String sortColumnId, boolean sortAscending) throws DataVirtUiException {
+//        int pageSize = Constants.VDBS_TABLE_PAGE_SIZE; 
+//        
+//        VdbResultSetBean data = new VdbResultSetBean();
+//        
+//        Collection<Properties> vdbSummaryProps = null;
+//        try {
+//        	vdbSummaryProps = clientAccessor.getClient().getVdbSummaryPropCollection(true, true, true);
+//		} catch (AdminApiClientException e) {
+//		}
+//        
+//        // List of all the names
+//        List<Properties> vdbPropsList = new ArrayList<Properties>(vdbSummaryProps);
+//        // Save complete list
+//        List<String> allVdbNames = new ArrayList<String>(vdbSummaryProps.size());
+//        List<String> allVdbNamesSort = new ArrayList<String>(vdbSummaryProps.size());
+//        for(Properties vdbProps : vdbPropsList) {
+//            String vdbName = vdbProps.getProperty("name");
+//            if(!StringUtils.isEmpty(vdbName)) {
+//            	// If not showing the DataVirtUi created VDBS, then skip them
+//            	if(!showDataVirtUiVDBs && vdbName.startsWith(Constants.SOURCE_VDB_PREFIX)) {
+//            		continue;
+//            	} else {
+//            		allVdbNames.add(vdbName);
+//            		if ( FilterUtil.matchFilter(vdbName, searchText) ) {
+//            			allVdbNamesSort.add(vdbName.toLowerCase());
+//            		}
+//            	}
+//            }
+//        }
+//        
+//        // Sort alpha by name
+//        Collections.sort(allVdbNamesSort);
+//        // If reverse alpha, reverse the sorted list
+//        if(!sortAscending) {
+//        	Collections.reverse(allVdbNamesSort);
+//        }    	
+//        
+//        int totalVdbs = allVdbNamesSort.size();
+//        
+//        // Start and End Index for this page
+//        int page_startIndex = (page - 1) * pageSize;
+//        int page_endIndex = page_startIndex + (pageSize-1);
+//        // If page endIndex greater than total rows, reset to end
+//        if(page_endIndex > (totalVdbs-1)) {
+//        	page_endIndex = totalVdbs-1;
+//        }
+//        
+//        // Gets jdbc Jndi names available on the server
+//        List<String> jdbcJndiNames = JdbcSourceHelper.getInstance().getJdbcSourceNames(false);
+//
+//        List<VdbSummaryBean> rows = new ArrayList<VdbSummaryBean>();
+//        if(!allVdbNamesSort.isEmpty()) {
+//        	for(int i=page_startIndex; i<=page_endIndex; i++) {
+//        		VdbSummaryBean summaryBean = new VdbSummaryBean();
+//        		String vdbName = allVdbNamesSort.get(i);
+//        		for(Properties vdbProps : vdbPropsList) {
+//        			String thisVdbName = vdbProps.getProperty("name");
+//        			if(thisVdbName.equalsIgnoreCase(vdbName)) {
+//        				summaryBean.setName(thisVdbName);
+//        				summaryBean.setType(vdbProps.getProperty("type"));
+//        				summaryBean.setStatus(vdbProps.getProperty("status"));
+//        				if(jdbcJndiNames.contains("java:/"+thisVdbName)) {
+//        					summaryBean.setTestable(true);
+//        				}
+//        				rows.add(summaryBean);
+//        				break;
+//        			}
+//        		}
+//        	}
+//        }
+//        data.setAllVdbNames(allVdbNames);
+//        data.setVdbs(rows);
+//        data.setItemsPerPage(pageSize);
+//        data.setStartIndex(page_startIndex);
+//        data.setTotalResults(totalVdbs);
+//        
+//        return data;
+//    }
     
     @Override
     public VdbDetailsBean getVdbDetails(String vdbName) throws DataVirtUiException {

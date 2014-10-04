@@ -28,12 +28,15 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.messages.ClientMessages;
+import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.VdbRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.widgets.ServiceFlowListWidget;
 import org.teiid.authoring.client.widgets.ServiceRow;
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
+import org.teiid.authoring.share.beans.NotificationBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbModelBean;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
@@ -58,6 +61,11 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 @WorkbenchScreen(identifier = "DataServicesLibraryScreen")
 public class DataServicesLibraryScreen extends Composite {
 
+    @Inject
+    private ClientMessages i18n;
+    @Inject
+    private NotificationService notificationService;
+    
     @Inject
     protected VdbRpcService vdbService;
  
@@ -122,14 +130,12 @@ public class DataServicesLibraryScreen extends Composite {
     	vdbService.createAndDeployDynamicVdb(vdbName, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
-//                TransitionAnchor<VdbDetailsPage> detailsLink = toDetailsPageLinkFactory.get("vdbname", deploymentName); //$NON-NLS-1$
-//                detailsLink.click();
             }
             @Override
             public void onError(Throwable error) {
-//                notificationService.sendErrorNotification(i18n.format("vdbs.error-searching"), error); //$NON-NLS-1$
-//                noDataMessage.setVisible(true);
-//                searchInProgressMessage.setVisible(false);
+                notificationService.sendErrorNotification(i18n.format("dslibrary.error-with-vdb-deployment"), error); //$NON-NLS-1$
+                //noDataMessage.setVisible(true);
+                //searchInProgressMessage.setVisible(false);
             }
         });    	
     }
@@ -162,25 +168,30 @@ public class DataServicesLibraryScreen extends Composite {
 
     			} else {
     		     	populateGrid(serviceTableRows);
-    				//servicesTable.setData(serviceTableRows);
     			}
     		}
     		@Override
     		public void onError(Throwable error) {
-//    			notificationService.completeProgressNotification(notificationBean.getUuid(),
-//    					i18n.format("vdbdetails.delete-error"), //$NON-NLS-1$
-//    					error);
+                notificationService.sendErrorNotification(i18n.format("dslibrary.fetch-services-error"), error); //$NON-NLS-1$
     		}
     	});
     }
-    
-    protected void doRemoveService(String serviceName) {
+        	
+   protected void doRemoveService(String serviceName) {
+        final NotificationBean notificationBean = notificationService.startProgressNotification(
+                i18n.format("dslibrary.service-deleting"), //$NON-NLS-1$
+                i18n.format("dslibrary.service-deleting-msg", serviceName)); //$NON-NLS-1$
+        
     	Map<String,String> modelNameTypeMap = new HashMap<String,String>();
     	modelNameTypeMap.put(serviceName, Constants.VIRTUAL);
     	
     	vdbService.removeModelsAndRedeploy(Constants.SERVICES_VDB, 1, modelNameTypeMap, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
     		@Override
     		public void onReturn(VdbDetailsBean vdbDetailsBean) {
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("dslibrary.delete-success"), //$NON-NLS-1$
+                        i18n.format("dslibrary.delete-success-msg")); //$NON-NLS-1$
+                
     			List<ServiceRow> serviceTableRows = new ArrayList<ServiceRow>();
     			
     			Collection<VdbModelBean> modelList = vdbDetailsBean.getModels();
@@ -199,25 +210,31 @@ public class DataServicesLibraryScreen extends Composite {
     			}
     			if(serviceTableRows.isEmpty()) {
     				placeManager.goTo("DataServicesEmptyLibraryScreen");
-
     			} else {
     		     	populateGrid(serviceTableRows);
-    				//servicesTable.setData(serviceTableRows);
     			}
     		}
     		@Override
     		public void onError(Throwable error) {
-//    			notificationService.completeProgressNotification(notificationBean.getUuid(),
-//    					i18n.format("vdbdetails.delete-error"), //$NON-NLS-1$
-//    					error);
+    			notificationService.completeProgressNotification(notificationBean.getUuid(),
+    					i18n.format("dslibrary.service-delete-error"), //$NON-NLS-1$
+    					error);
     		}
     	});
     }
     
     protected void doCloneService(String serviceName) {
+        final NotificationBean notificationBean = notificationService.startProgressNotification(
+                i18n.format("dslibrary.service-cloning"), //$NON-NLS-1$
+                i18n.format("dslibrary.service-cloning-msg", serviceName)); //$NON-NLS-1$
+        
     	vdbService.cloneViewModelAndRedeploy(Constants.SERVICES_VDB, 1, serviceName, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
     		@Override
     		public void onReturn(VdbDetailsBean vdbDetailsBean) {
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("dslibrary.clone-success"), //$NON-NLS-1$
+                        i18n.format("dslibrary.clone-success-msg")); //$NON-NLS-1$
+                
     			List<ServiceRow> serviceTableRows = new ArrayList<ServiceRow>();
     			
     			Collection<VdbModelBean> modelList = vdbDetailsBean.getModels();
@@ -236,17 +253,15 @@ public class DataServicesLibraryScreen extends Composite {
     			}
     			if(serviceTableRows.isEmpty()) {
     				placeManager.goTo("DataServicesEmptyLibraryScreen");
-
     			} else {
     		     	populateGrid(serviceTableRows);
-    				//servicesTable.setData(serviceTableRows);
     			}
     		}
     		@Override
     		public void onError(Throwable error) {
-//    			notificationService.completeProgressNotification(notificationBean.getUuid(),
-//    					i18n.format("vdbdetails.delete-error"), //$NON-NLS-1$
-//    					error);
+    			notificationService.completeProgressNotification(notificationBean.getUuid(),
+    					i18n.format("dslibrary.service-clone-error"), //$NON-NLS-1$
+    					error);
     		}
     	});
     }

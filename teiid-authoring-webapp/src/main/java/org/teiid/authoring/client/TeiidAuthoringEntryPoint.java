@@ -28,6 +28,7 @@ import org.jboss.errai.bus.client.api.ClientMessageBus;
 import org.jboss.errai.ioc.client.api.EntryPoint;
 import org.jboss.errai.ioc.client.container.IOCBeanDef;
 import org.jboss.errai.ioc.client.container.SyncBeanManager;
+import org.jboss.errai.ui.shared.api.annotations.Bundle;
 import org.uberfire.client.mvp.ActivityManager;
 import org.uberfire.client.mvp.PerspectiveActivity;
 import org.uberfire.client.mvp.PlaceManager;
@@ -47,6 +48,7 @@ import com.google.gwt.user.client.ui.RootPanel;
  * GWT's Entry-point for the Teiid Authoring WebApp
  */
 @EntryPoint
+@Bundle("messages/messages.json")
 public class TeiidAuthoringEntryPoint {
 
     @Inject
@@ -73,7 +75,7 @@ public class TeiidAuthoringEntryPoint {
         final PerspectiveActivity defaultPerspective = getDefaultPerspectiveActivity();
         
         Menus menus =
-                newTopLevelMenu("Home").respondsWith(new Command() {
+                newTopLevelMenu("Data Library").respondsWith(new Command() {
                     public void execute() {
                         if (defaultPerspective != null) {
                             placeManager.goTo(new DefaultPlaceRequest(defaultPerspective.getIdentifier()));
@@ -82,11 +84,6 @@ public class TeiidAuthoringEntryPoint {
                         }
                     }
                 }).endMenu()
-//                .newTopLevelMenu("Screens")
-//                  .menus()
-//                    .menu("DataSourcesScreen").respondsWith(makeGoToPlaceCommand("DataSourcesScreen")).endMenu()
-//                  .endMenus()
-//                .endMenu()
               .build();
 
         menubar.addMenus( menus );

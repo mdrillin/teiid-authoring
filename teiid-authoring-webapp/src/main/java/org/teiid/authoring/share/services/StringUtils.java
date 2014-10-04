@@ -1,6 +1,6 @@
 package org.teiid.authoring.share.services;
 
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
 
 public final class StringUtils {
 

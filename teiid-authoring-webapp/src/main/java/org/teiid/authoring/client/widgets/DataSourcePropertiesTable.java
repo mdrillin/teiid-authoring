@@ -22,7 +22,7 @@ import java.util.List;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.services.StringUtils;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.teiid.authoring.share.beans;
+package org.teiid.authoring.share;
 
 /**
  * Application constants
@@ -37,6 +37,8 @@ public class Constants {
 	public static final String SERVICE_SOURCE_VDB_PREFIX = "SvcSrcVdb_";
 	public static final String CLONE_SERVICE_KEY = "clone-service";
 	public static final String DELETE_SERVICE_KEY = "delete-service";
+	
+	public static final String DATA_SOURCE_NEW_NAME = "MyNewSource";
 	
 	public static final String OK = "OK";
 	public static final String QUESTION_MARK = "?";

@@ -29,16 +29,23 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
+import org.teiid.authoring.client.dialogs.ConfirmationDialog;
+import org.teiid.authoring.client.dialogs.DialogEvent;
+import org.teiid.authoring.client.dialogs.UIEventType;
+import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.DataSourceRpcService;
+import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.VdbRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.widgets.DataSourceListWidget;
 import org.teiid.authoring.client.widgets.DataSourcePropertiesPanel;
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
+import org.teiid.authoring.share.beans.NotificationBean;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
@@ -66,9 +73,19 @@ public class ManageSourcesScreen extends Composite {
 	private Map<String,String> defaultTranslatorMap = new HashMap<String,String>();
 	private SingleSelectionModel<DataSourcePageRow> listSelectionModel;
 	private boolean propPanelVisible = false;
+	private ConfirmationDialog confirmationDialog;
+
+    @Inject
+    protected ClientMessages i18n;
+    
+	@Inject
+	private NotificationService notificationService;
 	
     @Inject
     private PlaceManager placeManager;
+    
+    @Inject 
+    private ConfirmationContentPanel confirmationContent;
     
     @Inject
     protected DataSourceRpcService dataSourceService;
@@ -111,8 +128,9 @@ public class ManageSourcesScreen extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
-        HTMLPanel selectSourcePanel = new HTMLPanel("<h4>Select a Data Source from the list to view or edit</h4>");
-        	      
+    	String selectSourcePanelHtml = i18n.format("managesources.select-source-text");
+        HTMLPanel selectSourcePanel = new HTMLPanel(selectSourcePanelHtml);
+        
     	// Add properties panel and Select label to deckPanel
     	detailsDeckPanel.add(propsPanel);
     	detailsDeckPanel.add(selectSourcePanel);
@@ -134,6 +152,7 @@ public class ManageSourcesScreen extends Composite {
     			}
     		}
     	});
+    	
     }
     
     private void showPropertiesPanel(String dsName) {
@@ -151,6 +170,25 @@ public class ManageSourcesScreen extends Composite {
     	}
     }
     
+    /**
+     * Handles Events from Dialogs
+     * @param dEvent
+     */
+    public void onDialogEvent(@Observes DialogEvent dEvent) {
+    	// User has OK'd source deletion
+    	if(dEvent.getType() == UIEventType.DELETE_SOURCE_OK) {
+    		confirmationDialog.hide();
+    		onDeleteConfirm();
+    	// User has cancelled source deletion
+    	} else if(dEvent.getType() == UIEventType.DELETE_SOURCE_CANCEL) {
+    		confirmationDialog.hide();
+    	}
+    }
+    
+    /**
+     * Handles Changes to DataSource - refresh display sources
+     * @param dsName
+     */
     public void onDSChanged(@Observes String dsName) {
     	doGetDataSourceInfos(dsName);
     }
@@ -168,9 +206,19 @@ public class ManageSourcesScreen extends Composite {
         doCreateDataSource(sourceWithVdbBean);
     }
     
+//    /**
+//     * Shows a status popup with message
+//     */
+//    private void showStatusPopup(String title, String message) {
+//    	statusPopup = new StatusPopup(statusContent, title );
+//    	statusPopup.setContentTitle(title);
+//    	statusPopup.setContentMessage(message);
+//    	statusPopup.show();
+//    }
+    
     private String getNewSourceName() {
-    	String sourceRootName = "MyNewSource";
-    	String newSourceName = "MyNewSource";
+    	String sourceRootName = Constants.DATA_SOURCE_NEW_NAME;
+    	String newSourceName = Constants.DATA_SOURCE_NEW_NAME;
     	Collection<String> existingNames = this.dsList.getDataSourceNames();
     	int i = 1;
     	while(existingNames.contains(newSourceName)) {
@@ -186,74 +234,85 @@ public class ManageSourcesScreen extends Composite {
      */
     @EventHandler("btn-manage-sources-delete")
     public void onDeleteButtonClick(ClickEvent event) {
+    	// Show confirmation dialog before the deletion
+    	showConfirmDeleteDialog();
+    }
+    
+    /**
+     * Shows the confirmation dialog for deleting a DataSource
+     */
+    private void showConfirmDeleteDialog() {
+    	String dTitle = i18n.format("managesources.confirm-delete-dialog-title");
+    	String dMsg = i18n.format("managesources.confirm-delete-dialog-message");
+    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
+    	confirmationDialog.setContentTitle(dTitle);
+    	confirmationDialog.setContentMessage(dMsg);
+    	confirmationDialog.setOkCancelEventTypes(UIEventType.DELETE_SOURCE_OK, UIEventType.DELETE_SOURCE_CANCEL);
+    	confirmationDialog.show();
+    }
+    
+    /**
+     * Does the DataSource deletion upon user confirmation
+     */
+    private void onDeleteConfirm() {
 		DataSourcePageRow row = listSelectionModel.getSelectedObject();
     	List<String> dsNames = new ArrayList<String>();
     	String dsName = row.getName();
 		dsNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
     	dsNames.add(dsName);
-//    	if(row.hasVdb()) {
-//		dsNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
-//    	}
 		doDeleteDataSources(dsNames,null);
     }
-    
     
     /**
      * Creates a DataSource
      * @param dsDetailsBean the data source details
      */
     private void doCreateDataSource(final DataSourceWithVdbDetailsBean detailsBean) {
-//    	final String dsName = detailsBean.getName();
-//        final NotificationBean notificationBean = notificationService.startProgressNotification(
-//                i18n.format("datasources.creating-datasource-title"), //$NON-NLS-1$
-//                i18n.format("datasources.creating-datasource-msg", dsName)); //$NON-NLS-1$
+    	final String dsName = detailsBean.getName();
+        final NotificationBean notificationBean = notificationService.startProgressNotification(
+                i18n.format("managesources.creating-datasource-title"), //$NON-NLS-1$
+                i18n.format("managesources.creating-datasource-msg", dsName)); //$NON-NLS-1$
+        
         dataSourceService.createDataSourceWithVdb(detailsBean, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
-//                notificationService.completeProgressNotification(notificationBean.getUuid(),
-//                        i18n.format("datasources.datasource-created"), //$NON-NLS-1$
-//                        i18n.format("datasources.create-success-msg")); //$NON-NLS-1$
-//
-//                // Refresh Page
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("managesources.datasource-created"), //$NON-NLS-1$
+                        i18n.format("managesources.create-success-msg")); //$NON-NLS-1$
+
+                // Refresh Page
             	doGetDataSourceInfos(detailsBean.getName());
             }
             @Override
             public void onError(Throwable error) {
-//                notificationService.completeProgressNotification(notificationBean.getUuid(),
-//                        i18n.format("datasources.create-error"), //$NON-NLS-1$
-//                        error);
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("managesources.create-error"), //$NON-NLS-1$
+                        error);
             }
         });
     }
-    
-//    private String getSelectedSourceType() {
-//    	int index = sourceTypeListBox.getSelectedIndex();
-//    	return sourceTypeListBox.getValue(index);
-//    }
     
     /**
      * Called when the user confirms the dataSource deletion.
      */
     private void doDeleteDataSources(final List<String> dsNames, final String selectedDS) {
-//        final NotificationBean notificationBean = notificationService.startProgressNotification(
-//                i18n.format("datasources.deleting-datasource-title"), //$NON-NLS-1$
-//                i18n.format("datasources.deleting-datasource-msg", dsText)); //$NON-NLS-1$
+        final NotificationBean notificationBean = notificationService.startProgressNotification(
+                i18n.format("managesources.deleting-datasource-title"), //$NON-NLS-1$
+                i18n.format("managesources.deleting-datasource-msg", "sourceList")); //$NON-NLS-1$
         dataSourceService.deleteDataSources(dsNames, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
-//                notificationService.completeProgressNotification(notificationBean.getUuid(),
-//                        i18n.format("datasources.datasource-deleted"), //$NON-NLS-1$
-//                        i18n.format("datasources.delete-success-msg")); //$NON-NLS-1$
-//
-//                // Deletion - go back to page 1 - delete could have made current page invalid
-//                doDataSourceFetch(1);
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("managesources.datasource-deleted"), //$NON-NLS-1$
+                        i18n.format("managesources.delete-success-msg")); //$NON-NLS-1$
+
             	doGetDataSourceInfos(selectedDS);
             }
             @Override
             public void onError(Throwable error) {
-//                notificationService.completeProgressNotification(notificationBean.getUuid(),
-//                        i18n.format("datasources.delete-error"), //$NON-NLS-1$
-//                        error);
+              notificationService.completeProgressNotification(notificationBean.getUuid(),
+              i18n.format("managesources.delete-error"), //$NON-NLS-1$
+              error);
             }
         });
     }
@@ -282,12 +341,10 @@ public class ManageSourcesScreen extends Composite {
     			}
     			
     	    	doPopulateDefaultTranslatorMappings();
-    			// Get translators for list of srcVdbNames
-    			//doSetTranslatorNames(tableRowList, srcVdbNames);
     		}
     		@Override
     		public void onError(Throwable error) {
-    			//             notificationService.sendErrorNotification(i18n.format("addSourceModelDialog.error-populating-datasources"), error); //$NON-NLS-1$
+    			notificationService.sendErrorNotification(i18n.format("managesources.error-getting-datasources"), error); //$NON-NLS-1$
     		}
     	});
     }
@@ -304,36 +361,12 @@ public class ManageSourcesScreen extends Composite {
     		}
     		@Override
     		public void onError(Throwable error) {
-//    			defaultTranslatorMap = new HashMap<String,String>();
-//    			notificationService.sendErrorNotification(i18n.format("addSourceModelDialog.error-populating-translatormappings"), error); //$NON-NLS-1$
+    			defaultTranslatorMap = new HashMap<String,String>();
+    			notificationService.sendErrorNotification(i18n.format("managesources.error-populating-translatormappings"), error); //$NON-NLS-1$
     		}
     	});
     }
-        
-//    private void doSetTranslatorNames(final List<DataSourceTranslatorConnectionPageRow> tableRows, final List<String> srcVdbNames) {
-//    	vdbService.getTranslatorsForSrcVdbs(srcVdbNames, new IRpcServiceInvocationHandler<List<String>>() {
-//    		@Override
-//    		public void onReturn(List<String> translators) {
-//    			
-//    			for(int i=0; i<srcVdbNames.size(); i++) {
-//    				String srcVdbName = srcVdbNames.get(i);
-//    				String tName = translators.get(i);
-//        			for(DataSourceTranslatorConnectionPageRow row : tableRows) {
-//        				String dsName = row.getDataSource();
-//        				if(dsName.equals(srcVdbName)) {
-//        					row.setTranslator(tName);
-//        				}
-//        			}
-//    			}
-//    			dsList.setData(tableRows);
-//    		}
-//    		@Override
-//    		public void onError(Throwable error) {
-//    			//             notificationService.sendErrorNotification(i18n.format("addSourceModelDialog.error-populating-datasources"), error); //$NON-NLS-1$
-//    		}
-//    	});
-//    }
-        
+    
 	/**
 	 * Create a Default data source connected to the DashboardDS (for now)
 	 * @return

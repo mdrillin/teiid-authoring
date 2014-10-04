@@ -21,13 +21,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.DataSourceRpcService;
+import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.VdbRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
@@ -37,7 +40,7 @@ import org.teiid.authoring.client.widgets.ColumnNamesTable;
 import org.teiid.authoring.client.widgets.DataSourceNamesTable;
 import org.teiid.authoring.client.widgets.TablesProcNamesTable;
 import org.teiid.authoring.client.widgets.VisibilityRadios;
-import org.teiid.authoring.share.beans.Constants;
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.QueryColumnBean;
 import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
 import org.teiid.authoring.share.beans.QueryTableProcBean;
@@ -77,9 +80,16 @@ public class EditDataServiceScreen extends Composite {
 	private Map<String,String> sourceNameToJndiMap = new HashMap<String,String>();
 	private Map<String,String> shortToLongTableNameMap = new HashMap<String,String>();
 	private String selectedTable = null;
+	private String statusEnterName = null;
+	private String statusEnterView = null;
+	private String statusClickSave = null;
 	
     @Inject
     private PlaceManager placeManager;
+    @Inject
+    private ClientMessages i18n;
+    @Inject
+    private NotificationService notificationService;
     
     @Inject
     protected DataSourceRpcService dataSourceService;
@@ -92,7 +102,7 @@ public class EditDataServiceScreen extends Composite {
     protected TextBox serviceNameTextBox;
     
     @Inject @DataField("textarea-edit-service-description")
-    protected TextBox serviceDescriptionTextBox;
+    protected TextArea serviceDescriptionTextBox;
     
     @Inject @DataField("radios-edit-service-visibility")
     protected VisibilityRadios serviceVisibleRadios;
@@ -136,6 +146,16 @@ public class EditDataServiceScreen extends Composite {
     @WorkbenchPartView
     public IsWidget getView() {
         return this;
+    }
+    
+    /**
+     * Called after construction.
+     */
+    @PostConstruct
+    protected void postConstruct() {
+		statusEnterName = i18n.format("editdataservice.status-label-enter-name");
+		statusEnterView = i18n.format("editdataservice.status-label-enter-view");
+		statusClickSave = i18n.format("editdataservice.status-label-click-save");
     }
     
     @OnStartup
@@ -212,7 +232,7 @@ public class EditDataServiceScreen extends Composite {
             }
             @Override
             public void onError(Throwable error) {
-                //notificationService.sendErrorNotification(i18n.format("queryTest.error-populating-sources"), error); //$NON-NLS-1$
+                notificationService.sendErrorNotification(i18n.format("editdataservice.error-getting-svcsources"), error); //$NON-NLS-1$
             }
         });
     }
@@ -245,7 +265,7 @@ public class EditDataServiceScreen extends Composite {
 			}
 			@Override
 			public void onError(Throwable error) {
-				//notificationService.sendErrorNotification(i18n.format("queryTest.error-populating-tables"), error); //$NON-NLS-1$
+				notificationService.sendErrorNotification(i18n.format("editdataservice.error-getting-tables-procs"), error); //$NON-NLS-1$
 			}
 		});
 
@@ -259,31 +279,27 @@ public class EditDataServiceScreen extends Composite {
     	String filterText = "";
 //    	String filterText = (String)stateService.get(ApplicationStateKeys.QUERY_COLUMNS_FILTER_TEXT,"");
 //        stateService.put(ApplicationStateKeys.QUERY_COLUMNS_PAGE, currentQueryColumnsPage);
-        
-//        if(table!=null && table.equalsIgnoreCase(NO_TABLES_FOUND)) {
-//        	clearColumnsTable();
-//        } else {
-        	queryService.getQueryColumnResultSet(page, filterText, sourceNameToJndiMap.get(source), table,
-        			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
-        		@Override
-        		public void onReturn(QueryColumnResultSetBean data) {
-        			List<CheckableNameRow> colList = new ArrayList<CheckableNameRow>();
-        			List<QueryColumnBean> qColumns = data.getQueryColumns();
-        			for(QueryColumnBean col : qColumns) {
-        				CheckableNameRow cRow = new CheckableNameRow();
-        				cRow.setName(col.getName());
-        				colList.add(cRow);
-        			}
-        			columnsTable.setData(colList);
-        		}
-        		@Override
-        		public void onError(Throwable error) {
-//        			notificationService.sendErrorNotification(i18n.format("queryTest.error-fetching-columns"), error); //$NON-NLS-1$
-//        		    noColumnsMessage.setVisible(true);
-//        		    columnFetchInProgressMessage.setVisible(false);
-        		}
-        	});
-//        }
+
+    	queryService.getQueryColumnResultSet(page, filterText, sourceNameToJndiMap.get(source), table,
+    			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
+    		@Override
+    		public void onReturn(QueryColumnResultSetBean data) {
+    			List<CheckableNameRow> colList = new ArrayList<CheckableNameRow>();
+    			List<QueryColumnBean> qColumns = data.getQueryColumns();
+    			for(QueryColumnBean col : qColumns) {
+    				CheckableNameRow cRow = new CheckableNameRow();
+    				cRow.setName(col.getName());
+    				colList.add(cRow);
+    			}
+    			columnsTable.setData(colList);
+    		}
+    		@Override
+    		public void onError(Throwable error) {
+    			notificationService.sendErrorNotification(i18n.format("editdataservice.error-getting-tablecols"), error); //$NON-NLS-1$
+    			// noColumnsMessage.setVisible(true);
+    			// columnFetchInProgressMessage.setVisible(false);
+    		}
+    	});
 
     }
     
@@ -323,13 +339,13 @@ public class EditDataServiceScreen extends Composite {
     	updateStatus();
     }
     
-    private void updateStatus( ) {
+	private void updateStatus( ) {
     	boolean isOK = true;
     	
     	// Warning for missing service name
     	String serviceName = serviceNameTextBox.getText();
     	if(StringUtils.isEmpty(serviceName)) {
-    		statusLabel.setText("Please enter a name for your service");
+    		statusLabel.setText(statusEnterName);
     		isOK = false;
     	}
     	
@@ -337,13 +353,13 @@ public class EditDataServiceScreen extends Composite {
     	if(isOK) {
     		String viewDdl = viewDdlTextArea.getText();
     		if(StringUtils.isEmpty(viewDdl)) {
-    			statusLabel.setText("Please create the View markup");
+    			statusLabel.setText(statusEnterView);
     			isOK = false;
     		}
     	}
     	
     	if(isOK) {
-    		statusLabel.setText("Click 'Save Changes' to save your service");
+    		statusLabel.setText(statusClickSave);
     		saveServiceButton.setEnabled(true);
     	} else {
     		saveServiceButton.setEnabled(false);
@@ -375,24 +391,11 @@ public class EditDataServiceScreen extends Composite {
             	
             	// Set the initial status
             	updateStatus();
-//            	currentVdbDetails = vdbDetailsBean;
-//            	String title = "Virtual Database : "+vdbDetailsBean.getName();
-//            	pageTitle.setText(title);
-//            	breadcrumbLabel.setText(title);            	
-//            	setVdbStatus(vdbDetailsBean);
-//            	
-//                updatePager(vdbDetailsBean);
-//                updateVdbModelsTable(vdbDetailsBean);
-//                doSetButtonEnablements();
             }
             @Override
             public void onError(Throwable error) {
-//                notificationService.sendErrorNotification(i18n.format("vdbdetails.error-retrieving-details"), error); //$NON-NLS-1$
+                notificationService.sendErrorNotification(i18n.format("editdataservice.error-getting-svc-details"), error); //$NON-NLS-1$
 //                noDataMessage.setVisible(true);
-//            	getModelsInProgressMessage.setVisible(false);
-//                pageTitle.setText(Constants.STATUS_UNKNOWN);
-//            	breadcrumbLabel.setText(Constants.STATUS_UNKNOWN);            	
-//                vdbStatusLabel.setText(Constants.STATUS_UNKNOWN);
             }
         });       
     }
@@ -420,24 +423,14 @@ public class EditDataServiceScreen extends Composite {
         vdbService.addOrReplaceViewModelAndRedeploy("ServicesVDB", 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
-//            	currentVdbDetails = vdbDetailsBean;
-//            	setVdbStatus(vdbDetailsBean);
-//                updatePager(vdbDetailsBean);
-//                updateVdbModelsTable(vdbDetailsBean);
-//                doSetButtonEnablements();
-            	
             	Map<String,String> parameters = new HashMap<String,String>();
             	parameters.put(Constants.SERVICE_NAME_KEY, viewModel);
             	placeManager.goTo(new DefaultPlaceRequest("DataServiceDetailsScreen",parameters));
             }
             @Override
             public void onError(Throwable error) {
-//                notificationService.sendErrorNotification(i18n.format("vdbdetails.error-adding-view-model"), error); //$NON-NLS-1$
-//                addModelInProgressMessage.setVisible(false);
-//                setVdbStatus(currentVdbDetails);
-//                updatePager(currentVdbDetails);
-//                updateVdbModelsTable(currentVdbDetails);
-//                doSetButtonEnablements();
+                notificationService.sendErrorNotification(i18n.format("editdataservice.error-saving-service"), error); //$NON-NLS-1$
+                //addModelInProgressMessage.setVisible(false);
             }
         });           	
     }
