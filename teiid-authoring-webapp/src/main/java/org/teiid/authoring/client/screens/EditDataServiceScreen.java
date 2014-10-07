@@ -38,9 +38,11 @@ import org.teiid.authoring.client.utils.DdlHelper;
 import org.teiid.authoring.client.widgets.CheckableNameRow;
 import org.teiid.authoring.client.widgets.ColumnNamesTable;
 import org.teiid.authoring.client.widgets.DataSourceNamesTable;
+import org.teiid.authoring.client.widgets.QueryResultPagedTableDisplayer;
 import org.teiid.authoring.client.widgets.TablesProcNamesTable;
 import org.teiid.authoring.client.widgets.VisibilityRadios;
 import org.teiid.authoring.share.Constants;
+import org.teiid.authoring.share.beans.NotificationBean;
 import org.teiid.authoring.share.beans.QueryColumnBean;
 import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
 import org.teiid.authoring.share.beans.QueryTableProcBean;
@@ -82,7 +84,9 @@ public class EditDataServiceScreen extends Composite {
 	private String selectedTable = null;
 	private String statusEnterName = null;
 	private String statusEnterView = null;
+	private String statusTestView = null;
 	private String statusClickSave = null;
+	private boolean haveSuccessfullyTested = false;
 	
     @Inject
     private PlaceManager placeManager;
@@ -111,7 +115,7 @@ public class EditDataServiceScreen extends Composite {
     protected Label statusLabel;
     
     @Inject @DataField("table-datasources")
-    protected DataSourceNamesTable dsTable;
+    protected DataSourceNamesTable dsNamesTable;
     
     @Inject @DataField("table-tables-procs")
     protected TablesProcNamesTable tablesAndProcsTable;
@@ -131,11 +135,17 @@ public class EditDataServiceScreen extends Composite {
     @Inject @DataField("textarea-edit-service-viewDdl")
     protected TextArea viewDdlTextArea;
     
+    @Inject @DataField("btn-edit-service-test")
+    protected Button testViewButton;
+    
     @Inject @DataField("btn-edit-service-save")
     protected Button saveServiceButton;
     
     @Inject @DataField("btn-edit-service-cancel")
     protected Button cancelButton;
+    
+    @Inject @DataField("table-edit-service-queryResults")
+    protected QueryResultPagedTableDisplayer queryResultsTablePaged;
     
     @Override
     @WorkbenchPartTitle
@@ -155,6 +165,7 @@ public class EditDataServiceScreen extends Composite {
     protected void postConstruct() {
 		statusEnterName = i18n.format("editdataservice.status-label-enter-name");
 		statusEnterView = i18n.format("editdataservice.status-label-enter-view");
+		statusTestView = i18n.format("editdataservice.status-label-test-view");
 		statusClickSave = i18n.format("editdataservice.status-label-click-save");
     }
     
@@ -170,7 +181,7 @@ public class EditDataServiceScreen extends Composite {
 
     	// SelectionModel to handle Source selection 
     	final SingleSelectionModel<CheckableNameRow> dsSelectionModel = new SingleSelectionModel<CheckableNameRow>();
-    	dsTable.setSelectionModel(dsSelectionModel); 
+    	dsNamesTable.setSelectionModel(dsSelectionModel); 
     	dsSelectionModel. addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
     		public void onSelectionChange( SelectionChangeEvent event) { 
     			tablesAndProcsTable.clear();
@@ -206,6 +217,7 @@ public class EditDataServiceScreen extends Composite {
     	viewDdlTextArea.addKeyUpHandler(new KeyUpHandler() {
             @Override
             public void onKeyUp(KeyUpEvent event) {
+            	haveSuccessfullyTested = false;
             	updateStatus();
             }
         });
@@ -228,7 +240,7 @@ public class EditDataServiceScreen extends Composite {
             			dsList.add(createCheckableNameRow(dsName, false));
             		}
             	}
-            	dsTable.setData(dsList);
+            	dsNamesTable.setData(dsList);
             }
             @Override
             public void onError(Throwable error) {
@@ -254,11 +266,16 @@ public class EditDataServiceScreen extends Composite {
 			public void onReturn(List<QueryTableProcBean> tablesAndProcs) {
 				List<String> nameList = new ArrayList<String>();
 				for(QueryTableProcBean tp : tablesAndProcs) {
-					String longName = tp.getName();
-					if(longName!=null && longName.contains(".PUBLIC.")) {
-						String shortName = longName.substring(longName.indexOf(".PUBLIC.")+".PUBLIC.".length());
-						shortToLongTableNameMap.put(shortName, longName);
-						nameList.add(shortName);
+					String name = tp.getName();
+					if(name!=null) {
+						if(name.contains(".PUBLIC.")) {
+							String shortName = name.substring(name.indexOf(".PUBLIC.")+".PUBLIC.".length());
+							shortToLongTableNameMap.put(shortName, name);
+							nameList.add(shortName);
+						} else if(!name.contains(".INFORMATION_SCHEMA.")) {
+							shortToLongTableNameMap.put(name, name);
+							nameList.add(name);
+						}
 					}
 				}
 				tablesAndProcsTable.setData(nameList);
@@ -358,6 +375,18 @@ public class EditDataServiceScreen extends Composite {
     		}
     	}
     	
+		// Force the user to successfully test the service first
+    	if(isOK) {
+    		// Force the user to successfully test the service
+    		if(!haveSuccessfullyTested) {
+    			statusLabel.setText(statusTestView);
+    			isOK = false;
+    		}
+    		testViewButton.setEnabled(true);
+    	} else {
+    		testViewButton.setEnabled(false);
+    	}
+    	
     	if(isOK) {
     		statusLabel.setText(statusClickSave);
     		saveServiceButton.setEnabled(true);
@@ -407,11 +436,15 @@ public class EditDataServiceScreen extends Composite {
     @EventHandler("btn-edit-service-save")
     public void onSaveServiceButtonClick(ClickEvent event) {
     	String serviceName = this.serviceNameTextBox.getText();
+        final NotificationBean notificationBean = notificationService.startProgressNotification(
+                i18n.format("editdataservice.saving-service-title"), //$NON-NLS-1$
+                i18n.format("editdataservice.saving-service-msg", serviceName)); //$NON-NLS-1$
+            	
     	String serviceDescription = this.serviceDescriptionTextBox.getText();
     	final String viewModel = serviceName;
     	String viewDdl = viewDdlTextArea.getText();
     	boolean isVisible = serviceVisibleRadios.isVisibleSelected();
-    	List<String> rqdImportVdbNames = dsTable.getSelectedSourceNames();
+    	List<String> rqdImportVdbNames = dsNamesTable.getSelectedSourceNames();
     	
     	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
     	viewModelRequest.setName(serviceName);
@@ -423,16 +456,99 @@ public class EditDataServiceScreen extends Composite {
         vdbService.addOrReplaceViewModelAndRedeploy("ServicesVDB", 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("editdataservice.saving-service-complete"), //$NON-NLS-1$
+                        i18n.format("editdataservice.saving-service-complete-msg")); //$NON-NLS-1$
+                
             	Map<String,String> parameters = new HashMap<String,String>();
             	parameters.put(Constants.SERVICE_NAME_KEY, viewModel);
             	placeManager.goTo(new DefaultPlaceRequest("DataServiceDetailsScreen",parameters));
             }
             @Override
             public void onError(Throwable error) {
-                notificationService.sendErrorNotification(i18n.format("editdataservice.error-saving-service"), error); //$NON-NLS-1$
+                notificationService.sendErrorNotification(i18n.format("editdataservice.saving-service-error"), error); //$NON-NLS-1$
                 //addModelInProgressMessage.setVisible(false);
             }
         });           	
+    }
+    
+    /**
+     * Event handler that fires when the user clicks the Test button.
+     * @param event
+     */
+    @EventHandler("btn-edit-service-test")
+    public void onTestViewButtonClick(ClickEvent event) {
+    	doTestView();
+    }
+    
+    private void doTestView() {
+    	final String serviceName = this.serviceNameTextBox.getText();
+        final NotificationBean notificationBean = notificationService.startProgressNotification(
+                i18n.format("editdataservice.testing-service-title"), //$NON-NLS-1$
+                i18n.format("editdataservice.testing-service-msg", serviceName)); //$NON-NLS-1$
+            	
+    	String serviceDescription = this.serviceDescriptionTextBox.getText();
+    	final String viewModel = serviceName;
+    	String viewDdl = viewDdlTextArea.getText();
+    	boolean isVisible = serviceVisibleRadios.isVisibleSelected();
+    	List<String> rqdImportVdbNames = dsNamesTable.getSelectedSourceNames();
+    	
+    	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
+    	viewModelRequest.setName(serviceName);
+    	viewModelRequest.setDescription(serviceDescription);
+    	viewModelRequest.setDdl(viewDdl);
+    	viewModelRequest.setVisible(isVisible);
+    	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
+    	    	
+    	final String testVDBName = "TEST-"+serviceName;
+        vdbService.deployNewVDB(testVDBName, 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+            @Override
+            public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("editdataservice.testing-service-complete"), //$NON-NLS-1$
+                        i18n.format("editdataservice.testing-service-complete-msg")); //$NON-NLS-1$
+
+                String testVdbJndi = "java:/"+testVDBName;
+    			String serviceSampleSQL = "SELECT * FROM "+serviceName+"."+Constants.SERVICE_VIEW_NAME+" LIMIT 10";
+    	    	queryResultsTablePaged.setDataProvider(testVdbJndi, serviceSampleSQL);
+    	    	
+                haveSuccessfullyTested = true;
+                saveServiceButton.setEnabled(true);                
+            }
+            @Override
+            public void onError(Throwable error) {
+                notificationService.sendErrorNotification(i18n.format("editdataservice.testing-service-error"), error); //$NON-NLS-1$
+                haveSuccessfullyTested = false;
+                saveServiceButton.setEnabled(false);                
+//                addModelInProgressMessage.setVisible(false);
+            }
+        });           	
+    }
+    
+    private void doDeleteTestVDB() {
+    	final String serviceName = this.serviceNameTextBox.getText();
+    	if(serviceName!=null) {
+        	final String testVDBName = "TEST-"+serviceName;
+        	List<String> dsNames = new ArrayList<String>(1);
+        	dsNames.add(testVDBName);
+            final NotificationBean notificationBean = notificationService.startProgressNotification(
+                    i18n.format("editdataservice.deleting-service-title"), //$NON-NLS-1$
+                    i18n.format("editdataservice.deleting-service-msg", "sourceList")); //$NON-NLS-1$
+            dataSourceService.deleteDataSources(dsNames, new IRpcServiceInvocationHandler<Void>() {
+                @Override
+                public void onReturn(Void data) {
+                    notificationService.completeProgressNotification(notificationBean.getUuid(),
+                            i18n.format("editdataservice.service-deleted"), //$NON-NLS-1$
+                            i18n.format("editdataservice.service-deleted-success-msg")); //$NON-NLS-1$
+                }
+                @Override
+                public void onError(Throwable error) {
+                  notificationService.completeProgressNotification(notificationBean.getUuid(),
+                  i18n.format("editdataservice.service-delete-error"), //$NON-NLS-1$
+                  error);
+                }
+            });
+    	}   	
     }
     
     /**
@@ -450,6 +566,7 @@ public class EditDataServiceScreen extends Composite {
      */
     @EventHandler("btn-edit-service-cancel")
     public void onCancelButtonClick(ClickEvent event) {
+    	doDeleteTestVDB();
     	placeManager.goTo("DataServicesLibraryScreen");
     }
         

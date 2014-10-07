@@ -87,7 +87,7 @@ public class JdbcSourceHelper {
      * @param dataSource the data source
      * @return 'true' if the source is a Teiid source
      */
-    public boolean isTeiidSource(DataSource dataSource) {
+    public boolean isTeiidSource(DataSource dataSource) throws DataVirtUiException {
     	boolean isVdb = false;
     	Connection conn = null;
     	if(dataSource!=null) {
@@ -100,11 +100,13 @@ public class JdbcSourceHelper {
     				}
     			}
     		} catch (SQLException e) {
+    			throw new DataVirtUiException(e);
     		} finally {
     			if(conn!=null) {
     				try {
     					conn.close();
     				} catch (SQLException e) {
+    	    			throw new DataVirtUiException(e);
     				}
     			}
     		}
@@ -115,29 +117,30 @@ public class JdbcSourceHelper {
     /*
      * Refresh the DataSource Maps
      */
-    public Map<String,DataSource> getDataSourceMap( ) {
+    public Map<String,DataSource> getDataSourceMap( ) throws DataVirtUiException {
     	// Clear the DataSource Maps
     	Map<String,DataSource> mDatasources = new TreeMap<String,DataSource>();
-    	Map<String,String> mDatasourceSchemas = new TreeMap<String,String>();
+//    	Map<String,String> mDatasourceSchemas = new TreeMap<String,String>();
 
     	// New Context
     	if(context==null) {
     		try {
     			context = new InitialContext();
     		} catch (Exception e) {
+    			throw new DataVirtUiException(e);
     		}
     	}
     	
     	if(context==null) return mDatasources;
 
-    	NamingEnumeration<javax.naming.NameClassPair> ne = null;
     	// Try the list of possible context names
     	for(String jdbcContext : JDBC_CONTEXTS) {
+        	NamingEnumeration<javax.naming.NameClassPair> ne = null;
     		try {
     			Context theJdbcContext = (Context) context.lookup(jdbcContext);
     			ne = theJdbcContext.list("");
+    		// Throws exception if provided context not found.  Swallow exception as we are looking for multiple possible contexts
     		} catch (NamingException e1) {
-    			System.out.println("Error with lookup");
     		}
 
     		while (ne!=null && ne.hasMoreElements()) {
@@ -149,7 +152,7 @@ public class JdbcSourceHelper {
     					bindingObject = context.lookup(jdbcContext + o.getName());
     				}
     			} catch (NamingException e1) {
-    				System.out.println("Error with lookup of "+o.getName());
+    				throw new DataVirtUiException(e1);
     			}
 
     			if(bindingObject!=null && bindingObject instanceof DataSource && !o.getName().equalsIgnoreCase("ModeShapeDS")) {
@@ -157,14 +160,14 @@ public class JdbcSourceHelper {
     				String key = jdbcContext.concat(o.getName());
     				mDatasources.put(key, (DataSource)bindingObject);
 
-    				// Put Schema into schema Map
-    				String schema = null;
-    				try {
-    					schema = (String) context.lookup("java:comp/env/schema/" + key);
-    				} catch (NamingException e) {
-
-    				}
-    				mDatasourceSchemas.put(key, schema);
+//    				// Put Schema into schema Map
+//    				String schema = null;
+//    				try {
+//    					schema = (String) context.lookup("java:comp/env/schema/" + key);
+//    				} catch (NamingException e) {
+//        				throw new DataVirtUiException(e);
+//    				}
+//    				mDatasourceSchemas.put(key, schema);
     			}
     		}
     	}

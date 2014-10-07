@@ -37,9 +37,11 @@ import org.teiid.authoring.client.utils.DdlHelper;
 import org.teiid.authoring.client.widgets.CheckableNameRow;
 import org.teiid.authoring.client.widgets.ColumnNamesTable;
 import org.teiid.authoring.client.widgets.DataSourceNamesTable;
+import org.teiid.authoring.client.widgets.QueryResultPagedTableDisplayer;
 import org.teiid.authoring.client.widgets.TablesProcNamesTable;
 import org.teiid.authoring.client.widgets.VisibilityRadios;
 import org.teiid.authoring.share.Constants;
+import org.teiid.authoring.share.beans.NotificationBean;
 import org.teiid.authoring.share.beans.QueryColumnBean;
 import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
 import org.teiid.authoring.share.beans.QueryTableProcBean;
@@ -79,6 +81,8 @@ public class CreateDataServiceScreen extends Composite {
 	private String statusEnterName = null;
 	private String statusEnterView = null;
 	private String statusClickCreate = null;
+	private String statusTestView = null;
+	private boolean haveSuccessfullyTested = false;
 	
 	private String selectedTable = null;
 	
@@ -114,6 +118,9 @@ public class CreateDataServiceScreen extends Composite {
     @Inject @DataField("btn-create-service-addToDdl")
     protected Button addToDdlButton;
         
+    @Inject @DataField("btn-create-service-test")
+    protected Button testViewButton;
+    
     @Inject @DataField("btn-create-service-create")
     protected Button createServiceButton;
     
@@ -135,6 +142,9 @@ public class CreateDataServiceScreen extends Composite {
     @Inject @DataField("textarea-create-service-viewDdl")
     protected TextArea viewDdlTextArea;
     
+    @Inject @DataField("table-create-service-queryResults")
+    protected QueryResultPagedTableDisplayer queryResultsTablePaged;
+    
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
@@ -153,6 +163,7 @@ public class CreateDataServiceScreen extends Composite {
     protected void postConstruct() {
 		statusEnterName = i18n.format("createdataservice.status-label-enter-name");
 		statusEnterView = i18n.format("createdataservice.status-label-enter-view");
+		statusTestView = i18n.format("createdataservice.status-label-test-view");
 		statusClickCreate = i18n.format("createdataservice.status-label-click-create");
 		
     	serviceVisibleRadios.setValue(true);
@@ -198,6 +209,7 @@ public class CreateDataServiceScreen extends Composite {
     	viewDdlTextArea.addKeyUpHandler(new KeyUpHandler() {
             @Override
             public void onKeyUp(KeyUpEvent event) {
+            	haveSuccessfullyTested = false;
             	updateStatus();
             }
         });
@@ -224,6 +236,18 @@ public class CreateDataServiceScreen extends Composite {
     			statusLabel.setText(statusEnterView);
     			isOK = false;
     		}
+    	}
+    	
+		// Force the user to successfully test the service first
+    	if(isOK) {
+    		// Force the user to successfully test the service
+    		if(!haveSuccessfullyTested) {
+    			statusLabel.setText(statusTestView);
+    			isOK = false;
+    		}
+    		testViewButton.setEnabled(true);
+    	} else {
+    		testViewButton.setEnabled(false);
     	}
     	
     	if(isOK) {
@@ -268,11 +292,16 @@ public class CreateDataServiceScreen extends Composite {
 			public void onReturn(List<QueryTableProcBean> tablesAndProcs) {
 				List<String> nameList = new ArrayList<String>();
 				for(QueryTableProcBean tp : tablesAndProcs) {
-					String longName = tp.getName();
-					if(longName!=null && longName.contains(".PUBLIC.")) {
-						String shortName = longName.substring(longName.indexOf(".PUBLIC.")+".PUBLIC.".length());
-						shortToLongTableNameMap.put(shortName, longName);
-						nameList.add(shortName);
+					String name = tp.getName();
+					if(name!=null) {
+						if(name.contains(".PUBLIC.")) {
+							String shortName = name.substring(name.indexOf(".PUBLIC.")+".PUBLIC.".length());
+							shortToLongTableNameMap.put(shortName, name);
+							nameList.add(shortName);
+						} else if(!name.contains(".INFORMATION_SCHEMA.")) {
+							shortToLongTableNameMap.put(name, name);
+							nameList.add(name);
+						}
 					}
 				}
 				tablesAndProcsTable.setData(nameList);
@@ -366,9 +395,11 @@ public class CreateDataServiceScreen extends Composite {
     }
     
     private void doCreateService() {
-    	// A separate view model is created for each "service".  This makes editing easier, and easier to debug issues
-    	
     	String serviceName = this.serviceNameTextBox.getText();
+        final NotificationBean notificationBean = notificationService.startProgressNotification(
+                i18n.format("createdataservice.creating-service-title"), //$NON-NLS-1$
+                i18n.format("createdataservice.creating-service-msg", serviceName)); //$NON-NLS-1$
+            	
     	String serviceDescription = this.serviceDescriptionTextBox.getText();
     	final String viewModel = serviceName;
     	String viewDdl = viewDdlTextArea.getText();
@@ -385,18 +416,103 @@ public class CreateDataServiceScreen extends Composite {
         vdbService.addOrReplaceViewModelAndRedeploy("ServicesVDB", 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("createdataservice.creating-service-complete"), //$NON-NLS-1$
+                        i18n.format("createdataservice.creating-service-complete-msg")); //$NON-NLS-1$
+                
             	Map<String,String> parameters = new HashMap<String,String>();
             	parameters.put(Constants.SERVICE_NAME_KEY, viewModel);
             	placeManager.goTo(new DefaultPlaceRequest("DataServiceDetailsScreen",parameters));
             }
             @Override
             public void onError(Throwable error) {
-                notificationService.sendErrorNotification(i18n.format("createdataservice.error-creating-service"), error); //$NON-NLS-1$
+                notificationService.sendErrorNotification(i18n.format("createdataservice.creating-service-error"), error); //$NON-NLS-1$
 //                addModelInProgressMessage.setVisible(false);
             }
         });           	
     }
     
+    /**
+     * Event handler that fires when the user clicks the Test button.
+     * @param event
+     */
+    @EventHandler("btn-create-service-test")
+    public void onTestViewButtonClick(ClickEvent event) {
+    	doTestView();
+    }
+    
+    /**
+     * Create and deploy a Test Dynamic VDB, then attempt to query it.
+     */
+    private void doTestView() {
+    	final String serviceName = this.serviceNameTextBox.getText();
+        final NotificationBean notificationBean = notificationService.startProgressNotification(
+                i18n.format("createdataservice.testing-service-title"), //$NON-NLS-1$
+                i18n.format("createdataservice.testing-service-msg", serviceName)); //$NON-NLS-1$
+            	
+    	String serviceDescription = this.serviceDescriptionTextBox.getText();
+    	String viewDdl = viewDdlTextArea.getText();
+    	boolean isVisible = serviceVisibleRadios.isVisibleSelected();
+    	List<String> rqdImportVdbNames = dsNamesTable.getSelectedSourceNames();
+    	
+    	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
+    	viewModelRequest.setName(serviceName);
+    	viewModelRequest.setDescription(serviceDescription);
+    	viewModelRequest.setDdl(viewDdl);
+    	viewModelRequest.setVisible(isVisible);
+    	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
+    	    	
+    	final String testVDBName = "TEST-"+serviceName;
+        vdbService.deployNewVDB(testVDBName, 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+            @Override
+            public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("createdataservice.testing-service-complete"), //$NON-NLS-1$
+                        i18n.format("createdataservice.testing-service-complete-msg")); //$NON-NLS-1$
+
+                String testVdbJndi = "java:/"+testVDBName;
+    			String serviceSampleSQL = "SELECT * FROM "+serviceName+"."+Constants.SERVICE_VIEW_NAME+" LIMIT 10";
+    	    	queryResultsTablePaged.setDataProvider(testVdbJndi, serviceSampleSQL);
+
+                haveSuccessfullyTested = true;
+                createServiceButton.setEnabled(true);                
+            }
+            @Override
+            public void onError(Throwable error) {
+                notificationService.sendErrorNotification(i18n.format("createdataservice.testing-service-error"), error); //$NON-NLS-1$
+                haveSuccessfullyTested = false;
+                createServiceButton.setEnabled(false);                
+//                addModelInProgressMessage.setVisible(false);
+            }
+        });           	
+    }
+    
+    private void doDeleteTestVDB() {
+    	final String serviceName = this.serviceNameTextBox.getText();
+    	if(serviceName!=null) {
+        	final String testVDBName = "TEST-"+serviceName;
+        	List<String> dsNames = new ArrayList<String>(1);
+        	dsNames.add(testVDBName);
+            final NotificationBean notificationBean = notificationService.startProgressNotification(
+                    i18n.format("createdataservice.deleting-service-title"), //$NON-NLS-1$
+                    i18n.format("createdataservice.deleting-service-msg", "sourceList")); //$NON-NLS-1$
+            dataSourceService.deleteDataSources(dsNames, new IRpcServiceInvocationHandler<Void>() {
+                @Override
+                public void onReturn(Void data) {
+                    notificationService.completeProgressNotification(notificationBean.getUuid(),
+                            i18n.format("createdataservice.service-deleted"), //$NON-NLS-1$
+                            i18n.format("createdataservice.service-deleted-success-msg")); //$NON-NLS-1$
+                }
+                @Override
+                public void onError(Throwable error) {
+                  notificationService.completeProgressNotification(notificationBean.getUuid(),
+                  i18n.format("createdataservice.service-delete-error"), //$NON-NLS-1$
+                  error);
+                }
+            });
+    	}   	
+    }
+   
     /**
      * Event handler that fires when the user clicks the Manage Sources button.
      * @param event
@@ -412,6 +528,7 @@ public class CreateDataServiceScreen extends Composite {
      */
     @EventHandler("btn-create-service-cancel")
     public void onCancelButtonClick(ClickEvent event) {
+    	doDeleteTestVDB();
     	placeManager.goTo("DataServicesLibraryScreen");
     }
         

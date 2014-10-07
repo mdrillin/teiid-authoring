@@ -29,7 +29,6 @@ import org.teiid.authoring.client.services.rpc.DelegatingErrorCallback;
 import org.teiid.authoring.client.services.rpc.DelegatingRemoteCallback;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
-import org.teiid.authoring.share.beans.VdbResultSetBean;
 import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 import org.teiid.authoring.share.services.IVdbService;
@@ -150,6 +149,16 @@ public class VdbRpcService {
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
         	remoteVdbService.call(successCallback, errorCallback).addOrReplaceViewModelAndRedeploy(vdbName, modelsPageNumber,viewModelRequest);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
+    public void deployNewVDB(final String vdbName, final int vdbVersion, final ViewModelRequestBean viewModelRequest, final IRpcServiceInvocationHandler<VdbDetailsBean> handler) {
+        RemoteCallback<VdbDetailsBean> successCallback = new DelegatingRemoteCallback<VdbDetailsBean>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteVdbService.call(successCallback, errorCallback).deployNewVDB(vdbName, vdbVersion,viewModelRequest);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }

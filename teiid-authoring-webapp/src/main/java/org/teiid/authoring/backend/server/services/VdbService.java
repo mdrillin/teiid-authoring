@@ -18,6 +18,7 @@ package org.teiid.authoring.backend.server.services;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -613,6 +614,43 @@ public class VdbService implements IVdbService {
 		}
     }
 
+    /*
+     * Deploy a VDB with the requested View Model.
+     * @param vdbName name of the VDB
+     * @param viewModelName the name of the viewModel to add
+     * @param ddlString the DDL string to use for the view model
+     * @return the VdbDetails
+     */
+    public VdbDetailsBean deployNewVDB(final String vdbName, final int vdbVersion, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException {
+    	// Create a new VDB
+    	VDBMetaData theVDB = vdbHelper.createVdb(vdbName, vdbVersion);
+  	
+    	// Add the requested viewModel to the VDB
+    	VDBMetaData newVdb = vdbHelper.addViewModel(theVDB, viewModelRequest.getName(), viewModelRequest.getDescription(), viewModelRequest.getDdl(), viewModelRequest.isVisible());
+
+    	// Add the required source import VDBs to the VDB
+    	List<String> rqdImportVdbNames = viewModelRequest.getRequiredImportVdbNames();
+    	List<Integer> rqdImportVdbVersions = viewModelRequest.getRequiredImportVdbVersions();
+    	if(rqdImportVdbNames!=null && !rqdImportVdbNames.isEmpty()) { 
+    		newVdb = vdbHelper.addImports(newVdb, rqdImportVdbNames, rqdImportVdbVersions);
+    	}
+
+		String deployString;
+		try {
+			deployString = vdbHelper.getVdbString(newVdb);
+			
+			if(deployString!=null) {
+				// Deploys the VDB, waits for it to load and deploys corresponding source
+				deployVdb(vdbName, new ByteArrayInputStream(deployString.getBytes("UTF-8")));
+			}
+		} catch (Exception e) {
+			throw new DataVirtUiException(e);
+		}
+
+    	// Return details
+    	return getVdbDetails(vdbName, 1);
+    }
+    
     /*
      * Adds the Import in supplied VDB deployment. Redeploys the VDB after the import is added.
      * @param vdbName name of the VDB

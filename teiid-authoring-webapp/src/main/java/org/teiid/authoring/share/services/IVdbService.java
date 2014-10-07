@@ -64,6 +64,8 @@ public interface IVdbService {
 
     public VdbDetailsBean addOrReplaceViewModelAndRedeploy(final String vdbName, final int modelsPageNumber, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException;
 
+    public VdbDetailsBean deployNewVDB(final String vdbName, final int vdbVersion, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException;
+
     public VdbDetailsBean cloneViewModelAndRedeploy(String vdbName, int modelsPageNumber, String viewModelName) throws DataVirtUiException;               
 
     public VdbDetailsBean removeModelsAndRedeploy(String vdbName, int modelsPageNumber, Map<String,String> removeModelNameAndTypeMap) throws DataVirtUiException;               
