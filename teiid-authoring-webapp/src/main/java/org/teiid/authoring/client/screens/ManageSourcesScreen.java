@@ -31,8 +31,8 @@ import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
 import org.teiid.authoring.client.dialogs.ConfirmationDialog;
-import org.teiid.authoring.client.dialogs.DialogEvent;
-import org.teiid.authoring.client.dialogs.UIEventType;
+import org.teiid.authoring.client.dialogs.UiEvent;
+import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.DataSourceRpcService;
 import org.teiid.authoring.client.services.NotificationService;
@@ -115,7 +115,7 @@ public class ManageSourcesScreen extends Composite {
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
-      return "";
+      return Constants.BLANK;
     }
     
     @WorkbenchPartView
@@ -174,13 +174,13 @@ public class ManageSourcesScreen extends Composite {
      * Handles Events from Dialogs
      * @param dEvent
      */
-    public void onDialogEvent(@Observes DialogEvent dEvent) {
+    public void onDialogEvent(@Observes UiEvent dEvent) {
     	// User has OK'd source deletion
-    	if(dEvent.getType() == UIEventType.DELETE_SOURCE_OK) {
+    	if(dEvent.getType() == UiEventType.DELETE_SOURCE_OK) {
     		confirmationDialog.hide();
     		onDeleteConfirm();
     	// User has cancelled source deletion
-    	} else if(dEvent.getType() == UIEventType.DELETE_SOURCE_CANCEL) {
+    	} else if(dEvent.getType() == UiEventType.DELETE_SOURCE_CANCEL) {
     		confirmationDialog.hide();
     	}
     }
@@ -247,7 +247,7 @@ public class ManageSourcesScreen extends Composite {
     	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
     	confirmationDialog.setContentTitle(dTitle);
     	confirmationDialog.setContentMessage(dMsg);
-    	confirmationDialog.setOkCancelEventTypes(UIEventType.DELETE_SOURCE_OK, UIEventType.DELETE_SOURCE_CANCEL);
+    	confirmationDialog.setOkCancelEventTypes(UiEventType.DELETE_SOURCE_OK, UiEventType.DELETE_SOURCE_CANCEL);
     	confirmationDialog.show();
     }
     

@@ -23,6 +23,7 @@ import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.resources.AppResource;
+import org.teiid.authoring.share.Constants;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
@@ -59,7 +60,7 @@ public class DataServicesEmptyLibraryScreen extends Composite {
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
-      return "";
+      return Constants.BLANK;
     }
         
     @WorkbenchPartView

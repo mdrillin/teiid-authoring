@@ -82,6 +82,7 @@ public class CreateDataServiceScreen extends Composite {
 	private String statusEnterView = null;
 	private String statusClickCreate = null;
 	private String statusTestView = null;
+	private String queryResultDefaultMsg = null;
 	private boolean haveSuccessfullyTested = false;
 	
 	private String selectedTable = null;
@@ -148,7 +149,7 @@ public class CreateDataServiceScreen extends Composite {
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
-      return "";
+      return Constants.BLANK;
     }
     
     @WorkbenchPartView
@@ -165,6 +166,7 @@ public class CreateDataServiceScreen extends Composite {
 		statusEnterView = i18n.format("createdataservice.status-label-enter-view");
 		statusTestView = i18n.format("createdataservice.status-label-test-view");
 		statusClickCreate = i18n.format("createdataservice.status-label-click-create");
+		queryResultDefaultMsg = i18n.format("createdataservice.query-results-default-message");
 		
     	serviceVisibleRadios.setValue(true);
     	tablesAndProcsTable.clear();

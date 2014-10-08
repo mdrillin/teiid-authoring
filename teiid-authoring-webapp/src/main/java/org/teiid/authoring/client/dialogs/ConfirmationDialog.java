@@ -37,7 +37,7 @@ public class ConfirmationDialog extends Popup {
     	this.contentPanel.setMessage(message);
     }
     
-    public void setOkCancelEventTypes(UIEventType okType, UIEventType cancelType) {
+    public void setOkCancelEventTypes(UiEventType okType, UiEventType cancelType) {
     	this.contentPanel.setOkCancelEventTypes(okType, cancelType);
     }
     

@@ -17,9 +17,12 @@ package org.teiid.authoring.client.widgets;
 
 import java.util.List;
 
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
 import org.kie.uberfire.client.tables.PagedTable;
+import org.teiid.authoring.client.dialogs.UiEvent;
+import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.share.beans.QueryResultPageRow;
@@ -28,15 +31,13 @@ import org.uberfire.paging.PageResponse;
 
 import com.github.gwtbootstrap.client.ui.Button;
 import com.github.gwtbootstrap.client.ui.constants.IconType;
-import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
 import com.google.gwt.view.client.Range;
@@ -48,23 +49,29 @@ public class QueryResultPagedTableDisplayer extends Composite {
 
 	private static int NUMBER_ROWS_DEFAULT = 10;
 	private static String COLUMN_HEADER_NAME = "Name";
+	private static String NO_ERRORS = "No Errors";
 	
 	private int numberRows = NUMBER_ROWS_DEFAULT;
 	
-    @Inject
-    protected QueryRpcService queryService;
-
-    protected FlowPanel panel = new FlowPanel();
-    private Widget tableWidget;
+    protected HorizontalPanel mainPanel = new HorizontalPanel();
+    private HorizontalPanel tablePanel;
     
     protected Label label = new Label();
 
     private PagedTable<QueryResultPageRow> table;
+    private String errorMessage;
 
+    @Inject
+    protected QueryRpcService queryService;
+
+    @Inject Event<UiEvent> refreshCompleteEvent;
+    
     public QueryResultPagedTableDisplayer() {
-        initWidget( panel );
-        tableWidget = createTablePanel();
-        panel.add(tableWidget);
+    	mainPanel.setWidth("100%");
+        initWidget( mainPanel );
+        tablePanel = createDefaultTablePanel();
+        tablePanel.setWidth("100%");
+        mainPanel.add(tablePanel);
     }
     
     public void setNumberRows(int numberRows) {
@@ -74,21 +81,34 @@ public class QueryResultPagedTableDisplayer extends Composite {
     public void setWidth(String widthStr) {
     	table.setWidth(widthStr);
 	}
+    
+    /**
+     * Get error message if refresh has failed
+     * @return the error message
+     */
+    public String getErrorMessage() {
+    	return this.errorMessage;
+    }
 
 	/**
      * Set the data provider for the table
      * @param dataProvider the data provider
      */
     public void setDataProvider(String dataSource, String sql) {
-    	panel.remove(tableWidget);
-    	updateTableForQuery(dataSource,sql);
+    	// Reset error message
+    	this.errorMessage = NO_ERRORS;
+    	
+    	// Remove current table panel
+    	mainPanel.remove(tablePanel);
+    	// updates the tablePanel for supplied source.
+    	updateTablePanelForQuery(dataSource,sql);
     }
 
     /**
      * Create the panel
      * @return the panel widget
      */
-    protected Widget createTablePanel() {
+    protected HorizontalPanel createDefaultTablePanel() {
     	table = new PagedTable<QueryResultPageRow>(this.numberRows);
         TextColumn<QueryResultPageRow> nameColumn = new TextColumn<QueryResultPageRow>() {
             public String getValue( QueryResultPageRow row ) {
@@ -106,21 +126,20 @@ public class QueryResultPagedTableDisplayer extends Composite {
             }
         } );
         table.getToolbar().add( refreshButton );
-        table.setWidth("100%");
         
-        VerticalPanel verticalPanel = new VerticalPanel();
-        verticalPanel.add(table);
-        return verticalPanel;
+        HorizontalPanel hPanel = new HorizontalPanel();
+        hPanel.add(table);
+        return hPanel;
     }
     
     /**
      * This recreates the panel based on the query.  The number of columns and column labels will vary between queries
      * @return the panel widget
      */
-    protected void updateTableForQuery(final String dataSource, final String sql) {
-    	final VerticalPanel verticalPanel = new VerticalPanel();
+    protected void updateTablePanelForQuery(final String dataSource, final String sql) {
+    	final HorizontalPanel hPanel = new HorizontalPanel();
     	final int nRows = this.numberRows;
-    	
+
 		queryService.getColumnNames(dataSource, sql, new IRpcServiceInvocationHandler<List<String>>() {
 			@Override
 			public void onReturn(final List<String> colNames) {
@@ -133,7 +152,6 @@ public class QueryResultPagedTableDisplayer extends Composite {
 		    			}
 		    		};
 		    		table.addColumn(col,colNames.get(i));
-		    		table.setColumnWidth(col, 200, Style.Unit.PX);
 		    	}
 	    		
 	            final Button refreshButton = new Button();
@@ -145,18 +163,18 @@ public class QueryResultPagedTableDisplayer extends Composite {
 	                }
 	            } );
 	            table.getToolbar().add( refreshButton );
-	            table.setWidth("100%");
 	           
-	            verticalPanel.add(table);
-	            tableWidget = verticalPanel;
+	            hPanel.add(table);
+	            tablePanel = hPanel;
+	            tablePanel.setWidth("100%");
 	            
-	        	panel.add(tableWidget);
+	            mainPanel.add(tablePanel);
 	        	table.setDataProvider(createDataProvider(dataSource,sql));
-				//notification.fire( new NotificationEvent( M2RepoEditorConstants.INSTANCE.RefreshedSuccessfully() ) );
-				//notification.fire( new NotificationEvent( "test" ) );
 			}
 			@Override
 			public void onError(Throwable error) {
+		    	errorMessage = error.getMessage();
+				refreshCompleteEvent.fire(new UiEvent(UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_ERROR));
 			}
 		});
 		
@@ -176,18 +194,19 @@ public class QueryResultPagedTableDisplayer extends Composite {
     			queryService.getQueryResults(request, source, sql, new IRpcServiceInvocationHandler<PageResponse<QueryResultPageRow>>() {
     				@Override
     				public void onReturn(final PageResponse<QueryResultPageRow> response) {
-    					updateRowCount( response.getTotalRowSize(),
-    							response.isTotalRowSizeExact() );
-    					updateRowData( response.getStartRowIndex(),
-    							response.getPageRowList() );
-    					//notification.fire( new NotificationEvent( M2RepoEditorConstants.INSTANCE.RefreshedSuccessfully() ) );
-    					//notification.fire( new NotificationEvent( "test" ) );
+    					updateRowCount( response.getTotalRowSize(), response.isTotalRowSizeExact() );
+    					updateRowData( response.getStartRowIndex(), response.getPageRowList() );
+						refreshCompleteEvent.fire(new UiEvent(UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_OK));
+//    					if(response.getTotalRowSize()==0) {
+//    						refreshCompleteEvent.fire(new UiEvent(UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_NOROWS));
+//    					} else {
+//    						refreshCompleteEvent.fire(new UiEvent(UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_OK));
+//    					}
     				}
     				@Override
     				public void onError(Throwable error) {
-    					//    					notificationService.completeProgressNotification(notificationBean.getUuid(),
-    					//    							i18n.format("datasources.create-error"), //$NON-NLS-1$
-    					//    							error);
+    			    	errorMessage = error.getMessage();
+    					refreshCompleteEvent.fire(new UiEvent(UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_ERROR));
     				}
     			});
     		}

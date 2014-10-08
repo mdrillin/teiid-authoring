@@ -18,8 +18,8 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 @Templated("./ConfirmationContentPanel.html")
 public class ConfirmationContentPanel extends Composite {
 
-	private UIEventType okType;
-	private UIEventType cancelType;
+	private UiEventType okType;
+	private UiEventType cancelType;
 	private HTMLPanel htmlPanel;
 	
     @Inject @DataField("label-title")
@@ -34,9 +34,9 @@ public class ConfirmationContentPanel extends Composite {
     @Inject @DataField("btn-cancel")
     protected Button cancelButton;
     
-    @Inject Event<DialogEvent> okEvent;
+    @Inject Event<UiEvent> okEvent;
     
-    @Inject Event<DialogEvent> cancelEvent;
+    @Inject Event<UiEvent> cancelEvent;
     
     /**
      * Called after construction.
@@ -57,7 +57,7 @@ public class ConfirmationContentPanel extends Composite {
         messagePanel.add(htmlPanel);
     }
     
-    public void setOkCancelEventTypes(UIEventType okType, UIEventType cancelType) {
+    public void setOkCancelEventTypes(UiEventType okType, UiEventType cancelType) {
     	this.okType = okType;
     	this.cancelType = cancelType;
     }
@@ -68,7 +68,7 @@ public class ConfirmationContentPanel extends Composite {
      */
     @EventHandler("btn-ok")
     public void onOkButtonClick(ClickEvent event) {
-    	okEvent.fire(new DialogEvent(this.okType));
+    	okEvent.fire(new UiEvent(this.okType));
     }
     
     /**
@@ -77,7 +77,7 @@ public class ConfirmationContentPanel extends Composite {
      */
     @EventHandler("btn-cancel")
     public void onCancelButtonClick(ClickEvent event) {
-    	cancelEvent.fire(new DialogEvent(this.cancelType));
+    	cancelEvent.fire(new UiEvent(this.cancelType));
     }
        
 }

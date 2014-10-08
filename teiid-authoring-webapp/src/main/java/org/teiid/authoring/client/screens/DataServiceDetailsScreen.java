@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
@@ -62,6 +63,9 @@ public class DataServiceDetailsScreen extends Composite {
 
 	private String serviceName;
 	private String serviceSampleSQL;
+	private String pgTitle;
+	private String serviceInternal;
+	private String serviceExternal;
 	
     @Inject
     private PlaceManager placeManager;
@@ -101,17 +105,27 @@ public class DataServiceDetailsScreen extends Composite {
     protected Button openODataButton;
     
     @Inject @DataField("table-service-details-queryResults")
-    protected QueryResultPagedTableDisplayer queryResultsTablePaged;
+    protected QueryResultPagedTableDisplayer queryResultsPanel;
 
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
-      return "";
+      return Constants.BLANK;
     }
     
     @WorkbenchPartView
     public IsWidget getView() {
         return this;
+    }
+    
+    /**
+     * Called after construction.
+     */
+    @PostConstruct
+    protected void postConstruct() {
+    	pgTitle = i18n.format("servicedetails.page-title");
+    	serviceInternal = i18n.format("servicedetails.page-title-internal");
+    	serviceExternal = i18n.format("servicedetails.page-title-external");
     }
     
     @OnStartup
@@ -133,11 +147,11 @@ public class DataServiceDetailsScreen extends Composite {
             	for(VdbModelBean vdbModel : vdbModels) {
             		if(vdbModel.getName().equals(serviceName)) {
             			StringBuilder titleBuilder = new StringBuilder();
-            			titleBuilder.append("Data Service "+serviceName);
+            			titleBuilder.append(pgTitle+serviceName);
             			if(vdbModel.isVisible()) {
-            				titleBuilder.append(" (External)");
+            				titleBuilder.append(Constants.SPACE+serviceExternal);
             			} else {
-            				titleBuilder.append(" (Internal)");
+            				titleBuilder.append(Constants.SPACE+serviceInternal);
             			}
              			
     	                pageTitleLabel.setText(titleBuilder.toString());
@@ -156,20 +170,17 @@ public class DataServiceDetailsScreen extends Composite {
             			restLinkTextBox.setEnabled(false);
             			openRestButton.setEnabled(false);
             			
-            			serviceSampleSQL = "SELECT * FROM "+serviceName+"."+Constants.SERVICE_VIEW_NAME+" LIMIT 10";
-            	    	queryResultsTablePaged.setDataProvider(Constants.SERVICES_VDB_JNDI, serviceSampleSQL);
-            	    	//queryResultsTablePaged.setWidth("600px");
+            			serviceSampleSQL = Constants.SELECT_STAR_FROM+Constants.SPACE + 
+            					           serviceName+Constants.DOT+Constants.SERVICE_VIEW_NAME+
+            					           Constants.SPACE+Constants.LIMIT_10;
+            			
+            			queryResultsPanel.setDataProvider(Constants.SERVICES_VDB_JNDI, serviceSampleSQL);
             		}
             	}
             }
             @Override
             public void onError(Throwable error) {
-//                notificationService.sendErrorNotification(i18n.format("vdbdetails.error-retrieving-details"), error); //$NON-NLS-1$
-//                noDataMessage.setVisible(true);
-//            	getModelsInProgressMessage.setVisible(false);
-//                pageTitle.setText(Constants.STATUS_UNKNOWN);
-//            	breadcrumbLabel.setText(Constants.STATUS_UNKNOWN);            	
-//                vdbStatusLabel.setText(Constants.STATUS_UNKNOWN);
+                notificationService.sendErrorNotification(i18n.format("servicedetails.error-retrieving-details"), error); //$NON-NLS-1$
             }
         });       
     }

@@ -86,7 +86,7 @@ public class DataServicesLibraryScreen extends Composite {
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
-      return "";
+      return Constants.BLANK;
     }
     
     @WorkbenchPartView

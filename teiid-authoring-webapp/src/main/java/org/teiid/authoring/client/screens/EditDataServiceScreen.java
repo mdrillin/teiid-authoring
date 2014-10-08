@@ -86,6 +86,7 @@ public class EditDataServiceScreen extends Composite {
 	private String statusEnterView = null;
 	private String statusTestView = null;
 	private String statusClickSave = null;
+	private String queryResultDefaultMsg = null;
 	private boolean haveSuccessfullyTested = false;
 	
     @Inject
@@ -150,7 +151,7 @@ public class EditDataServiceScreen extends Composite {
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
-      return "";
+      return Constants.BLANK;
     }
     
     @WorkbenchPartView
@@ -167,6 +168,7 @@ public class EditDataServiceScreen extends Composite {
 		statusEnterView = i18n.format("editdataservice.status-label-enter-view");
 		statusTestView = i18n.format("editdataservice.status-label-test-view");
 		statusClickSave = i18n.format("editdataservice.status-label-click-save");
+		queryResultDefaultMsg = i18n.format("editdataservice.query-results-default-message");
     }
     
     @OnStartup

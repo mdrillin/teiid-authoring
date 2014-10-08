@@ -42,6 +42,11 @@ public class Constants {
 	
 	public static final String OK = "OK";
 	public static final String QUESTION_MARK = "?";
+	public static final String DOT = ".";
+	public static final String SELECT_STAR_FROM = "SELECT * FROM";
+	public static final String LIMIT_10 = "LIMIT 10";
+	public static final String SPACE = " ";
+	public static final String BLANK = "";
 	public static final String SUCCESS = "success";
 	public static final String PHYSICAL = "PHYSICAL";
 	public static final String VIRTUAL = "VIRTUAL";
@@ -58,17 +63,4 @@ public class Constants {
 
 	public static final String SORT_COLID_NAME = "name"; //$NON-NLS-1$
     public static final String SORT_COLID_MODIFIED_ON = "lastModifiedTimestamp"; //$NON-NLS-1$
-
-    public static final String VDB_STATUS_URL_ACTIVE_16PX = "images/StatusIcon_ok_16x16.png";
-    public static final String VDB_STATUS_URL_INACTIVE_16PX = "images/StatusIcon_inactive_16x16.png";
-    public static final String VDB_STATUS_URL_LOADING_16PX = "images/StatusIcon_loading_16x16.png";
-
-    public static final String VDB_STATUS_URL_ACTIVE_32PX = "images/StatusIcon_ok_32x32.png";
-    public static final String VDB_STATUS_URL_INACTIVE_32PX = "images/StatusIcon_inactive_32x32.png";
-    public static final String VDB_STATUS_URL_LOADING_32PX = "images/StatusIcon_loading_32x32.png";
-    
-    public static final String VDBMODEL_STATUS_URL_INACTIVE_16PX = "images/StatusIcon_inactive_16x16.png";
-    public static final String VDBMODEL_STATUS_URL_ACTIVE_16PX = "images/StatusIcon_ok_16x16.png";
-    public static final String VDBMODEL_STATUS_URL_UNKNOWN_16PX = "images/StatusIcon_loading_16x16.png";
-
 }
