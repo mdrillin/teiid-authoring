@@ -196,12 +196,11 @@ public class QueryResultPagedTableDisplayer extends Composite {
     				public void onReturn(final PageResponse<QueryResultPageRow> response) {
     					updateRowCount( response.getTotalRowSize(), response.isTotalRowSizeExact() );
     					updateRowData( response.getStartRowIndex(), response.getPageRowList() );
-						refreshCompleteEvent.fire(new UiEvent(UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_OK));
-//    					if(response.getTotalRowSize()==0) {
-//    						refreshCompleteEvent.fire(new UiEvent(UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_NOROWS));
-//    					} else {
-//    						refreshCompleteEvent.fire(new UiEvent(UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_OK));
-//    					}
+    					if(response.getTotalRowSize()==0) {
+    						refreshCompleteEvent.fire(new UiEvent(UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_NOROWS));
+    					} else {
+    						refreshCompleteEvent.fire(new UiEvent(UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_OK));
+    					}
     				}
     				@Override
     				public void onError(Throwable error) {

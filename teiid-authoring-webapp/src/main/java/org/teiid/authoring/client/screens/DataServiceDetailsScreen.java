@@ -30,7 +30,7 @@ import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.VdbRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
-import org.teiid.authoring.client.widgets.QueryResultPagedTableDisplayer;
+import org.teiid.authoring.client.widgets.QueryResultsPanel;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbModelBean;
@@ -105,7 +105,7 @@ public class DataServiceDetailsScreen extends Composite {
     protected Button openODataButton;
     
     @Inject @DataField("table-service-details-queryResults")
-    protected QueryResultPagedTableDisplayer queryResultsPanel;
+    protected QueryResultsPanel queryResultsPanel;
 
     @Override
     @WorkbenchPartTitle
@@ -174,7 +174,7 @@ public class DataServiceDetailsScreen extends Composite {
             					           serviceName+Constants.DOT+Constants.SERVICE_VIEW_NAME+
             					           Constants.SPACE+Constants.LIMIT_10;
             			
-            			queryResultsPanel.setDataProvider(Constants.SERVICES_VDB_JNDI, serviceSampleSQL);
+            			queryResultsPanel.showResultsTable(Constants.SERVICES_VDB_JNDI, serviceSampleSQL);
             		}
             	}
             }

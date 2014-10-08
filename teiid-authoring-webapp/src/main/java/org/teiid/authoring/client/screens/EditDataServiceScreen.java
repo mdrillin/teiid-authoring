@@ -38,7 +38,7 @@ import org.teiid.authoring.client.utils.DdlHelper;
 import org.teiid.authoring.client.widgets.CheckableNameRow;
 import org.teiid.authoring.client.widgets.ColumnNamesTable;
 import org.teiid.authoring.client.widgets.DataSourceNamesTable;
-import org.teiid.authoring.client.widgets.QueryResultPagedTableDisplayer;
+import org.teiid.authoring.client.widgets.QueryResultsPanel;
 import org.teiid.authoring.client.widgets.TablesProcNamesTable;
 import org.teiid.authoring.client.widgets.VisibilityRadios;
 import org.teiid.authoring.share.Constants;
@@ -146,7 +146,7 @@ public class EditDataServiceScreen extends Composite {
     protected Button cancelButton;
     
     @Inject @DataField("table-edit-service-queryResults")
-    protected QueryResultPagedTableDisplayer queryResultsTablePaged;
+    protected QueryResultsPanel queryResultsPanel;
     
     @Override
     @WorkbenchPartTitle
@@ -212,6 +212,9 @@ public class EditDataServiceScreen extends Composite {
     	serviceNameTextBox.addKeyUpHandler(new KeyUpHandler() {
             @Override
             public void onKeyUp(KeyUpEvent event) {
+            	// Show default querypanel message
+            	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
+            	// Update status
             	updateStatus();
             }
         });
@@ -220,9 +223,14 @@ public class EditDataServiceScreen extends Composite {
             @Override
             public void onKeyUp(KeyUpEvent event) {
             	haveSuccessfullyTested = false;
+            	// Show default querypanel message
+            	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
+            	// Update status
             	updateStatus();
             }
         });
+    	
+    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
     	
     	doGetDataServiceDetails(serviceName);
     }
@@ -340,6 +348,7 @@ public class EditDataServiceScreen extends Composite {
     	String viewString = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, typeNames);
     	viewDdlTextArea.setText(viewString);  
     	
+    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
     	updateStatus();
     }
     
@@ -355,6 +364,7 @@ public class EditDataServiceScreen extends Composite {
     	
     	viewDdlTextArea.setText(currentDdl+"\n"+colString);  
     	
+    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
     	updateStatus();
     }
     
@@ -512,7 +522,7 @@ public class EditDataServiceScreen extends Composite {
 
                 String testVdbJndi = "java:/"+testVDBName;
     			String serviceSampleSQL = "SELECT * FROM "+serviceName+"."+Constants.SERVICE_VIEW_NAME+" LIMIT 10";
-    	    	queryResultsTablePaged.setDataProvider(testVdbJndi, serviceSampleSQL);
+    	    	queryResultsPanel.showResultsTable(testVdbJndi, serviceSampleSQL);
     	    	
                 haveSuccessfullyTested = true;
                 saveServiceButton.setEnabled(true);                

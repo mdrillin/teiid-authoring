@@ -11,7 +11,6 @@ import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.VdbRpcService;
 
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -19,21 +18,26 @@ import com.google.gwt.user.client.ui.Label;
 @Templated("./QueryResultsPanel.html")
 public class QueryResultsPanel extends Composite {
 
+	private static final String MSG_INFO = "INFO";
+	private static final String MSG_ERROR = "ERROR";
+	
 	private Label statusLabel = new Label();
 	private boolean resultTableVisible = false;
 	private String defaultMessage;
 	private String fetchingDataMessage;
 	private String noRowsMessage;
-	private QueryResultPagedTableDisplayer queryResultsTablePaged = new QueryResultPagedTableDisplayer();
-	
-    @Inject @DataField("table-qresults-paged")
-    protected DeckPanel contentDeckPanel;
 	
     @Inject
     private ClientMessages i18n;
     
     @Inject
-    protected VdbRpcService vdbService;    
+    protected VdbRpcService vdbService;
+    
+    @Inject @DataField("content-deckpanel")
+    protected DeckPanel contentDeckPanel;
+    
+    @Inject
+    protected QueryResultPagedTableDisplayer queryResultsTablePaged;
     
 //    <div class="form-group">
 //    <div class="col-md-6">
@@ -50,8 +54,9 @@ public class QueryResultsPanel extends Composite {
     	defaultMessage = i18n.format("query-resultpanel.status-default-message");
     	fetchingDataMessage = i18n.format("query-resultpanel.status-fetch-data-message");
     	noRowsMessage = i18n.format("query-resultpanel.status-norows-message");
-    	    	
+
     	statusLabel.setText(defaultMessage);
+    	statusLabel.addStyleName("alert");
     	
     	// Add properties panel and Select label to deckPanel
     	contentDeckPanel.add(statusLabel);
@@ -65,6 +70,26 @@ public class QueryResultsPanel extends Composite {
      */
     public void showStatusMessage(String statusMsg) {
     	statusLabel.setText(statusMsg);
+    	setMessageStyle(MSG_INFO);
+    	showMessage();
+    }
+    
+    private void setMessageStyle(String msgType) {
+    	statusLabel.removeStyleName("alert-info");
+    	statusLabel.removeStyleName("alert-danger");
+    	if(msgType.equals(MSG_INFO)) {
+    		statusLabel.addStyleName("alert-info");
+    	} else if(msgType.equals(MSG_ERROR)) {
+    		statusLabel.addStyleName("alert-danger");
+    	}
+    }
+    
+    /**
+     * Set the status message
+     */
+    public void showErrorMessage(String statusMsg) {
+    	statusLabel.setText(statusMsg);
+    	setMessageStyle(MSG_ERROR);
     	showMessage();
     }
     
@@ -102,11 +127,11 @@ public class QueryResultsPanel extends Composite {
     		showQueryTable();
     	// Refresh ok, but no data rows.
     	} else if(dEvent.getType() == UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_NOROWS) {
-    		showStatusMessage(noRowsMessage);
+    		showErrorMessage(noRowsMessage);
         // Table refresh failed.  Show error message
     	} else if(dEvent.getType() == UiEventType.QUERY_RESULT_DISPLAYER_REFRESHED_ERROR) {
     		String errorMsg = queryResultsTablePaged.getErrorMessage();
-    		showStatusMessage(errorMsg);
+    		showErrorMessage(errorMsg);
     	}
     }
 
