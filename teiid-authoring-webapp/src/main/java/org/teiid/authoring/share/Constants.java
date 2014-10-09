@@ -15,6 +15,10 @@
  */
 package org.teiid.authoring.share;
 
+import org.teiid.authoring.client.resources.AppResource;
+
+import com.google.gwt.user.client.ui.AbstractImagePrototype;
+
 /**
  * Application constants
  * @author mdrillin@redhat.com
@@ -39,6 +43,18 @@ public class Constants {
 	public static final String DELETE_SERVICE_KEY = "delete-service";
 	
 	public static final String DATA_SOURCE_NEW_NAME = "MyNewSource";
+	
+	public static final String DS_TYPE_FILE = "file";
+	public static final String DS_TYPE_GOOGLE = "google";
+	public static final String DS_TYPE_H2 = "h2";
+	public static final String DS_TYPE_INFINISPAN = "infinispan";
+	public static final String DS_TYPE_LDAP = "ldap";
+	public static final String DS_TYPE_MODESHAPE = "modeshape";
+	public static final String DS_TYPE_MONGODB = "mongodb";
+	public static final String DS_TYPE_SALESFORCE = "salesforce";
+	public static final String DS_TYPE_TEIID = "teiid";
+	public static final String DS_TYPE_TEIID_LOCAL = "teiid-local";
+	public static final String DS_TYPE_WEBSERVICE = "webservice";
 	
 	public static final String OK = "OK";
 	public static final String QUESTION_MARK = "?";

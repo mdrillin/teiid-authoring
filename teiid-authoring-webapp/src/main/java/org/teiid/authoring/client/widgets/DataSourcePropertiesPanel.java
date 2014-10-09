@@ -14,20 +14,22 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
+import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
-import org.teiid.authoring.client.resources.AppResource;
+import org.teiid.authoring.client.resources.ImageHelper;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.share.Constants;
+import org.teiid.authoring.share.TranslatorHelper;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
 import org.teiid.authoring.share.beans.NotificationBean;
 import org.teiid.authoring.share.beans.PropertyBeanComparator;
 import org.teiid.authoring.share.services.StringUtils;
-import org.uberfire.client.common.Modal;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
@@ -37,6 +39,7 @@ import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -50,15 +53,26 @@ import com.google.gwt.user.client.ui.Widget;
 @Templated("./DataSourcePropertiesPanel.html")
 public class DataSourcePropertiesPanel extends Composite {
 
+	private static final String MSG_INFO = "INFO";
+	private static final String MSG_ERROR = "ERROR";
+	
     @Inject
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;
+    @Inject 
+    private ConfirmationContentPanel confirmationContent;
     
 	private String statusEnterName = null;
 	private String statusSelectTrans = null;
 	private String statusClickSave = null;
 	private String statusEnterProps = null;
+	
+	private ConfirmationDialog confirmationDialog;
+	private String clickedSourceType;
+    
+	// List of all available translators
+	private List<String> allTranslators = new ArrayList<String>();
 	
 	// Map of server sourceName to corresponding default translator
 	private Map<String,String> defaultTranslatorMap = new HashMap<String,String>();
@@ -74,8 +88,6 @@ public class DataSourcePropertiesPanel extends Composite {
     private String originalName;
     private String originalTranslator;
     
-    Modal modalDialog = new Modal();
-    
     @Inject
     protected TeiidRpcService teiidService;
     
@@ -86,7 +98,7 @@ public class DataSourcePropertiesPanel extends Composite {
     protected Label statusLabel;
     
     @Inject @DataField("textbox-dsprops-name")
-    protected TextBox name;
+    protected TextBox nameTextBox;
     @Inject @DataField("dtypes-button-panel")
     protected FlowPanel dTypesButtonPanel;
     
@@ -124,7 +136,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	dataSourceCorePropertyEditor.clear();
     	dataSourceAdvancedPropertyEditor.clear();
     	
-        name.addKeyUpHandler(new KeyUpHandler() {
+    	nameTextBox.addKeyUpHandler(new KeyUpHandler() {
             @Override
             public void onKeyUp(KeyUpEvent event) {
                 updateStatus();
@@ -163,33 +175,120 @@ public class DataSourcePropertiesPanel extends Composite {
      * Event handler that fires when the user clicks the top save button.
      * @param event
      */
-    @EventHandler("btn-dsprops-save1")
+    @EventHandler("btn-dsprops-save2")
     public void onSaveChangesBottomButtonClick(ClickEvent event) {
     	saveChangesButtonClick(event);
     }
     
     private void saveChangesButtonClick(ClickEvent event) {
-    	modalDialog = new Modal();
-    	modalDialog.setTitle("Saving Source Changes");
-    	modalDialog.show();
-    	
-        DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
-        // No name change - create will take care of redeploys
-        if(StringUtils.valuesAreEqual(this.originalName, this.name.getText())) {
-        	doCreateDataSource(sourceBean);
-        // Name change - first undeploy the original named sources
+        // Only the translator changed.  No need to muck with DS - just redeploy VDB and its source
+        if(!hasNameChange() && !hasPropertyChanges() && !hasDataSourceTypeChange() && hasTranslatorChange()) {
+            DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
+        	doCreateVdbAndVdbSource(sourceBean);
+        // No name change
+        } else if(!hasNameChange()) {
+        	showConfirmSourceRedeployDialog();
+        // Name change - confirm the rename first
         } else {
-        	List<String> originalDsNames = new ArrayList<String>();
-        	originalDsNames.add(this.originalName);
-        	originalDsNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+this.originalName);
-        	
-        	doDeleteThenCreateDataSource(originalDsNames,sourceBean);
+        	showConfirmRenameDialog();
         }
+    }
+    
+    /**
+     * Shows the confirmation dialog for renaming a DataSource
+     */
+    private void showConfirmRenameDialog() {
+    	String dTitle = i18n.format("ds-properties-panel.confirm-rename-dialog-title");
+    	String dMsg = i18n.format("ds-properties-panel.confirm-rename-dialog-message");
+    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
+    	confirmationDialog.setContentTitle(dTitle);
+    	confirmationDialog.setContentMessage(dMsg);
+    	confirmationDialog.setOkCancelEventTypes(UiEventType.SOURCE_RENAME_OK, UiEventType.SOURCE_RENAME_CANCEL);
+    	confirmationDialog.show();
+    }
+    
+    /**
+     * Shows the confirmation dialog for redeploy of a DataSource
+     */
+    private void showConfirmSourceRedeployDialog() {
+    	String dTitle = i18n.format("ds-properties-panel.confirm-redeploy-dialog-title");
+    	String dMsg = i18n.format("ds-properties-panel.confirm-redeploy-dialog-message");
+    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
+    	confirmationDialog.setContentTitle(dTitle);
+    	confirmationDialog.setContentMessage(dMsg);
+    	confirmationDialog.setOkCancelEventTypes(UiEventType.SOURCE_REDEPLOY_OK, UiEventType.SOURCE_REDEPLOY_CANCEL);
+    	confirmationDialog.show();
+    }
+    
+    /**
+     * Shows the confirmation dialog for changing a DataSource type
+     */
+    private void showConfirmChangeTypeDialog() {
+    	String dTitle = i18n.format("ds-properties-panel.confirm-changetype-dialog-title");
+    	String dMsg = i18n.format("ds-properties-panel.confirm-changetype-dialog-message");
+    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
+    	confirmationDialog.setContentTitle(dTitle);
+    	confirmationDialog.setContentMessage(dMsg);
+    	confirmationDialog.setOkCancelEventTypes(UiEventType.SOURCE_CHANGETYPE_OK, UiEventType.SOURCE_CHANGETYPE_CANCEL);
+    	confirmationDialog.show();
+    }
+    
+    /**
+     * Handles UiEvents
+     * @param dEvent
+     */
+    public void onDialogEvent(@Observes UiEvent dEvent) {
+    	// User has OK'd source rename
+    	if(dEvent.getType() == UiEventType.SOURCE_RENAME_OK) {
+    		confirmationDialog.hide();
+    		onRenameConfirmed();
+    	// User has OK'd source redeploy
+    	} else if(dEvent.getType() == UiEventType.SOURCE_REDEPLOY_OK) {
+    		confirmationDialog.hide();
+    		onRedeployConfirmed();
+    	// User has OK'd source type change
+    	} else if(dEvent.getType() == UiEventType.SOURCE_CHANGETYPE_OK) {
+    		confirmationDialog.hide();
+    		onChangeTypeConfirmed();
+    	// User has cancelled source rename
+    	} else if(dEvent.getType() == UiEventType.SOURCE_RENAME_CANCEL) {
+    		confirmationDialog.hide();
+    	// User has cancelled source redeploy
+    	} else if(dEvent.getType() == UiEventType.SOURCE_REDEPLOY_CANCEL) {
+    		confirmationDialog.hide();
+    	// User has cancelled source type change
+    	} else if(dEvent.getType() == UiEventType.SOURCE_CHANGETYPE_CANCEL) {
+    		confirmationDialog.hide();
+    	} 
+    }
+    
+    private void onRenameConfirmed() {
+        DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
+    	List<String> originalDsNames = new ArrayList<String>();
+    	originalDsNames.add(this.originalName);
+    	originalDsNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+this.originalName);
+    	
+    	doDeleteThenCreateDataSource(originalDsNames,sourceBean);
+    }
+    
+    private void onRedeployConfirmed() {
+        DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
+    	doCreateDataSource(sourceBean);
+    }
+    
+    private void onChangeTypeConfirmed() {
+		// Get default translator for the selected type
+    	String sourceType = clickedSourceType;
+		String defaultTranslator = TranslatorHelper.getTranslator(sourceType, allTranslators);
+		setSelectedTranslator(defaultTranslator);
+
+		doPopulatePropertiesTable(sourceType);
+		selectedSourceType = sourceType;
     }
     
     private DataSourceWithVdbDetailsBean getDetailsBean() {
     	DataSourceWithVdbDetailsBean resultBean = new DataSourceWithVdbDetailsBean();
-    	String dsName = name.getText();
+    	String dsName = nameTextBox.getText();
     	resultBean.setName(dsName);
     	resultBean.setType(this.selectedSourceType);
     	resultBean.setTranslator(getSelectedTranslator());
@@ -215,7 +314,7 @@ public class DataSourcePropertiesPanel extends Composite {
             	dsTypeButtons.clear();
             	// Generates toggle buttons for each type
                 for(String dType : dsTypes) {
-                	ImageResource img = getImageForType(dType);
+                	ImageResource img = ImageHelper.getInstance().getDataSourceImageForType(dType);
                 	Image buttonImage = new Image(img);
                 	ToggleButton button = new ToggleButton(buttonImage);
                 	button.getElement().setId(dType);
@@ -223,8 +322,9 @@ public class DataSourcePropertiesPanel extends Composite {
                 		public void onClick(ClickEvent event) {
             				Widget sourceWidget = (Widget)event.getSource();
             				String sourceType = sourceWidget.getElement().getId();
-            				doPopulatePropertiesTable(sourceType);
-            				selectedSourceType = sourceType;
+            				
+            				clickedSourceType = sourceType;
+            				showConfirmChangeTypeDialog();
                 		}
                 	});                	
                 	DOM.setStyleAttribute(button.getElement(), "cssFloat", "left");
@@ -271,34 +371,6 @@ public class DataSourcePropertiesPanel extends Composite {
     	}
     }
     
-    private ImageResource getImageForType(String dsType) {
-    	ImageResource img = null;
-    	if(dsType.equals("file")) {
-        	img = AppResource.INSTANCE.images().dsType_file_Image();
-    	} else if(dsType.equals("google")) {
-        	img = AppResource.INSTANCE.images().dsType_google_Image();
-    	} else if(dsType.equals("h2")) {
-        	img = AppResource.INSTANCE.images().dsType_h2_Image();
-    	} else if(dsType.equals("infinispan")) {
-        	img = AppResource.INSTANCE.images().dsType_infinispan_Image();
-    	} else if(dsType.equals("ldap")) {
-        	img = AppResource.INSTANCE.images().dsType_ldap_Image();
-    	} else if(dsType.equals("modeshape")) {
-        	img = AppResource.INSTANCE.images().dsType_modeshape_Image();
-    	} else if(dsType.equals("mongodb")) {
-        	img = AppResource.INSTANCE.images().dsType_mongodb_Image();
-    	} else if(dsType.equals("salesforce")) {
-        	img = AppResource.INSTANCE.images().dsType_salesforce_Image();
-    	} else if(dsType.equals("teiid")) {
-        	img = AppResource.INSTANCE.images().dsType_teiid_Image();
-    	} else if(dsType.equals("teiid-local")) {
-        	img = AppResource.INSTANCE.images().dsType_teiid_Image();
-    	} else if(dsType.equals("webservice")) {
-        	img = AppResource.INSTANCE.images().dsType_webservice_Image();
-    	}
-    	return img;
-    }
-    
     /**
      * Populate the Data Source Type ListBox
      */
@@ -306,6 +378,8 @@ public class DataSourcePropertiesPanel extends Composite {
     	teiidService.getTranslators(new IRpcServiceInvocationHandler<List<String>>() {
             @Override
             public void onReturn(List<String> translators) {
+            	allTranslators.clear();
+            	allTranslators.addAll(translators);
                 populateTranslatorListBox(translators);
             }
             @Override
@@ -396,6 +470,41 @@ public class DataSourcePropertiesPanel extends Composite {
     }
     
     /**
+     * Create a VDB and corresponding teiid source.  Used when there are no changes to the underlying source.
+     * @param dsDetailsBean the data source details
+     */
+    private void doCreateVdbAndVdbSource(final DataSourceWithVdbDetailsBean detailsBean) {
+    	final String dsName = detailsBean.getName();
+        final NotificationBean notificationBean = notificationService.startProgressNotification(
+                i18n.format("ds-properties-panel.creating-vdbwsource-title"), //$NON-NLS-1$
+                i18n.format("ds-properties-panel.creating-vdbwsource-msg", dsName)); //$NON-NLS-1$
+        teiidService.createVdbAndVdbSource(detailsBean, new IRpcServiceInvocationHandler<Void>() {
+            @Override
+            public void onReturn(Void data) {
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("ds-properties-panel.vdbwsource-created"), //$NON-NLS-1$
+                        i18n.format("ds-properties-panel.create-vdbwsource-success-msg")); //$NON-NLS-1$
+
+            	// fire event with the created DataSource name
+				UiEvent uiEvent = new UiEvent(UiEventType.DATA_SOURCE_CHANGED);
+				uiEvent.setDataSourceName(dsName);
+            	saveEvent.fire(uiEvent);
+            }
+            @Override
+            public void onError(Throwable error) {
+                notificationService.completeProgressNotification(notificationBean.getUuid(),
+                        i18n.format("ds-properties-panel.create-vdbwsource-error"), //$NON-NLS-1$
+                        error);
+                
+            	// fire event with the created DataSource name
+				UiEvent uiEvent = new UiEvent(UiEventType.DATA_SOURCE_CHANGED);
+				uiEvent.setDataSourceName(dsName);
+            	saveEvent.fire(uiEvent);
+            }
+        });
+    }
+    
+    /**
      * Creates a DataSource
      * @param dsDetailsBean the data source details
      */
@@ -410,7 +519,7 @@ public class DataSourcePropertiesPanel extends Composite {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("ds-properties-panel.datasource-created"), //$NON-NLS-1$
                         i18n.format("ds-properties-panel.create-success-msg")); //$NON-NLS-1$
-            	modalDialog.hide();
+
             	// fire event with the created DataSource name
 				UiEvent uiEvent = new UiEvent(UiEventType.DATA_SOURCE_CHANGED);
 				uiEvent.setDataSourceName(dsName);
@@ -418,10 +527,14 @@ public class DataSourcePropertiesPanel extends Composite {
             }
             @Override
             public void onError(Throwable error) {
-            	modalDialog.hide();
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("ds-properties-panel.create-error"), //$NON-NLS-1$
                         error);
+                
+            	// fire event with the created DataSource name
+				UiEvent uiEvent = new UiEvent(UiEventType.DATA_SOURCE_CHANGED);
+				uiEvent.setDataSourceName(dsName);
+            	saveEvent.fire(uiEvent);
             }
         });
     }
@@ -513,7 +626,7 @@ public class DataSourcePropertiesPanel extends Composite {
             	String title = "Data Source : "+dsDetailsBean.getName();
             	dsDetailsPanelTitle.setText(title);
             	
-            	name.setText(dsDetailsBean.getName());
+            	nameTextBox.setText(dsDetailsBean.getName());
             	originalName = dsDetailsBean.getName();
             	
             	setSelectedDataSourceType(dsDetailsBean.getType());
@@ -547,7 +660,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	String statusText = Constants.OK;
     	
     	// Warn for missing source name
-    	String serviceName = name.getText();
+    	String serviceName = nameTextBox.getText();
     	if(StringUtils.isEmpty(serviceName)) {
     		statusText = statusEnterName;
     	}
@@ -572,18 +685,42 @@ public class DataSourcePropertiesPanel extends Composite {
     		boolean hasTranslatorChange = hasTranslatorChange();
         	boolean hasPropChanges = hasPropertyChanges();
     		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges) {
-    			statusLabel.setText(statusClickSave);
+    			setInfoMessage(statusClickSave);
         		saveSourceChanges1.setEnabled(true);
         		saveSourceChanges2.setEnabled(true);
     		} else {
-    			statusLabel.setText(statusEnterProps);
+    			setInfoMessage(statusEnterProps);
         		saveSourceChanges1.setEnabled(false);
         		saveSourceChanges2.setEnabled(false);
     		}
     	} else {
-			statusLabel.setText(statusText);
+			setErrorMessage(statusText);
     		saveSourceChanges1.setEnabled(false);
     		saveSourceChanges2.setEnabled(false);
+    	}
+    }
+    
+    /**
+     * Set the status message
+     */
+    public void setInfoMessage(String statusMsg) {
+    	statusLabel.setText(statusMsg);
+    	setMessageStyle(MSG_INFO);
+    }
+    /**
+     * Set the status message
+     */
+    public void setErrorMessage(String statusMsg) {
+    	statusLabel.setText(statusMsg);
+    	setMessageStyle(MSG_ERROR);
+    }
+    private void setMessageStyle(String msgType) {
+    	statusLabel.removeStyleName("alert-info");
+    	statusLabel.removeStyleName("alert-danger");
+    	if(msgType.equals(MSG_INFO)) {
+    		statusLabel.addStyleName("alert-info");
+    	} else if(msgType.equals(MSG_ERROR)) {
+    		statusLabel.addStyleName("alert-danger");
     	}
     }
     
@@ -592,7 +729,7 @@ public class DataSourcePropertiesPanel extends Composite {
      * @return name changed status
      */
     private boolean hasNameChange() {
-    	return !StringUtils.valuesAreEqual(this.originalName, this.name.getText());
+    	return !StringUtils.valuesAreEqual(this.originalName, this.nameTextBox.getText());
     }
     
     /**

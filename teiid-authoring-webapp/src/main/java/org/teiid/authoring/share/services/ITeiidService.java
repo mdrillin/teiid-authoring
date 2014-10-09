@@ -56,6 +56,8 @@ public interface ITeiidService {
     public Map<String,String> getDefaultTranslatorMap() throws DataVirtUiException;
         
     public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean dataSourceWithVdb) throws DataVirtUiException;
+    
+    public void createVdbAndVdbSource(DataSourceWithVdbDetailsBean bean) throws DataVirtUiException;
 
     public List<VdbDetailsBean> deleteDataSourceAndVdb(String dsName, String vdbName) throws DataVirtUiException;
 

@@ -155,6 +155,16 @@ public class TeiidRpcService {
             errorCallback.error(null, e);
         }
     }
+    
+    public void createVdbAndVdbSource(DataSourceWithVdbDetailsBean dataSourceWithVdb, final IRpcServiceInvocationHandler<Void> handler) {
+        RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteTeiidService.call(successCallback, errorCallback).createVdbAndVdbSource(dataSourceWithVdb);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
 
     public void deleteDataSourceAndVdb(String dsName, String vdbName, final IRpcServiceInvocationHandler<List<VdbDetailsBean>> handler) {
         RemoteCallback<List<VdbDetailsBean>> successCallback = new DelegatingRemoteCallback<List<VdbDetailsBean>>(handler);

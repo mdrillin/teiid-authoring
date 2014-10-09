@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.teiid.authoring.client.resources.AppResource;
+import org.teiid.authoring.client.resources.ImageHelper;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 
 import com.google.gwt.cell.client.AbstractCell;
@@ -107,36 +108,10 @@ public class DataSourceListWidget extends Composite {
        */
         private final String okImageHtml;
         private final String errorImageHtml;
-        private final String dsType_blankbox_ImageHtml;
-        private final String dsType_file_ImageHtml;
-        private final String dsType_google_ImageHtml;
-        private final String dsType_h2_ImageHtml;
-        private final String dsType_infinispan_ImageHtml;
-        private final String dsType_ldap_ImageHtml;
-        private final String dsType_modeshape_ImageHtml;
-        private final String dsType_mongodb_ImageHtml;
-//        private final String dsType_mysql_ImageHtml;
-//        private final String dsType_postgres_ImageHtml;
-        private final String dsType_salesforce_ImageHtml;
-        private final String dsType_teiid_ImageHtml;
-        private final String dsType_webservice_ImageHtml;
 
       public DataSourceCell( ) {
         this.okImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().okIcon32x32Image()).getHTML();
         this.errorImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().errorIcon32x32Image()).getHTML();
-        this.dsType_blankbox_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_blankbox_Image()).getHTML();
-        this.dsType_file_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_file_Image()).getHTML();
-        this.dsType_google_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_google_Image()).getHTML();
-        this.dsType_h2_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_h2_Image()).getHTML();
-        this.dsType_infinispan_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_infinispan_Image()).getHTML();
-        this.dsType_ldap_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_ldap_Image()).getHTML();
-        this.dsType_modeshape_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_modeshape_Image()).getHTML();
-        this.dsType_mongodb_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_mongodb_Image()).getHTML();
-//        this.dsType_mysql_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_mysql_Image()).getHTML();
-//        this.dsType_postgres_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_postgres_Image()).getHTML();
-        this.dsType_salesforce_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_salesforce_Image()).getHTML();
-        this.dsType_teiid_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_teiid_Image()).getHTML();
-        this.dsType_webservice_ImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_webservice_Image()).getHTML();
       }
 
       @Override
@@ -152,34 +127,9 @@ public class DataSourceListWidget extends Composite {
         } else {
         	statusImageHtml = this.errorImageHtml;
         }
-        String dTypeImageHtml = null;
         String dType = value.getType();
-    	if(dType.equals("file")) {
-    		dTypeImageHtml = this.dsType_file_ImageHtml;
-    	} else if(dType.equals("google")) {
-    		dTypeImageHtml = this.dsType_google_ImageHtml;
-    	} else if(dType.equals("h2")) {
-    		dTypeImageHtml = this.dsType_h2_ImageHtml;
-    	} else if(dType.equals("infinispan")) {
-    		dTypeImageHtml = this.dsType_infinispan_ImageHtml;
-    	} else if(dType.equals("ldap")) {
-    		dTypeImageHtml = this.dsType_ldap_ImageHtml;
-    	} else if(dType.equals("modeshape")) {
-    		dTypeImageHtml = this.dsType_modeshape_ImageHtml;
-    	} else if(dType.equals("mongodb")) {
-    		dTypeImageHtml = this.dsType_mongodb_ImageHtml;
-    	} else if(dType.equals("salesforce")) {
-    		dTypeImageHtml = this.dsType_salesforce_ImageHtml;
-    	} else if(dType.equals("teiid")) {
-    		dTypeImageHtml = this.dsType_teiid_ImageHtml;
-    	} else if(dType.equals("teiid-local")) {
-    		dTypeImageHtml = this.dsType_teiid_ImageHtml;
-    	} else if(dType.equals("webservice")) {
-    		dTypeImageHtml = this.dsType_webservice_ImageHtml;
-    	} else {
-    		dTypeImageHtml = this.dsType_blankbox_ImageHtml;
-    	}
-        
+        String dTypeImageHtml = ImageHelper.getInstance().getDataSourceImageHtmlForType(dType);
+                
         sb.appendHtmlConstant("<table>");
 
         // Add the contact image.

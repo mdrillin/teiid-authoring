@@ -36,9 +36,9 @@ import org.teiid.adminapi.impl.ModelMetaData;
 import org.teiid.adminapi.impl.VDBMetaData;
 import org.teiid.authoring.backend.server.api.AdminApiClientAccessor;
 import org.teiid.authoring.backend.server.services.util.JdbcSourceHelper;
-import org.teiid.authoring.backend.server.services.util.TranslatorHelper;
 import org.teiid.authoring.backend.server.services.util.VdbHelper;
 import org.teiid.authoring.share.Constants;
+import org.teiid.authoring.share.TranslatorHelper;
 import org.teiid.authoring.share.beans.DataSourceDetailsBean;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
@@ -604,9 +604,39 @@ public class TeiidService implements ITeiidService {
     	createVdbDataSource(bean.getSourceVdbName());
     }
     
+    /**
+     * Create a VDB and its corresponding teiid source
+     * @param bean the DataSource and VDB details
+     * @throws DataVirtUiException
+     */
+    public void createVdbAndVdbSource(DataSourceWithVdbDetailsBean bean) throws DataVirtUiException {
+    	// Get JNDI for the specified DataSource name.  if null choose a default
+    	String jndiName = getSourceJndiName(bean.getName());
+    	if(StringUtils.isEmpty(jndiName)) {
+    		jndiName = "java:/"+bean.getName();
+    	}
+    	
+    	// Delete VDB if it already exists
+    	deleteVdb(bean.getSourceVdbName());
+    	
+    	// Deploy the VDB
+    	deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator());
+    	
+    	// Create the teiid dataSource for the deployed source VDB
+    	createVdbDataSource(bean.getSourceVdbName());
+    }
+    
     private void deleteVdbs(Collection<String> vdbNames) throws DataVirtUiException {
     	try {
 			clientAccessor.getClient().deleteVDBs(vdbNames);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+    }
+    
+    private void deleteVdb(String vdbName) throws DataVirtUiException {
+    	try {
+			clientAccessor.getClient().deleteVDB(vdbName);
 		} catch (AdminApiClientException e) {
 			throw new DataVirtUiException(e.getMessage());
 		}

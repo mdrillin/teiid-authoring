@@ -33,9 +33,9 @@ import org.teiid.adminapi.PropertyDefinition;
 import org.teiid.adminapi.Translator;
 import org.teiid.adminapi.VDB;
 import org.teiid.adminapi.impl.VDBMetaData;
-import org.teiid.authoring.backend.server.services.util.TranslatorHelper;
 import org.teiid.authoring.backend.server.services.util.VdbHelper;
 import org.teiid.authoring.share.Constants;
+import org.teiid.authoring.share.TranslatorHelper;
 import org.teiid.authoring.share.services.StringUtils;
 
 /**
