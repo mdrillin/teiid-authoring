@@ -9,7 +9,7 @@ import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
-import org.teiid.authoring.client.services.VdbRpcService;
+import org.teiid.authoring.client.services.TeiidRpcService;
 
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
@@ -31,7 +31,7 @@ public class QueryResultsPanel extends Composite {
     private ClientMessages i18n;
     
     @Inject
-    protected VdbRpcService vdbService;
+    protected TeiidRpcService teiidService;
     
     @Inject @DataField("content-deckpanel")
     protected DeckPanel contentDeckPanel;

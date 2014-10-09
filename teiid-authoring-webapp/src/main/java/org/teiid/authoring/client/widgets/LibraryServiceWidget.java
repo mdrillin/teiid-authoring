@@ -13,7 +13,7 @@ import org.jboss.errai.ui.shared.api.annotations.Bound;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
-import org.teiid.authoring.client.services.VdbRpcService;
+import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.share.Constants;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
@@ -39,7 +39,7 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 	private PlaceManager placeManager;
 
     @Inject
-    protected VdbRpcService vdbService;
+    protected TeiidRpcService teiidService;
     
 	@Inject @AutoBound DataBinder<ServiceRow> serviceBinder;
 
@@ -139,6 +139,9 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 		Map<String,String> parameters = new HashMap<String,String>();
 		parameters.put(Constants.CLONE_SERVICE_KEY, svcName);
 		
+    	// re-init list selection
+    	populateMoreActionsListBox();
+    	
 		placeManager.goTo(new DefaultPlaceRequest("DataServicesLibraryScreen",parameters));
     }
     

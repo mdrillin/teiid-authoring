@@ -15,6 +15,8 @@
  */
 package org.teiid.authoring.backend.server.services;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,11 +27,14 @@ import java.util.Properties;
 
 import javax.inject.Inject;
 
+import org.apache.commons.io.IOUtils;
 import org.jboss.errai.bus.server.annotations.Service;
 import org.teiid.adminapi.PropertyDefinition;
+import org.teiid.adminapi.VDB;
+import org.teiid.adminapi.VDB.Status;
+import org.teiid.adminapi.impl.ModelMetaData;
 import org.teiid.adminapi.impl.VDBMetaData;
 import org.teiid.authoring.backend.server.api.AdminApiClientAccessor;
-import org.teiid.authoring.backend.server.services.util.FilterUtil;
 import org.teiid.authoring.backend.server.services.util.JdbcSourceHelper;
 import org.teiid.authoring.backend.server.services.util.TranslatorHelper;
 import org.teiid.authoring.backend.server.services.util.VdbHelper;
@@ -37,42 +42,41 @@ import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.DataSourceDetailsBean;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
-import org.teiid.authoring.share.beans.DataSourceResultSetBean;
-import org.teiid.authoring.share.beans.DataSourceSummaryBean;
-import org.teiid.authoring.share.beans.DataSourceTypeBean;
-import org.teiid.authoring.share.beans.DataSourceTypeResultSetBean;
 import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbModelBean;
+import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
-import org.teiid.authoring.share.services.IDataSourceService;
+import org.teiid.authoring.share.services.ITeiidService;
 import org.teiid.authoring.share.services.StringUtils;
 import org.uberfire.paging.PageRequest;
 import org.uberfire.paging.PageResponse;
 
 /**
- * Concrete implementation of the DataSource service.
+ * Concrete implementation of the Teiid service.  This service is used to interact with the teiid server
+ * through the teiid admin api
  *
  * @author mdrillin@redhat.com
  */
 @Service
-public class DataSourceService implements IDataSourceService {
+public class TeiidService implements ITeiidService {
 
     private static final String DRIVER_KEY = "driver-name";
     private static final String CLASSNAME_KEY = "class-name";
     private static final String CONN_FACTORY_CLASS_KEY = "managedconnectionfactory-class";
     private static final String CONNECTION_URL_DISPLAYNAME = "connection-url";
 
+    private static final String LOCALHOST = "127.0.0.1";
+
+    private VdbHelper vdbHelper = VdbHelper.getInstance();
+    
     @Inject
     private AdminApiClientAccessor clientAccessor;
     
-    @Inject
-    private VdbService vdbService;
-
     /**
      * Constructor.
      */
-    public DataSourceService() {
+    public TeiidService() {
     }
 
     public PageResponse<DataSourcePageRow> getDataSources( final PageRequest pageRequest, final String filters ) {
@@ -196,186 +200,6 @@ public class DataSourceService implements IDataSourceService {
     	return allDsNames.contains(srcVdbName);
     }
         
-    @Override
-    public DataSourceResultSetBean search(String searchText, int page, String sortColumnId, boolean sortAscending) throws DataVirtUiException {
-        int pageSize = Constants.DATASOURCES_TABLE_PAGE_SIZE; 
-        
-        DataSourceResultSetBean data = new DataSourceResultSetBean();
-        
-        Collection<Properties> dsSummaryPropsCollection = null;
-        try {
-        	dsSummaryPropsCollection = clientAccessor.getClient().getDataSourceSummaryPropsCollection();
-		} catch (AdminApiClientException e) {
-		}
-        
-        // List of all the names
-        List<Properties> propertiesList = new ArrayList<Properties>(dsSummaryPropsCollection);
-        // Save complete list
-        List<String> allDsNames = new ArrayList<String>(dsSummaryPropsCollection.size());
-        List<String> allDsNamesSort = new ArrayList<String>(dsSummaryPropsCollection.size());
-        for(Properties dsProps : propertiesList) {
-            String sourceName = dsProps.getProperty("name");
-            if( sourceName!=null && !sourceName.isEmpty() ) {
-            	allDsNames.add(sourceName);
-            	if ( FilterUtil.matchFilter(sourceName, searchText) ) {
-            		allDsNamesSort.add(sourceName.toLowerCase());
-            	}
-            }
-        }
-        // Sort alpha by name
-        Collections.sort(allDsNamesSort);
-        // If reverse alpha, reverse the sorted list
-        if(!sortAscending) {
-        	Collections.reverse(allDsNamesSort);
-        }
-        
-        int totalSources = allDsNamesSort.size();
-        
-        // Start and End Index for this page
-        int page_startIndex = (page - 1) * pageSize;
-        int page_endIndex = page_startIndex + (pageSize-1);
-        // If page endIndex greater than total rows, reset to end
-        if(page_endIndex > (totalSources-1)) {
-        	page_endIndex = totalSources-1;
-        }
-        
-        // Gets jdbc Jndi names available on the server
-        List<String> jdbcJndiNames = JdbcSourceHelper.getInstance().getJdbcSourceNames(false);
-        
-        List<DataSourceSummaryBean> rows = new ArrayList<DataSourceSummaryBean>();
-        if(!allDsNamesSort.isEmpty()) {
-        	for(int i=page_startIndex; i<=page_endIndex; i++) {
-        		DataSourceSummaryBean summaryBean = new DataSourceSummaryBean();
-        		// Name of source were looking for
-        		String dsName = allDsNamesSort.get(i);
-        		// Iterate the properties List, find the matching source properties
-        		for(Properties dsProps : propertiesList) {
-        			String thisDsName = dsProps.getProperty("name");
-        			if(thisDsName.equalsIgnoreCase(dsName)) {
-        				summaryBean.setName(thisDsName);
-        				String jndiName = dsProps.getProperty("jndi-name");
-        				summaryBean.setJndiName(jndiName);
-        				if(jdbcJndiNames.contains(jndiName)) {
-        					summaryBean.setTestable(true);
-        				}
-        				summaryBean.setType(dsProps.getProperty("type"));
-        				rows.add(summaryBean);
-        				break;
-        			}
-        		}
-        	}
-        }
-        data.setAllDsNames(allDsNames);
-        data.setDataSources(rows);
-        data.setItemsPerPage(pageSize);
-        data.setStartIndex(page_startIndex);
-        data.setTotalResults(totalSources);
-        
-        return data;
-    }
-    
-    @Override
-    public DataSourceTypeResultSetBean getDataSourceTypeResultSet(int page, String sortColumnId, boolean sortAscending) throws DataVirtUiException {
-        int pageSize = Constants.DATASOURCE_TYPES_TABLE_PAGE_SIZE; 
-        
-        DataSourceTypeResultSetBean data = new DataSourceTypeResultSetBean();
-        
-        Collection<String> dsTypesCollection = null;
-        try {
-        	dsTypesCollection = clientAccessor.getClient().getDataSourceTypes();
-		} catch (AdminApiClientException e) {
-		}
-        
-    	// Filter out 'types' ending with .war
-        List<String> dsTypesList = new ArrayList<String>(dsTypesCollection.size());
-        List<String> dsTypesListSort = new ArrayList<String>(dsTypesCollection.size());
-    	for(String dsType : dsTypesCollection) {
-    	   if(dsType!=null && !dsType.endsWith(".war")) {
-    		   dsTypesList.add(dsType);
-    		   dsTypesListSort.add(dsType.toLowerCase());
-    	   }
-    	}
-    	
-        // Sort alpha by name
-        Collections.sort(dsTypesListSort);
-        // If reverse alpha, reverse the sorted list
-        if(!sortAscending) {
-        	Collections.reverse(dsTypesListSort);
-        }
-    	
-        int totalTypes = dsTypesList.size();
-        
-        // Start and End Index for this page
-        int page_startIndex = (page - 1) * pageSize;
-        int page_endIndex = page_startIndex + (pageSize-1);
-        // If page endIndex greater than total rows, reset to end
-        if(page_endIndex > (totalTypes-1)) {
-        	page_endIndex = totalTypes-1;
-        }
-        
-        List<DataSourceTypeBean> rows = new ArrayList<DataSourceTypeBean>();
-        for(int i=page_startIndex; i<=page_endIndex; i++) {
-        	DataSourceTypeBean typeBean = new DataSourceTypeBean();
-            String typeName = dsTypesListSort.get(i);
-            // Gets the name from original list (with correct case)
-            for(String thisTypeName : dsTypesList) {
-            	if(thisTypeName.equalsIgnoreCase(typeName)) {
-            		typeBean.setName(thisTypeName);
-            		rows.add(typeBean);
-            		break;
-            	}
-            }
-        }
-        data.setDataSourceTypes(rows);
-        data.setItemsPerPage(pageSize);
-        data.setStartIndex(page_startIndex);
-        data.setTotalResults(totalTypes);
-        
-        return data;
-    }
-    
-    @Override
-    public DataSourceDetailsBean getDataSourceDetails(String dsName) throws DataVirtUiException {
-    	// Create DataSource Details Bean - set name
-    	DataSourceDetailsBean dsDetailsBean = new DataSourceDetailsBean();
-    	dsDetailsBean.setName(dsName);
-
-    	// Get Data Source properties
-    	Properties dsProps = null;
-    	try {
-			dsProps = clientAccessor.getClient().getDataSourceProperties(dsName);
-		} catch (AdminApiClientException e) {
-			throw new DataVirtUiException(e.getMessage());
-		}
-
-    	// Set jndi name
-    	dsDetailsBean.setJndiName(dsProps.getProperty("jndi-name"));
-
-    	// Determine type/driver from properties
-    	String dsType = getDataSourceType(dsProps);
-    	dsDetailsBean.setType(dsType);
-    	
-    	// Get the Default Properties for the DS type
-    	List<DataSourcePropertyBean> dataSourcePropertyBeans = getDataSourceTypeProperties(dsType);
-    	    	
-        // Set DS type default property to data source specific value
-        for(DataSourcePropertyBean propBean: dataSourcePropertyBeans) {
-            String propName = propBean.getName();
-            String propValue = dsProps.getProperty(propName);
-            if(dsProps.containsKey(propName)) {
-                propValue = dsProps.getProperty(propName);
-                if(propValue!=null) {
-                	propBean.setValue(propValue);
-                	propBean.setOriginalValue(propValue);
-                }
-            }
-        }
-    	
-    	dsDetailsBean.setProperties(dataSourcePropertyBeans);
-
-    	return dsDetailsBean;
-    }
-    
     @Override
     public DataSourceWithVdbDetailsBean getDataSourceWithVdbDetails(String dsName) throws DataVirtUiException {
     	String srcVdbName = Constants.SERVICE_SOURCE_VDB_PREFIX+dsName;
@@ -723,6 +547,14 @@ public class DataSourceService implements IDataSourceService {
     	return driverName;
     }
          
+    public void deleteDataSource(String dsName) throws DataVirtUiException {
+    	try {
+			clientAccessor.getClient().deleteDataSource(dsName);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+    }
+    
     public void createDataSource(DataSourceDetailsBean bean) throws DataVirtUiException {
     	// First delete the source with this name, if it already exists
     	deleteDataSource(bean.getName());
@@ -764,12 +596,104 @@ public class DataSourceService implements IDataSourceService {
     	// Delete Source VDB if it already exists
     	List<String> vdbsToDelete = new ArrayList<String>(1);
     	vdbsToDelete.add(bean.getSourceVdbName());
-    	vdbService.delete(vdbsToDelete);
+    	deleteVdbs(vdbsToDelete);
     	// Create the corresponding SrcVdb for the new source
-    	vdbService.deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator());
+    	deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator());
     	
     	// Create the teiid dataSource for the deployed source VDB
     	createVdbDataSource(bean.getSourceVdbName());
+    }
+    
+    private void deleteVdbs(Collection<String> vdbNames) throws DataVirtUiException {
+    	try {
+			clientAccessor.getClient().deleteVDBs(vdbNames);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+    }
+        
+    /**
+     * Deploys a SourceVDB for the specified dataSource, if it doesnt already exist
+     * @param sourceVDBName the name of the source VDB
+     * @param modelName the name of the model
+     * @param dataSourceName the name of the datasource
+     * @param jndiName the JNDI name of the datasource
+     * @param translator the name of the translator
+     */
+    private String deploySourceVDB(String sourceVDBName, String modelName, String dataSourceName, String jndiName, String translator) throws DataVirtUiException {
+    	try {
+        	// Get VDB with the supplied name.
+        	// -- If it already exists, return its status
+        	VDBMetaData sourceVdb = clientAccessor.getClient().getVDB(sourceVDBName,1);
+
+        	if(sourceVdb!=null) {
+        		String sourceVdbStatus = getVDBStatusMessage(sourceVDBName);
+        		if(!sourceVdbStatus.equals(Constants.SUCCESS)) {
+        			return sourceVdbStatus;
+        		}
+        		return sourceVdbStatus;
+        	}
+        	
+        	// Deployment name for vdb must end in '-vdb.xml'.
+        	String deploymentName = sourceVDBName + Constants.DYNAMIC_VDB_SUFFIX;
+
+        	// Create a new Source VDB to deploy
+        	sourceVdb = vdbHelper.createVdb(sourceVDBName,1);
+
+        	// Create source model - same name as dataSource.  Use model name for source mapping - will be unique
+        	ModelMetaData model = vdbHelper.createSourceModel(modelName, modelName, jndiName, translator);
+
+        	// Adding the SourceModel to the VDB
+        	sourceVdb.addModel(model);
+
+        	// If it exists, undeploy it
+        	byte[] vdbBytes = vdbHelper.getVdbByteArray(sourceVdb);
+
+        	// Deploy the VDB
+        	clientAccessor.getClient().deploy(deploymentName, new ByteArrayInputStream(vdbBytes));
+
+        	// Wait for VDB to finish loading
+        	waitForVDBLoad(sourceVDBName, 1, Constants.VDB_LOADING_TIMEOUT_SECS);                        
+
+        	// Get deployed VDB and return status
+        	String vdbStatus = getVDBStatusMessage(sourceVDBName);
+        	if(!vdbStatus.equals(Constants.SUCCESS)) {
+        		return vdbStatus;
+        	}
+        	return Constants.SUCCESS;
+    	} catch (Exception e) {
+			throw new DataVirtUiException(e.getMessage());
+    	}
+
+    }
+    
+    /*
+     * Get the error messages (if any) for the supplied VDB.
+     * @param vdbName the name of the VDB
+     * @return the Error Message string, or 'success' if none
+     */
+    private String getVDBStatusMessage(String vdbName) throws DataVirtUiException {
+    	// Get deployed VDB and check status
+    	VDBMetaData theVDB;
+		try {
+			theVDB = clientAccessor.getClient().getVDB(vdbName,1);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+    	if(theVDB!=null) {
+    		Status vdbStatus = theVDB.getStatus();
+    		if(vdbStatus!=Status.ACTIVE) {
+    			List<String> allErrors = theVDB.getValidityErrors();
+    			if(allErrors!=null && !allErrors.isEmpty()) {
+    				StringBuffer sb = new StringBuffer();
+    				for(String errorMsg : allErrors) {
+    					sb.append("ERROR: " +errorMsg);
+    				}
+    				return sb.toString();
+    			}
+    		}
+    	}
+    	return Constants.SUCCESS;
     }
     
     private String getSourceJndiName(String dataSourceName) throws DataVirtUiException {
@@ -823,7 +747,7 @@ public class DataSourceService implements IDataSourceService {
      * @throws DataVirtUiException
      */
     @Override
-    public void deleteDataSourceAndVdb(String dsName, String vdbName) throws DataVirtUiException {
+    public List<VdbDetailsBean> deleteDataSourceAndVdb(String dsName, String vdbName) throws DataVirtUiException {
     	try {
 			clientAccessor.getClient().deleteDataSource(dsName);
 		} catch (AdminApiClientException e) {
@@ -832,18 +756,11 @@ public class DataSourceService implements IDataSourceService {
     	
     	Collection<String> vdbNames = new ArrayList<String>(1);
     	vdbNames.add(vdbName);
-    	vdbService.delete(vdbNames);
+    	deleteVdbs(vdbNames);
+    	
+    	return getDynamicVdbsWithPrefix(Constants.SERVICE_VDB_PREFIX);
     }
     
-    @Override
-    public void deleteDataSource(String dsName) throws DataVirtUiException {
-    	try {
-			clientAccessor.getClient().deleteDataSource(dsName);
-		} catch (AdminApiClientException e) {
-			throw new DataVirtUiException(e.getMessage());
-		}
-    }
-
     @Override
     public void deleteDataSources(Collection<String> dsNames) throws DataVirtUiException {
     	try {
@@ -861,5 +778,374 @@ public class DataSourceService implements IDataSourceService {
 			throw new DataVirtUiException(e.getMessage());
 		}
     }
+ 
+    /*
+     * Deploy a VDB with the requested View Model.
+     * @param vdbName name of the VDB
+     * @param viewModelName the name of the viewModel to add
+     * @param ddlString the DDL string to use for the view model
+     * @return the VdbDetails
+     */
+    public VdbDetailsBean deployNewVDB(final String vdbName, final int vdbVersion, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException {
+    	// Create a new VDB
+    	VDBMetaData theVDB = vdbHelper.createVdb(vdbName, vdbVersion);
+  	
+    	// Add the requested viewModel to the VDB
+    	VDBMetaData newVdb = vdbHelper.addViewModel(theVDB, viewModelRequest.getName(), viewModelRequest.getDescription(), viewModelRequest.getDdl(), viewModelRequest.isVisible());
+
+    	// Add the required source import VDBs to the VDB
+    	List<String> rqdImportVdbNames = viewModelRequest.getRequiredImportVdbNames();
+    	List<Integer> rqdImportVdbVersions = viewModelRequest.getRequiredImportVdbVersions();
+    	if(rqdImportVdbNames!=null && !rqdImportVdbNames.isEmpty()) { 
+    		newVdb = vdbHelper.addImports(newVdb, rqdImportVdbNames, rqdImportVdbVersions);
+    	}
+
+		String deployString;
+		try {
+			deployString = vdbHelper.getVdbString(newVdb);
+			
+			if(deployString!=null) {
+				// Deploys the VDB, waits for it to load and deploys corresponding source
+				deployVdbWithSource(vdbName, new ByteArrayInputStream(deployString.getBytes("UTF-8")));
+			}
+		} catch (Exception e) {
+			throw new DataVirtUiException(e);
+		}
+
+    	// Return details
+    	return getVdbDetails(vdbName, 1);
+    }
     
+    private void deployVdbWithSource(String vdbName, InputStream vdbContent) throws DataVirtUiException {
+		// Deployment name for vdb must end in '-vdb.xml'
+		String deploymentName = vdbName + Constants.DYNAMIC_VDB_SUFFIX;
+
+    	// Deploy the VDB
+		InputStream contentStream = null;
+		try {
+			clientAccessor.getClient().deploy(deploymentName, vdbContent);
+		} catch(AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		} finally {
+			IOUtils.closeQuietly(contentStream);
+		}
+		
+        // This wait method takes deploymentName
+        waitForVDBDeploymentToLoad(deploymentName, Constants.VDB_LOADING_TIMEOUT_SECS);
+
+        // Create the Vdb data source
+        createVdbDataSource(vdbName);
+    }
+    
+    /*
+     * Helper method - waits for the VDB to finish loading
+     * @param deploymentName the deployment name for the VDB
+     * @param timeoutInSecs time to wait before timeout
+     * @return 'true' if vdb found and is out of 'Loading' status, 'false' otherwise.
+     */
+    private boolean waitForVDBDeploymentToLoad(String deploymentName, int timeoutInSecs) {
+    	long waitUntil = System.currentTimeMillis() + timeoutInSecs*1000;
+    	if (timeoutInSecs < 0) {
+    		waitUntil = Long.MAX_VALUE;
+    	}
+
+    	String vdbName = null;
+    	int vdbVersion = 1;
+    	// Get VDB name and version for the specified deploymentName
+    	Collection<? extends VDB> allVdbs = null;
+    	try {
+    		allVdbs = clientAccessor.getClient().getVdbs();
+    		for(VDB vdbMeta : allVdbs) {
+    			String deployName = vdbMeta.getPropertyValue("deployment-name");
+    			if(deployName!=null && deployName.equals(deploymentName)) {
+    				vdbName=vdbMeta.getName();
+    				vdbVersion=vdbMeta.getVersion();
+    				break;
+    			}
+    		}
+    	} catch (AdminApiClientException e) {
+    	}
+
+    	if(vdbName==null) return false;
+
+    	boolean first = true;
+    	do {
+    		// Pause 5 sec before subsequent attempts
+    		if (!first) {
+    			try {
+    				Thread.sleep(5000);
+    			} catch (InterruptedException e) {
+    				break;
+    			}
+    		} else {
+    			first = false;
+    		}
+    		// Get the VDB using admin API
+    		VDBMetaData vdbMetaData = null;
+    		try {
+    			vdbMetaData = (VDBMetaData)clientAccessor.getClient().getVDB(vdbName, vdbVersion);
+    		} catch (AdminApiClientException e) {
+    		}
+    		// Determine if VDB is loading, or whether to wait
+    		if(vdbMetaData!=null) {
+    			Status vdbStatus = vdbMetaData.getStatus();
+    			// return if no models in VDB, or VDB has errors (done loading)
+    			if(vdbMetaData.getModels().isEmpty() || vdbStatus==Status.FAILED || vdbStatus==Status.REMOVED || vdbStatus==Status.ACTIVE) {
+    				return true;
+    			}
+    			// If the VDB Status is LOADING, but a validity error was found - return
+    			if(vdbStatus==Status.LOADING && !vdbMetaData.getValidityErrors().isEmpty()) {
+    				return true;
+    			}
+    		}
+    	} while (System.currentTimeMillis() < waitUntil);
+    	return false;
+    }
+    
+    /*
+     * Helper method - waits for the VDB to finish loading
+     * @param vdbName the name of the VDB
+     * @param vdbVersion the VDB version
+     * @param timeoutInSecs time to wait before timeout
+     * @return 'true' if vdb found and is out of 'Loading' status, 'false' otherwise.
+     */
+    private boolean waitForVDBLoad(String vdbName, int vdbVersion, int timeoutInSecs) {
+    	long waitUntil = System.currentTimeMillis() + timeoutInSecs*1000;
+    	if (timeoutInSecs < 0) {
+    		waitUntil = Long.MAX_VALUE;
+    	}
+
+    	boolean first = true;
+    	do {
+    		// Pause 5 sec before subsequent attempts
+    		if (!first) {
+    			try {
+    				Thread.sleep(5000);
+    			} catch (InterruptedException e) {
+    				break;
+    			}
+    		} else {
+    			first = false;
+    		}
+    		// Get the VDB using admin API
+    		VDBMetaData vdbMetaData = null;
+    		try {
+    			vdbMetaData = (VDBMetaData)clientAccessor.getClient().getVDB(vdbName, vdbVersion);
+    		} catch (AdminApiClientException e) {
+    		}
+    		// Determine if VDB is loading, or whether to wait
+    		if(vdbMetaData!=null) {
+    			Status vdbStatus = vdbMetaData.getStatus();
+    			// return if no models in VDB, or VDB has errors (done loading)
+    			if(vdbMetaData.getModels().isEmpty() || vdbStatus==Status.FAILED || vdbStatus==Status.REMOVED || vdbStatus==Status.ACTIVE) {
+    				return true;
+    			}
+    			// If the VDB Status is LOADING, but a validity error was found - return
+    			if(vdbStatus==Status.LOADING && !vdbMetaData.getValidityErrors().isEmpty()) {
+    				return true;
+    			}
+    		}
+    	} while (System.currentTimeMillis() < waitUntil);
+    	return false;
+    }
+
+    @Override
+    public void deleteDynamicVdbsWithPrefix(String vdbPrefix) throws DataVirtUiException {
+    	// Get the list of vdbNames that start with the prefix
+    	List<String> vdbsToDelete = new ArrayList<String>();
+    	Collection<String> allNames;
+		try {
+			allNames = clientAccessor.getClient().getVdbNames(true,false,false);
+		} catch (AdminApiClientException e1) {
+    		throw new DataVirtUiException(e1);
+		}
+		if(allNames==null) return;
+		
+    	for(String vdbName : allNames) {
+    		if(vdbName.startsWith(vdbPrefix)) {
+    			vdbsToDelete.add(vdbName);
+    		}
+    	}
+    	 
+    	// Undeploys the VDBS
+    	try {
+			clientAccessor.getClient().deleteVDBs(vdbsToDelete);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+    	
+    	// Deletes the corresponding DataSources
+    	try {
+			clientAccessor.getClient().deleteDataSources(vdbsToDelete);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+    }
+    
+    public List<VdbDetailsBean> getDynamicVdbsWithPrefix(String vdbPrefix) throws DataVirtUiException {
+    	// Collect all of the Service VDB names
+    	List<String> svcVdbNames = new ArrayList<String>();
+    	Collection<String> allVdbNames = null;
+    	try {
+    		allVdbNames = clientAccessor.getClient().getVdbNames(true,false,false);
+    		for(String vdbName : allVdbNames) {
+    			if(vdbName!=null && vdbName.startsWith(vdbPrefix)) {
+    				svcVdbNames.add(vdbName);
+    			}
+    		}
+    	} catch (AdminApiClientException e) {
+    		throw new DataVirtUiException(e);
+    	}
+    	
+    	// Alphabetic sort
+    	Collections.sort(svcVdbNames);
+    	
+    	List<VdbDetailsBean> svcVdbs = new ArrayList<VdbDetailsBean>(svcVdbNames.size());
+    	for(String svcVdbName : svcVdbNames) {
+    		svcVdbs.add(getVdbDetails(svcVdbName));
+    	}
+    	
+    	return svcVdbs;
+    }
+    
+    private List<String> getDynamicVdbNamesWithPrefix(String vdbPrefix) throws DataVirtUiException {
+    	// Collect all of the Service VDB names
+    	List<String> svcVdbNames = new ArrayList<String>();
+    	Collection<String> allVdbNames = null;
+    	try {
+    		allVdbNames = clientAccessor.getClient().getVdbNames(true,false,false);
+    		for(String vdbName : allVdbNames) {
+    			if(vdbName!=null && vdbName.startsWith(vdbPrefix)) {
+    				svcVdbNames.add(vdbName);
+    			}
+    		}
+    	} catch (AdminApiClientException e) {
+    		throw new DataVirtUiException(e);
+    	}
+    	
+    	return svcVdbNames;
+    }
+    
+    public List<VdbDetailsBean> cloneDynamicVdbAddSource(String vdbName, int vdbVersion) throws DataVirtUiException {                
+    	// Get deployed VDB and check status
+    	VDBMetaData theVDB;
+    	try {
+    		theVDB = clientAccessor.getClient().getVDB(vdbName,vdbVersion);
+    	} catch (AdminApiClientException e) {
+    		throw new DataVirtUiException(e.getMessage());
+    	}
+    	
+    	// Get current service vdb names
+    	List<String> currentVdbNames = getDynamicVdbNamesWithPrefix(Constants.SERVICE_VDB_PREFIX);
+    	
+    	// Get a unique name and suffix for the copy
+    	String baseSuffix = "_copy";
+    	String clonedVdbName = vdbName+baseSuffix;
+    	String clonedVdbSuffix = generateUniqueSuffix(vdbName, currentVdbNames, baseSuffix);
+    	if(!clonedVdbSuffix.equals(baseSuffix)) {
+    		clonedVdbName = vdbName+clonedVdbSuffix;
+    	}
+
+    	// Clone the View Models and get the new VDB
+    	VDBMetaData newVdb = vdbHelper.cloneVdbRenamingViewModels(theVDB, clonedVdbSuffix);
+    	newVdb.setName(clonedVdbName);
+    	
+		String deployString;
+		try {
+			deployString = vdbHelper.getVdbString(newVdb);
+			
+			if(deployString!=null) {
+				// Deploys the VDB, waits for it to load and deploys corresponding source
+				deployVdbWithSource(clonedVdbName, new ByteArrayInputStream(deployString.getBytes("UTF-8")));
+			}
+		} catch (Exception e) {
+			throw new DataVirtUiException(e);
+		}
+		
+    	return getDynamicVdbsWithPrefix(Constants.SERVICE_VDB_PREFIX);
+    }
+    
+    @Override
+    public VdbDetailsBean getVdbDetails(String vdbName) throws DataVirtUiException {
+    	VDBMetaData vdb = null;
+
+    	try {
+        	vdb = clientAccessor.getClient().getVDB(vdbName,1);
+    	} catch (Exception e) {
+			throw new DataVirtUiException(e.getMessage());
+    	}
+    	
+    	VdbDetailsBean vdbDetailsBean = vdbHelper.getVdbDetails(vdb);
+    	
+    	String serverHost = getServerHost();
+    	vdbDetailsBean.setServerHost(serverHost);
+
+        return vdbDetailsBean;
+    }
+    
+    public VdbDetailsBean getVdbDetails(String vdbName, int page) throws DataVirtUiException {
+        int pageSize = Constants.VDB_MODELS_TABLE_PAGE_SIZE;
+    	
+    	VDBMetaData vdb = null;
+
+    	try {
+        	vdb = clientAccessor.getClient().getVDB(vdbName,1);
+    	} catch (Exception e) {
+			throw new DataVirtUiException(e.getMessage());
+    	}
+    	
+    	VdbDetailsBean vdbDetailsBean = vdbHelper.getVdbDetails(vdb);
+    	int totalModels = vdbDetailsBean.getTotalModels();
+    	
+        // Start and End Index for this page
+        int page_startIndex = (page - 1) * pageSize;
+        int page_endIndex = page_startIndex + (pageSize-1);
+        // If page endIndex greater than total rows, reset to end
+        if(page_endIndex > (totalModels-1)) {
+        	page_endIndex = totalModels-1;
+        }
+        
+        vdbDetailsBean.setModelsPerPage(pageSize);
+        vdbDetailsBean.setStartIndex(page_startIndex);
+        vdbDetailsBean.setEndIndex(page_endIndex);
+
+        return vdbDetailsBean;
+    }
+    
+	private String generateUniqueSuffix(String baseName, List<String> existingNames, String baseSuffix) {
+		// If the name is not contained in existing names, base suffix is ok
+		if(!existingNames.contains(baseName+baseSuffix)) {
+			return baseSuffix;
+		}
+		// Iterate generating new names until a good one is found
+		String newName = null;
+		String suffix = baseSuffix;
+		boolean success = false;
+		int i = 1;
+		while(!success) {
+			if(i==1) {
+			    newName = baseName + suffix;
+			} else {
+				suffix = baseSuffix+i;
+				newName = baseName + suffix;
+			}
+			if(!existingNames.contains(newName)) {
+				success=true;
+			}
+			i++;
+		}
+		return suffix;
+	}
+	
+    private String getServerHost() {
+    	String serverHost = LOCALHOST;
+    	
+   		String serverIP = System.getProperty("jboss.bind.address");
+    	// If the server bind address is set, override the default 'localhost'
+    	if(!StringUtils.isEmpty(serverIP)) {
+    		serverHost = serverIP;
+    	}
+    	return serverHost;
+    }
+
 }

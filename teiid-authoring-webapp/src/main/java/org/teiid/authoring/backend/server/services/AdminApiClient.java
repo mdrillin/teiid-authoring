@@ -32,7 +32,6 @@ import org.teiid.adminapi.AdminFactory;
 import org.teiid.adminapi.PropertyDefinition;
 import org.teiid.adminapi.Translator;
 import org.teiid.adminapi.VDB;
-import org.teiid.adminapi.impl.VDBImportMetadata;
 import org.teiid.adminapi.impl.VDBMetaData;
 import org.teiid.authoring.backend.server.services.util.TranslatorHelper;
 import org.teiid.authoring.backend.server.services.util.VdbHelper;
@@ -243,11 +242,7 @@ public class AdminApiClient {
 			throw new AdminApiClientException(e.getMessage());
 		}
 
-		if(sourceNames!=null) {
-			return sourceNames;
-		} else {
-			return Collections.emptyList();
-		}
+		return (sourceNames!=null) ? sourceNames : Collections.<String>emptyList();
 	}
 
 	/*
@@ -536,7 +531,7 @@ public class AdminApiClient {
 		if(this.admin==null) return Collections.emptyList();
 
 		// Get list of VDB Names
-		Collection<? extends VDB> vdbs = getVDBs();
+		Collection<? extends VDB> vdbs = getVdbs();
 
 		if(vdbs!=null) {
 			VdbHelper vdbHelper = VdbHelper.getInstance();
@@ -582,7 +577,7 @@ public class AdminApiClient {
 		}
 	}
 	
-	public Collection<? extends VDB> getVDBs() throws AdminApiClientException {
+	public Collection<? extends VDB> getVdbs() throws AdminApiClientException {
 		// Get list of VDB Names
 		Collection<? extends VDB> vdbs = null;
 		try {
@@ -595,7 +590,7 @@ public class AdminApiClient {
 	
 	public VDBMetaData getVDB(String vdbName, int vdbVersion) throws AdminApiClientException {
 		// Get list of VDBS - get the named VDB
-		Collection<? extends VDB> vdbs = getVDBs();
+		Collection<? extends VDB> vdbs = getVdbs();
 
 		VDBMetaData vdb = null;
 		for(VDB aVdb : vdbs) {
@@ -609,7 +604,7 @@ public class AdminApiClient {
 	}
 
     /*
-     * Delete the Dynamic VDB - undeploy it, then delete the source
+     * Delete the Dynamic VDBs.  This just undeploys the VDB - does *not* undeploy corresponding datasources, etc.
      * @param vdbName name of the VDB to delete
      */
 	public void deleteVDB(String vdbName) throws AdminApiClientException {
@@ -617,29 +612,13 @@ public class AdminApiClient {
 		if(vdb==null) return;
 		
 		// Get the VDB deployment name
-		VdbHelper vdbHelper = VdbHelper.getInstance();
-		String deploymentName = vdbHelper.getVdbDeploymentName(vdb);
-		
-		// Make list of the src model vdb names
-		List<VDBImportMetadata> importVdbs = vdb.getVDBImports();
-		List<String> srcModelVdbDeploymentNames = new ArrayList<String>(importVdbs.size());
-		for(VDBImportMetadata importVdb : importVdbs) {
-			String srcVdbDeploymentName = importVdb.getName() + Constants.DYNAMIC_VDB_SUFFIX;
-			srcModelVdbDeploymentNames.add(srcVdbDeploymentName);
-		}
-		
+		String deploymentName = VdbHelper.getInstance().getVdbDeploymentName(vdb);
+				
+		// Undeploy
 		if(deploymentName!=null) {                        
 			try {
 				// Undeploy the VDB
 				this.admin.undeploy(deploymentName);
-				
-				// Undeploy its Imported Source VDBs
-				for(String srcModelVdbDeploymentName : srcModelVdbDeploymentNames) {
-					this.admin.undeploy(srcModelVdbDeploymentName);
-				}
-
-				// Delete the VDB DataSource
-				deleteDataSource(vdbName);
 			} catch (Exception e) {
 				throw new AdminApiClientException(e.getMessage());
 			}
@@ -647,7 +626,7 @@ public class AdminApiClient {
 	}
 	
     /*
-     * Delete the Dynamic VDB - undeploy it, then delete the source
+     * Delete the Collection of Dynamic VDBs.  This just undeploys the VDB - does *not* undeploy corresponding datasources, etc.
      * @param vdbName name of the VDB to delete
      */
 	public void deleteVDBs(Collection<String> vdbNames) throws AdminApiClientException {
@@ -655,28 +634,7 @@ public class AdminApiClient {
 			deleteVDB(vdbName);
 		}
 	}
-    
-    /*
-     * Find the VDB Name for the provided deployment name
-     * @param deploymentName
-     * @return the VDB Name
-     */
-//	private String getVDBNameForDeployment(String deploymentName) throws AdminApiClientException {
-//		String vdbName = null;
-//
-//		// Get VDB name and version for the specified deploymentName
-//		Collection<? extends VDB> allVdbs = getVDBs();
-//		for(VDB vdbMeta : allVdbs) {
-//			String deployName = vdbMeta.getPropertyValue("deployment-name");
-//			if(deployName!=null && deployName.equals(deploymentName)) {
-//				vdbName=vdbMeta.getName();
-//				break;
-//			}
-//		}
-//
-//		return vdbName;
-//	}
-    
+        
     /**
      * @return the locale
      */

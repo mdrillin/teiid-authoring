@@ -67,7 +67,7 @@ public class TablesProcNamesTable extends Composite {
     }
     
     public void clear() {
-    	setData(Collections.EMPTY_LIST);
+    	setData(Collections.<String>emptyList());
     }
     
     public void setData(List<String> rows) {

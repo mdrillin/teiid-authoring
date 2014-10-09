@@ -124,7 +124,7 @@ public class DataSourcePropertyEditor extends Composite {
     }
     
     public void clear() {
-    	setProperties(Collections.EMPTY_LIST);
+    	setProperties(Collections.<DataSourcePropertyBean>emptyList());
     }
     
     public List<DataSourcePropertyBean> getProperties( ) {

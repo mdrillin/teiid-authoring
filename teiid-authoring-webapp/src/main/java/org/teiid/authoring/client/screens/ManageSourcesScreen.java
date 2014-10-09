@@ -34,10 +34,9 @@ import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
-import org.teiid.authoring.client.services.DataSourceRpcService;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
-import org.teiid.authoring.client.services.VdbRpcService;
+import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.widgets.DataSourceListWidget;
 import org.teiid.authoring.client.widgets.DataSourcePropertiesPanel;
@@ -88,11 +87,9 @@ public class ManageSourcesScreen extends Composite {
     private ConfirmationContentPanel confirmationContent;
     
     @Inject
-    protected DataSourceRpcService dataSourceService;
+    protected TeiidRpcService teiidService;
     @Inject
     protected QueryRpcService queryService;
-    @Inject
-    protected VdbRpcService vdbService;
     
     @Inject @DataField("anchor-goto-create-service")
     protected Anchor goToCreateServiceAnchor;
@@ -171,7 +168,7 @@ public class ManageSourcesScreen extends Composite {
     }
     
     /**
-     * Handles Events from Dialogs
+     * Handles UiEvents
      * @param dEvent
      */
     public void onDialogEvent(@Observes UiEvent dEvent) {
@@ -182,15 +179,9 @@ public class ManageSourcesScreen extends Composite {
     	// User has cancelled source deletion
     	} else if(dEvent.getType() == UiEventType.DELETE_SOURCE_CANCEL) {
     		confirmationDialog.hide();
+    	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_CHANGED) {
+        	doGetDataSourceInfos(dEvent.getDataSourceName());
     	}
-    }
-    
-    /**
-     * Handles Changes to DataSource - refresh display sources
-     * @param dsName
-     */
-    public void onDSChanged(@Observes String dsName) {
-    	doGetDataSourceInfos(dsName);
     }
     
     /**
@@ -273,7 +264,7 @@ public class ManageSourcesScreen extends Composite {
                 i18n.format("managesources.creating-datasource-title"), //$NON-NLS-1$
                 i18n.format("managesources.creating-datasource-msg", dsName)); //$NON-NLS-1$
         
-        dataSourceService.createDataSourceWithVdb(detailsBean, new IRpcServiceInvocationHandler<Void>() {
+        teiidService.createDataSourceWithVdb(detailsBean, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
@@ -299,7 +290,7 @@ public class ManageSourcesScreen extends Composite {
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("managesources.deleting-datasource-title"), //$NON-NLS-1$
                 i18n.format("managesources.deleting-datasource-msg", "sourceList")); //$NON-NLS-1$
-        dataSourceService.deleteDataSources(dsNames, new IRpcServiceInvocationHandler<Void>() {
+        teiidService.deleteDataSources(dsNames, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
@@ -322,14 +313,14 @@ public class ManageSourcesScreen extends Composite {
      * @param selectedDS the selected DataSource, if selection is desired.
      */
     protected void doGetDataSourceInfos(final String selectedDS) {
-    	dataSourceService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
+    	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
     		@Override
     		public void onReturn(List<DataSourcePageRow> dsInfos) {
     			// Filter out the sources starting with SERVICE_SOURCE_VDB_PREFIX and SERVICES_VDB 
     			List<DataSourcePageRow> tableRowList = new ArrayList<DataSourcePageRow>();
     			for(DataSourcePageRow row : dsInfos) {
     				String name = row.getName();
-    				if(!name.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX) && !name.startsWith(Constants.SERVICES_VDB)) {
+    				if(!name.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX) && !name.startsWith(Constants.SERVICE_VDB_PREFIX)) {
     					tableRowList.add(row);
     				}
     			}
@@ -353,7 +344,7 @@ public class ManageSourcesScreen extends Composite {
      * Cache the Default Translator Mappings for later use.
      */
     protected void doPopulateDefaultTranslatorMappings() {
-    	dataSourceService.getDefaultTranslatorMap(new IRpcServiceInvocationHandler<Map<String,String>>() {
+    	teiidService.getDefaultTranslatorMap(new IRpcServiceInvocationHandler<Map<String,String>>() {
     		@Override
     		public void onReturn(Map<String,String> defaultTranslatorsMap) {
     			defaultTranslatorMap = defaultTranslatorsMap;

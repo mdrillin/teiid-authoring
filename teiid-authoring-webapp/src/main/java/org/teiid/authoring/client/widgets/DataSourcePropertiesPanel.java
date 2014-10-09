@@ -14,10 +14,12 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.dialogs.UiEvent;
+import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.resources.AppResource;
-import org.teiid.authoring.client.services.DataSourceRpcService;
 import org.teiid.authoring.client.services.NotificationService;
+import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
@@ -75,8 +77,8 @@ public class DataSourcePropertiesPanel extends Composite {
     Modal modalDialog = new Modal();
     
     @Inject
-    protected DataSourceRpcService dataSourceService;
-   
+    protected TeiidRpcService teiidService;
+    
     @Inject @DataField("label-dsprops-title")
     protected Label dsDetailsPanelTitle;
     
@@ -101,7 +103,7 @@ public class DataSourcePropertiesPanel extends Composite {
     @Inject @DataField("btn-dsprops-save2")
     protected Button saveSourceChanges2;
     
-    @Inject Event<String> saveEvent;
+    @Inject Event<UiEvent> saveEvent;
     
     /**
      * Called after construction.
@@ -207,7 +209,7 @@ public class DataSourcePropertiesPanel extends Composite {
      * Populate the Data Source Types Panel
      */
     protected void doPopulateSourceTypesPanel() {
-        dataSourceService.getDataSourceTypes(new IRpcServiceInvocationHandler<List<String>>() {
+    	teiidService.getDataSourceTypes(new IRpcServiceInvocationHandler<List<String>>() {
             @Override
             public void onReturn(List<String> dsTypes) {
             	dsTypeButtons.clear();
@@ -301,7 +303,7 @@ public class DataSourcePropertiesPanel extends Composite {
      * Populate the Data Source Type ListBox
      */
     protected void doPopulateTranslatorListBox() {
-        dataSourceService.getTranslators(new IRpcServiceInvocationHandler<List<String>>() {
+    	teiidService.getTranslators(new IRpcServiceInvocationHandler<List<String>>() {
             @Override
             public void onReturn(List<String> translators) {
                 populateTranslatorListBox(translators);
@@ -377,7 +379,7 @@ public class DataSourcePropertiesPanel extends Composite {
         	return;
         }
 
-        dataSourceService.getDataSourceTypeProperties(selectedType, new IRpcServiceInvocationHandler<List<DataSourcePropertyBean>>() {
+        teiidService.getDataSourceTypeProperties(selectedType, new IRpcServiceInvocationHandler<List<DataSourcePropertyBean>>() {
             @Override
             public void onReturn(List<DataSourcePropertyBean> propList) {
             	currentPropList.clear();
@@ -402,7 +404,7 @@ public class DataSourcePropertiesPanel extends Composite {
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("ds-properties-panel.creating-datasource-title"), //$NON-NLS-1$
                 i18n.format("ds-properties-panel.creating-datasource-msg", dsName)); //$NON-NLS-1$
-        dataSourceService.createDataSourceWithVdb(detailsBean, new IRpcServiceInvocationHandler<Void>() {
+        teiidService.createDataSourceWithVdb(detailsBean, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
@@ -410,7 +412,9 @@ public class DataSourcePropertiesPanel extends Composite {
                         i18n.format("ds-properties-panel.create-success-msg")); //$NON-NLS-1$
             	modalDialog.hide();
             	// fire event with the created DataSource name
-            	saveEvent.fire(detailsBean.getName());
+				UiEvent uiEvent = new UiEvent(UiEventType.DATA_SOURCE_CHANGED);
+				uiEvent.setDataSourceName(dsName);
+            	saveEvent.fire(uiEvent);
             }
             @Override
             public void onError(Throwable error) {
@@ -429,7 +433,7 @@ public class DataSourcePropertiesPanel extends Composite {
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("ds-properties-panel.creating-datasource-title"), //$NON-NLS-1$
                 i18n.format("ds-properties-panel.creating-datasource-msg")); //$NON-NLS-1$
-        dataSourceService.deleteDataSources(dsNamesToDelete, new IRpcServiceInvocationHandler<Void>() {
+        teiidService.deleteDataSources(dsNamesToDelete, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
@@ -503,7 +507,7 @@ public class DataSourcePropertiesPanel extends Composite {
      */
     protected void doGetDataSourceDetails(String dataSourceName) {
 
-        dataSourceService.getDataSourceWithVdbDetails(dataSourceName, new IRpcServiceInvocationHandler<DataSourceWithVdbDetailsBean>() {
+    	teiidService.getDataSourceWithVdbDetails(dataSourceName, new IRpcServiceInvocationHandler<DataSourceWithVdbDetailsBean>() {
             @Override
             public void onReturn(DataSourceWithVdbDetailsBean dsDetailsBean) {
             	String title = "Data Source : "+dsDetailsBean.getName();

@@ -247,15 +247,6 @@ public class VdbHelper {
 		return vdbDetailsBean;
 	}
 	
-    /**
-     * Construct a Source VDBName to be used as VDB Import
-     * @param vdbName the VDB name
-     * @param modelName the Model name
-     */
-    public String getSourceVDBName(String vdbName, String modelName) {
-    	return Constants.SOURCE_VDB_PREFIX + "-" + vdbName + "-" + modelName;
-    }
-    
 	/**
 	 * Get the VDB Deployment name
 	 * @param vdb the VDBMetaData
@@ -534,6 +525,60 @@ public class VdbHelper {
 			if(!removeImportNameList.contains(currentName)) {
 				newImports.add((VDBImportMetadata)vdbImport);
 			}
+		}
+		newVdb.getVDBImports().addAll(newImports);
+
+		return newVdb;
+	}
+		
+	/**
+	 * Clone the supplied VDB, renaming all its views by appending the supplied suffix to the name
+	 * @param vdb the VDB
+	 * @param viewModelSuffix suffix to be applied when changing the view names
+	 * @return the new VDB
+	 */
+	public VDBMetaData cloneVdbRenamingViewModels(VDBMetaData vdb, String viewModelSuffix) {                
+		String vdbName = vdb.getName();
+		int vdbVersion = vdb.getVersion();
+		
+		// Get current vdb imports
+		List<VDBImportMetadata> currentVdbImports = getVdbImports(vdb);
+		List<ModelMetaData> currentViewModels = getVdbViewModels(vdb);
+		Properties currentProperties = getVdbProperties(vdb);
+
+		// Clear any prior Model Messages (needed for successful redeploy)
+		clearModelMessages(currentViewModels);
+
+		// Create a new vdb
+		VDBMetaData newVdb = createVdb(vdbName,vdbVersion);
+
+		// The new View Model list is all current models, plus clones
+		List<ModelMetaData> newViewModels = new ArrayList<ModelMetaData>();
+		// Iterate the list of names to clone
+		for(Model model: currentViewModels) {
+			ModelMetaData modelMeta = (ModelMetaData)model;
+			
+			// Clone the view model, renaming it
+			String theModelName = model.getName();
+			String newViewModelName = theModelName+viewModelSuffix;
+			String description = model.getDescription();
+			boolean isVisible = model.isVisible();
+			String ddlString = modelMeta.getSchemaText();
+			ModelMetaData clonedModelMeta = createViewModel(newViewModelName,description,ddlString,isVisible);
+
+			// Add to list of new models
+			newViewModels.add(clonedModelMeta);
+		}
+
+		newVdb.setModels(newViewModels);
+
+		// Transfer the existing properties
+		newVdb.setProperties(currentProperties);
+
+		// The imports are unchanged
+		List<VDBImportMetadata> newImports = new ArrayList<VDBImportMetadata>();
+		for(VDBImportMetadata vdbImport: currentVdbImports) {
+			newImports.add((VDBImportMetadata)vdbImport);
 		}
 		newVdb.getVDBImports().addAll(newImports);
 

@@ -20,35 +20,32 @@ import java.util.List;
 import java.util.Map;
 
 import org.jboss.errai.bus.server.annotations.Remote;
-import org.teiid.authoring.share.beans.DataSourceDetailsBean;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
-import org.teiid.authoring.share.beans.DataSourceResultSetBean;
-import org.teiid.authoring.share.beans.DataSourceTypeResultSetBean;
 import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
+import org.teiid.authoring.share.beans.VdbDetailsBean;
+import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 import org.uberfire.paging.PageRequest;
 import org.uberfire.paging.PageResponse;
 
 /**
- * Provides a way to get and set DataSources and related info
+ * Provides interface for the Teiid remote services
  *
  * @author mdrillin@redhat.com
  */
 @Remote
-public interface IDataSourceService {
+public interface ITeiidService {
 
     public List<DataSourcePageRow> getDataSources( final String filters, final String sourceVdbPrefix) throws DataVirtUiException;
 
     public PageResponse<DataSourcePageRow> getDataSources( final PageRequest pageRequest, final String filters) throws DataVirtUiException;
-    		
-    public DataSourceResultSetBean search(String searchText, int page, String sortColumnId, boolean sortAscending) throws DataVirtUiException;
-
-    public DataSourceDetailsBean getDataSourceDetails(String dsName) throws DataVirtUiException;
-    
+    		    
     public DataSourceWithVdbDetailsBean getDataSourceWithVdbDetails(String dsName) throws DataVirtUiException;
 
     public List<String> getDataSourceTypes( ) throws DataVirtUiException;
+
+    public List<DataSourcePropertyBean> getDataSourceTypeProperties(String dsType) throws DataVirtUiException;
 
     public List<String> getDataSourceNames( ) throws DataVirtUiException;
 
@@ -57,31 +54,23 @@ public interface IDataSourceService {
     public Map<String,String> getQueryableDataSourceMap( ) throws DataVirtUiException;
 
     public Map<String,String> getDefaultTranslatorMap() throws DataVirtUiException;
-    
-    public DataSourceTypeResultSetBean getDataSourceTypeResultSet(int page, String sortColumnId, boolean sortAscending) throws DataVirtUiException;
-
-    public List<DataSourcePropertyBean> getDataSourceTypeProperties(String dsType) throws DataVirtUiException;
-
-    public void createDataSource(DataSourceDetailsBean dataSource) throws DataVirtUiException;
-    
+        
     public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean dataSourceWithVdb) throws DataVirtUiException;
 
-    public void deleteDataSource(String dsName) throws DataVirtUiException;
+    public List<VdbDetailsBean> deleteDataSourceAndVdb(String dsName, String vdbName) throws DataVirtUiException;
 
-    public void deleteDataSourceAndVdb(String dsName, String vdbName) throws DataVirtUiException;
-
-    /**
-     * Called to delete DataSources.
-     * @param dsNames the DataSource names
-     * @throws DataVirtUiException
-     */
     public void deleteDataSources(Collection<String> dsNames) throws DataVirtUiException;
 
-    /**
-     * Called to delete DataSource Types.
-     * @param dsTypes the DataSource types
-     * @throws DataVirtUiException
-     */
     public void deleteTypes(Collection<String> dsTypes) throws DataVirtUiException;
+
+    public VdbDetailsBean getVdbDetails(String vdbName) throws DataVirtUiException;
+    
+    public VdbDetailsBean deployNewVDB(final String vdbName, final int vdbVersion, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException;
+
+    public List<VdbDetailsBean> getDynamicVdbsWithPrefix(String vdbPrefix) throws DataVirtUiException;
+    
+    public void deleteDynamicVdbsWithPrefix(String vdbPrefix) throws DataVirtUiException;
+    
+    public List<VdbDetailsBean> cloneDynamicVdbAddSource(String vdbName, int vdbVersion) throws DataVirtUiException;
 
 }

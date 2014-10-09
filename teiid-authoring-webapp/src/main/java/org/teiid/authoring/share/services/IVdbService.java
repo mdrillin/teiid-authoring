@@ -55,7 +55,9 @@ public interface IVdbService {
      * @throws DataVirtUiException
      */
     public VdbDetailsBean getVdbDetails(String vdbName, int modelsPage) throws DataVirtUiException;
-
+    
+    public List<VdbDetailsBean> getDynamicVdbsWithPrefix(String vdbPrefix) throws DataVirtUiException;
+    
     public String getVdbXml(String vdbName) throws DataVirtUiException;
 
     public void createAndDeployDynamicVdb(String vdbName) throws DataVirtUiException;
@@ -70,10 +72,7 @@ public interface IVdbService {
 
     public VdbDetailsBean removeModelsAndRedeploy(String vdbName, int modelsPageNumber, Map<String,String> removeModelNameAndTypeMap) throws DataVirtUiException;               
 
-    /**
-     * Called to delete Vdbs.
-     * @param vdbNames the VDB names
-     * @throws DataVirtUiException
-     */
     public void delete(Collection<String> vdbNames) throws DataVirtUiException;
+    
+    public void deleteDynamicVdbsWithPrefix(String vdbPrefix) throws DataVirtUiException;
 }

@@ -64,7 +64,7 @@ public class DataSourceListWidget extends Composite {
     }
     
     public void clear() {
-    	setData(Collections.EMPTY_LIST);
+    	setData(Collections.<DataSourcePageRow>emptyList());
     }
     
     public void setData(List<DataSourcePageRow> rows) {

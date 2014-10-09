@@ -169,7 +169,7 @@ public class DataSourcePropertiesTable extends Composite {
 //    }
     
     public void clear() {
-    	setData(Collections.EMPTY_LIST);
+    	setData(Collections.<DataSourcePropertyBean>emptyList());
     }
     
     public List<DataSourcePropertyBean> getData( ) {

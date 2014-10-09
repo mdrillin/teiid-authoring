@@ -73,6 +73,16 @@ public class VdbRpcService {
 //        }
 //    }
     
+    public void getDynamicVdbsWithPrefix(String vdbPrefix, final IRpcServiceInvocationHandler<List<VdbDetailsBean>> handler) {
+        RemoteCallback<List<VdbDetailsBean>> successCallback = new DelegatingRemoteCallback<List<VdbDetailsBean>>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteVdbService.call(successCallback, errorCallback).getDynamicVdbsWithPrefix(vdbPrefix);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
     public void getVdbDetails(String vdbName, final IRpcServiceInvocationHandler<VdbDetailsBean> handler) {
         RemoteCallback<VdbDetailsBean> successCallback = new DelegatingRemoteCallback<VdbDetailsBean>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
@@ -139,6 +149,16 @@ public class VdbRpcService {
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
         	remoteVdbService.call(successCallback, errorCallback).delete(vdbNames);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
+    public void deleteDynamicVdbsWithPrefix(String vdbPrefix, final IRpcServiceInvocationHandler<Void> handler) {
+        RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteVdbService.call(successCallback, errorCallback).deleteDynamicVdbsWithPrefix(vdbPrefix);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }

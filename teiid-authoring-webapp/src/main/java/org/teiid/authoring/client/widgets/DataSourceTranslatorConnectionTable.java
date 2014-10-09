@@ -88,7 +88,7 @@ public class DataSourceTranslatorConnectionTable extends Composite {
     }
     
     public void clear() {
-    	setData(Collections.EMPTY_LIST);
+    	setData(Collections.<DataSourceTranslatorConnectionPageRow>emptyList());
     }
     
     public void setData(List<DataSourceTranslatorConnectionPageRow> rows) {

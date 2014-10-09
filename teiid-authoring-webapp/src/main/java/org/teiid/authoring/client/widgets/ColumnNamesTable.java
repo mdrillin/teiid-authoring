@@ -93,7 +93,7 @@ public class ColumnNamesTable extends Composite {
     }
     
     public void clear() {
-    	setData(Collections.EMPTY_LIST);
+    	setData(Collections.<CheckableNameRow>emptyList());
     }
     
     public String getSelectedRowString() {

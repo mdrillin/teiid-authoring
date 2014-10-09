@@ -17,9 +17,7 @@ package org.teiid.authoring.client.screens;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
@@ -31,7 +29,7 @@ import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
-import org.teiid.authoring.client.services.VdbRpcService;
+import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.widgets.ServiceFlowListWidget;
 import org.teiid.authoring.client.widgets.ServiceRow;
@@ -61,13 +59,15 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 @WorkbenchScreen(identifier = "DataServicesLibraryScreen")
 public class DataServicesLibraryScreen extends Composite {
 
-    @Inject
+	List<ServiceRow> currentServices = new ArrayList<ServiceRow>();    
+	
+	@Inject
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;
     
     @Inject
-    protected VdbRpcService vdbService;
+    protected TeiidRpcService teiidService;
  
     @Inject
     protected QueryRpcService queryService;
@@ -99,8 +99,6 @@ public class DataServicesLibraryScreen extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
-    	ensureVdbDeployed(Constants.SERVICES_VDB);
-
     	servicesPanel.add(serviceFlowListWidget);
     }
     
@@ -116,6 +114,7 @@ public class DataServicesLibraryScreen extends Composite {
     	} else {
     		doGetServices();
     	}
+     	cleanupTestVdbs();
     }
     
     private void populateGrid(List<ServiceRow> serviceList) {
@@ -123,49 +122,32 @@ public class DataServicesLibraryScreen extends Composite {
     }
     
     /**
-     * Make sure the Services VDB is deployed.  If not, deploy empty services VDB
-     * @param dataSourceName the name of the source
-     */
-    protected void ensureVdbDeployed(String vdbName) {
-    	vdbService.createAndDeployDynamicVdb(vdbName, new IRpcServiceInvocationHandler<Void>() {
-            @Override
-            public void onReturn(Void data) {
-            }
-            @Override
-            public void onError(Throwable error) {
-                notificationService.sendErrorNotification(i18n.format("dslibrary.error-with-vdb-deployment"), error); //$NON-NLS-1$
-                //noDataMessage.setVisible(true);
-                //searchInProgressMessage.setVisible(false);
-            }
-        });    	
-    }
-    
-    /**
      * Get the public services for the supplied VDB
      */
     protected void doGetServices( ) {
-    	vdbService.getVdbDetails(Constants.SERVICES_VDB, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+    	teiidService.getDynamicVdbsWithPrefix(Constants.SERVICE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<VdbDetailsBean>>() {
     		@Override
-    		public void onReturn(VdbDetailsBean vdbDetailsBean) {
+    		public void onReturn(List<VdbDetailsBean> serviceVdbs) {
     			List<ServiceRow> serviceTableRows = new ArrayList<ServiceRow>();
-    			
-    			Collection<VdbModelBean> modelList = vdbDetailsBean.getModels();
-    			for(VdbModelBean model : modelList) {
-    				String modelName = model.getName();
-    				String description = model.getDescription();
-    				String modelType = model.getType();
-    				boolean isVisible = model.isVisible();
-    				if(modelType.equals(Constants.VIRTUAL)) {
-						ServiceRow srow = new ServiceRow();
-						srow.setName(modelName);
-						srow.setDescription(description);
-						srow.setVisible(isVisible);
-						serviceTableRows.add(srow);
+    			// Each service VDB contains a single view that represents the service
+    			for(VdbDetailsBean serviceVdb : serviceVdbs) {
+    				Collection<VdbModelBean> modelList = serviceVdb.getModels();
+    				for(VdbModelBean model : modelList) {
+    					String modelName = model.getName();
+    					String description = model.getDescription();
+    					String modelType = model.getType();
+    					boolean isVisible = model.isVisible();
+    					if(modelType.equals(Constants.VIRTUAL)) {
+    						ServiceRow srow = new ServiceRow();
+    						srow.setName(modelName);
+    						srow.setDescription(description);
+    						srow.setVisible(isVisible);
+    						serviceTableRows.add(srow);
+    					}
     				}
     			}
     			if(serviceTableRows.isEmpty()) {
     				placeManager.goTo("DataServicesEmptyLibraryScreen");
-
     			} else {
     		     	populateGrid(serviceTableRows);
     			}
@@ -176,36 +158,36 @@ public class DataServicesLibraryScreen extends Composite {
     		}
     	});
     }
-        	
+    
    protected void doRemoveService(String serviceName) {
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("dslibrary.service-deleting"), //$NON-NLS-1$
                 i18n.format("dslibrary.service-deleting-msg", serviceName)); //$NON-NLS-1$
         
-    	Map<String,String> modelNameTypeMap = new HashMap<String,String>();
-    	modelNameTypeMap.put(serviceName, Constants.VIRTUAL);
-    	
-    	vdbService.removeModelsAndRedeploy(Constants.SERVICES_VDB, 1, modelNameTypeMap, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+        String vdbSrcName = Constants.SERVICE_VDB_PREFIX + serviceName;
+    	teiidService.deleteDataSourceAndVdb(vdbSrcName, vdbSrcName, new IRpcServiceInvocationHandler<List<VdbDetailsBean>>() {
     		@Override
-    		public void onReturn(VdbDetailsBean vdbDetailsBean) {
+    		public void onReturn(List<VdbDetailsBean> serviceVdbs) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("dslibrary.delete-success"), //$NON-NLS-1$
                         i18n.format("dslibrary.delete-success-msg")); //$NON-NLS-1$
                 
     			List<ServiceRow> serviceTableRows = new ArrayList<ServiceRow>();
-    			
-    			Collection<VdbModelBean> modelList = vdbDetailsBean.getModels();
-    			for(VdbModelBean model : modelList) {
-    				String modelName = model.getName();
-    				String description = model.getDescription();
-    				String modelType = model.getType();
-    				boolean isVisible = model.isVisible();
-    				if(modelType.equals(Constants.VIRTUAL)) {
-						ServiceRow srow = new ServiceRow();
-						srow.setName(modelName);
-						srow.setDescription(description);
-						srow.setVisible(isVisible);
-						serviceTableRows.add(srow);
+    			// Each service VDB contains a single view that represents the service
+    			for(VdbDetailsBean serviceVdb : serviceVdbs) {
+    				Collection<VdbModelBean> modelList = serviceVdb.getModels();
+    				for(VdbModelBean model : modelList) {
+    					String modelName = model.getName();
+    					String description = model.getDescription();
+    					String modelType = model.getType();
+    					boolean isVisible = model.isVisible();
+    					if(modelType.equals(Constants.VIRTUAL)) {
+    						ServiceRow srow = new ServiceRow();
+    						srow.setName(modelName);
+    						srow.setDescription(description);
+    						srow.setVisible(isVisible);
+    						serviceTableRows.add(srow);
+    					}
     				}
     			}
     			if(serviceTableRows.isEmpty()) {
@@ -228,27 +210,30 @@ public class DataServicesLibraryScreen extends Composite {
                 i18n.format("dslibrary.service-cloning"), //$NON-NLS-1$
                 i18n.format("dslibrary.service-cloning-msg", serviceName)); //$NON-NLS-1$
         
-    	vdbService.cloneViewModelAndRedeploy(Constants.SERVICES_VDB, 1, serviceName, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+        String vdbName = Constants.SERVICE_VDB_PREFIX + serviceName;
+        teiidService.cloneDynamicVdbAddSource(vdbName, 1, new IRpcServiceInvocationHandler<List<VdbDetailsBean>>() {
     		@Override
-    		public void onReturn(VdbDetailsBean vdbDetailsBean) {
+    		public void onReturn(List<VdbDetailsBean> serviceVdbs) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("dslibrary.clone-success"), //$NON-NLS-1$
                         i18n.format("dslibrary.clone-success-msg")); //$NON-NLS-1$
                 
     			List<ServiceRow> serviceTableRows = new ArrayList<ServiceRow>();
-    			
-    			Collection<VdbModelBean> modelList = vdbDetailsBean.getModels();
-    			for(VdbModelBean model : modelList) {
-    				String modelName = model.getName();
-    				String description = model.getDescription();
-    				String modelType = model.getType();
-    				boolean isVisible = model.isVisible();
-    				if(modelType.equals(Constants.VIRTUAL)) {
-						ServiceRow srow = new ServiceRow();
-						srow.setName(modelName);
-						srow.setDescription(description);
-						srow.setVisible(isVisible);
-						serviceTableRows.add(srow);
+    			// Each service VDB contains a single view that represents the service
+    			for(VdbDetailsBean serviceVdb : serviceVdbs) {
+    				Collection<VdbModelBean> modelList = serviceVdb.getModels();
+    				for(VdbModelBean model : modelList) {
+    					String modelName = model.getName();
+    					String description = model.getDescription();
+    					String modelType = model.getType();
+    					boolean isVisible = model.isVisible();
+    					if(modelType.equals(Constants.VIRTUAL)) {
+    						ServiceRow srow = new ServiceRow();
+    						srow.setName(modelName);
+    						srow.setDescription(description);
+    						srow.setVisible(isVisible);
+    						serviceTableRows.add(srow);
+    					}
     				}
     			}
     			if(serviceTableRows.isEmpty()) {
@@ -265,7 +250,21 @@ public class DataServicesLibraryScreen extends Composite {
     		}
     	});
     }
-    
+     	
+    /**
+     * Do a clean-up of any temporary VDBs that may have not been undeployed
+     */
+ 	private void cleanupTestVdbs( ) {
+ 		teiidService.deleteDynamicVdbsWithPrefix(Constants.SERVICE_TEST_VDB_PREFIX, new IRpcServiceInvocationHandler<Void>() {
+    		@Override
+    		public void onReturn(Void data) {
+    		}
+    		@Override
+    		public void onError(Throwable error) {
+    		}
+    	});
+ 	}
+ 	
     /**
      * Event handler that fires when the user clicks the CreateService button.
      * @param event

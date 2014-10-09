@@ -28,13 +28,13 @@ public class Constants {
 	public static final int QUERY_RESULTS_TABLE_PAGE_SIZE = 15;
 	public static final int QUERY_COLUMNS_TABLE_PAGE_SIZE = 6;
 	
-	public static final String SOURCE_VDB_PREFIX = "DataVirtUI";
-
-	public static final String SERVICES_VDB = "ServicesVDB";
-	public static final String SERVICES_VDB_JNDI = "java:/ServicesVDB";
+	public static final String SERVICE_VDB_PREFIX = "SvcVdb_";
+	public static final String SERVICE_TEST_VDB_PREFIX = "SvcTestVdb_";
+	public static final String SERVICE_SOURCE_VDB_PREFIX = "SvcSourceVdb_";
+	
+	public static final String JNDI_PREFIX = "java:/";
 	public static final String SERVICE_NAME_KEY = "service-name";
 	public static final String SERVICE_VIEW_NAME = "SvcView";
-	public static final String SERVICE_SOURCE_VDB_PREFIX = "SvcSrcVdb_";
 	public static final String CLONE_SERVICE_KEY = "clone-service";
 	public static final String DELETE_SERVICE_KEY = "delete-service";
 	

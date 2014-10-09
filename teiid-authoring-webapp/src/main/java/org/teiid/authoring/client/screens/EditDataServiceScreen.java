@@ -29,10 +29,9 @@ import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.messages.ClientMessages;
-import org.teiid.authoring.client.services.DataSourceRpcService;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
-import org.teiid.authoring.client.services.VdbRpcService;
+import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.utils.DdlHelper;
 import org.teiid.authoring.client.widgets.CheckableNameRow;
@@ -97,11 +96,9 @@ public class EditDataServiceScreen extends Composite {
     private NotificationService notificationService;
     
     @Inject
-    protected DataSourceRpcService dataSourceService;
+    protected TeiidRpcService teiidService;
     @Inject
     protected QueryRpcService queryService;
-    @Inject
-    protected VdbRpcService vdbService;
 
     @Inject @DataField("textbox-edit-service-name")
     protected TextBox serviceNameTextBox;
@@ -212,6 +209,7 @@ public class EditDataServiceScreen extends Composite {
     	serviceNameTextBox.addKeyUpHandler(new KeyUpHandler() {
             @Override
             public void onKeyUp(KeyUpEvent event) {
+            	haveSuccessfullyTested = false;
             	// Show default querypanel message
             	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
             	// Update status
@@ -239,7 +237,7 @@ public class EditDataServiceScreen extends Composite {
      * Populate the DataSource ListBox
      */
     protected void doGetQueryableSources(boolean teiidOnly) {
-        dataSourceService.getQueryableDataSourceMap(new IRpcServiceInvocationHandler<Map<String,String>>() {
+    	teiidService.getQueryableDataSourceMap(new IRpcServiceInvocationHandler<Map<String,String>>() {
             @Override
             public void onReturn(Map<String,String> sourceToJndiMap) {
             	sourceNameToJndiMap.clear();
@@ -348,6 +346,7 @@ public class EditDataServiceScreen extends Composite {
     	String viewString = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, typeNames);
     	viewDdlTextArea.setText(viewString);  
     	
+    	haveSuccessfullyTested = false;
     	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
     	updateStatus();
     }
@@ -364,6 +363,7 @@ public class EditDataServiceScreen extends Composite {
     	
     	viewDdlTextArea.setText(currentDdl+"\n"+colString);  
     	
+    	haveSuccessfullyTested = false;
     	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
     	updateStatus();
     }
@@ -412,8 +412,8 @@ public class EditDataServiceScreen extends Composite {
      * @param serviceName the name of the service
      */
     protected void doGetDataServiceDetails(final String serviceName) {
-    	String servicesVdb = Constants.SERVICES_VDB;
-        vdbService.getVdbDetails(servicesVdb, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+    	final String serviceVdb = Constants.SERVICE_VDB_PREFIX+serviceName;
+    	teiidService.getVdbDetails(serviceVdb, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {
             	Collection<VdbModelBean> vdbModels = vdbDetailsBean.getModels();
@@ -446,8 +446,8 @@ public class EditDataServiceScreen extends Composite {
      * @param event
      */
     @EventHandler("btn-edit-service-save")
-    public void onSaveServiceButtonClick(ClickEvent event) {
-    	String serviceName = this.serviceNameTextBox.getText();
+    private void onSaveServiceButtonClick(ClickEvent event) {
+    	final String serviceName = this.serviceNameTextBox.getText();
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("editdataservice.saving-service-title"), //$NON-NLS-1$
                 i18n.format("editdataservice.saving-service-msg", serviceName)); //$NON-NLS-1$
@@ -465,13 +465,16 @@ public class EditDataServiceScreen extends Composite {
     	viewModelRequest.setVisible(isVisible);
     	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
     	    	
-        vdbService.addOrReplaceViewModelAndRedeploy("ServicesVDB", 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+    	final String svcVdbName = Constants.SERVICE_VDB_PREFIX+serviceName;
+    	teiidService.deployNewVDB(svcVdbName, 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("editdataservice.saving-service-complete"), //$NON-NLS-1$
                         i18n.format("editdataservice.saving-service-complete-msg")); //$NON-NLS-1$
-                
+
+                cleanupTestVdbs();
+            	
             	Map<String,String> parameters = new HashMap<String,String>();
             	parameters.put(Constants.SERVICE_NAME_KEY, viewModel);
             	placeManager.goTo(new DefaultPlaceRequest("DataServiceDetailsScreen",parameters));
@@ -479,7 +482,7 @@ public class EditDataServiceScreen extends Composite {
             @Override
             public void onError(Throwable error) {
                 notificationService.sendErrorNotification(i18n.format("editdataservice.saving-service-error"), error); //$NON-NLS-1$
-                //addModelInProgressMessage.setVisible(false);
+//                addModelInProgressMessage.setVisible(false);
             }
         });           	
     }
@@ -512,8 +515,8 @@ public class EditDataServiceScreen extends Composite {
     	viewModelRequest.setVisible(isVisible);
     	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
     	    	
-    	final String testVDBName = "TEST-"+serviceName;
-        vdbService.deployNewVDB(testVDBName, 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+    	final String testVDBName = Constants.SERVICE_TEST_VDB_PREFIX+serviceName;
+    	teiidService.deployNewVDB(testVDBName, 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
@@ -537,32 +540,20 @@ public class EditDataServiceScreen extends Composite {
         });           	
     }
     
-    private void doDeleteTestVDB() {
-    	final String serviceName = this.serviceNameTextBox.getText();
-    	if(serviceName!=null) {
-        	final String testVDBName = "TEST-"+serviceName;
-        	List<String> dsNames = new ArrayList<String>(1);
-        	dsNames.add(testVDBName);
-            final NotificationBean notificationBean = notificationService.startProgressNotification(
-                    i18n.format("editdataservice.deleting-service-title"), //$NON-NLS-1$
-                    i18n.format("editdataservice.deleting-service-msg", "sourceList")); //$NON-NLS-1$
-            dataSourceService.deleteDataSources(dsNames, new IRpcServiceInvocationHandler<Void>() {
-                @Override
-                public void onReturn(Void data) {
-                    notificationService.completeProgressNotification(notificationBean.getUuid(),
-                            i18n.format("editdataservice.service-deleted"), //$NON-NLS-1$
-                            i18n.format("editdataservice.service-deleted-success-msg")); //$NON-NLS-1$
-                }
-                @Override
-                public void onError(Throwable error) {
-                  notificationService.completeProgressNotification(notificationBean.getUuid(),
-                  i18n.format("editdataservice.service-delete-error"), //$NON-NLS-1$
-                  error);
-                }
-            });
-    	}   	
-    }
-    
+    /**
+     * Do a clean-up of any temporary VDBs that may have not been undeployed
+     */
+ 	private void cleanupTestVdbs( ) {
+ 		teiidService.deleteDynamicVdbsWithPrefix(Constants.SERVICE_TEST_VDB_PREFIX, new IRpcServiceInvocationHandler<Void>() {
+    		@Override
+    		public void onReturn(Void data) {
+    		}
+    		@Override
+    		public void onError(Throwable error) {
+    		}
+    	});
+ 	}
+   
     /**
      * Event handler that fires when the user clicks the Manage Sources button.
      * @param event
@@ -578,7 +569,6 @@ public class EditDataServiceScreen extends Composite {
      */
     @EventHandler("btn-edit-service-cancel")
     public void onCancelButtonClick(ClickEvent event) {
-    	doDeleteTestVDB();
     	placeManager.goTo("DataServicesLibraryScreen");
     }
         

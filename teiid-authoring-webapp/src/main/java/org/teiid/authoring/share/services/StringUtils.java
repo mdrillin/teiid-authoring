@@ -1,6 +1,5 @@
 package org.teiid.authoring.share.services;
 
-import org.teiid.authoring.share.Constants;
 
 public final class StringUtils {
 
@@ -46,14 +45,5 @@ public final class StringUtils {
 
 		return thisString.equals(thatString);
 	}
-	
-    /**
-     * Construct a Source VDBName to be used as VDB Import
-     * @param vdbName the VDB name
-     * @param modelName the Model name
-     */
-    public static String getSourceVDBName(String vdbName, String modelName) {
-    	return Constants.SOURCE_VDB_PREFIX + "-" + vdbName + "-" + modelName;
-    }
-    
+	    
 }

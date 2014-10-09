@@ -28,7 +28,7 @@ import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.NotificationService;
-import org.teiid.authoring.client.services.VdbRpcService;
+import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.widgets.QueryResultsPanel;
 import org.teiid.authoring.share.Constants;
@@ -75,7 +75,7 @@ public class DataServiceDetailsScreen extends Composite {
     private NotificationService notificationService;
     
     @Inject
-    private VdbRpcService vdbService;
+    private TeiidRpcService teiidService;
 
     @Inject @DataField("label-service-details-pagetitle")
     protected Label pageTitleLabel;
@@ -139,8 +139,8 @@ public class DataServiceDetailsScreen extends Composite {
      * @param serviceName the name of the service
      */
     protected void doGetDataServiceDetails(final String serviceName) {
-    	String servicesVdb = Constants.SERVICES_VDB;
-        vdbService.getVdbDetails(servicesVdb, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+    	final String serviceVdb = Constants.SERVICE_VDB_PREFIX+serviceName;
+        teiidService.getVdbDetails(serviceVdb, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {
             	Collection<VdbModelBean> vdbModels = vdbDetailsBean.getModels();
@@ -161,10 +161,10 @@ public class DataServiceDetailsScreen extends Composite {
             			
             			String serverHostName = vdbDetailsBean.getServerHost();
             			           			
-            			jdbcSnippetArea.setText(getJDBCConnectionString(serverHostName, Constants.SERVICES_VDB));
+            			jdbcSnippetArea.setText(getJDBCConnectionString(serverHostName, serviceVdb));
             			
-            			restLinkTextBox.setText(getRestLink(serverHostName,Constants.SERVICES_VDB,1,serviceName));
-            			odataLinkTextBox.setText(getODataLink(serverHostName,Constants.SERVICES_VDB,1,serviceName));
+            			restLinkTextBox.setText(getRestLink(serverHostName,serviceVdb,1,serviceName));
+            			odataLinkTextBox.setText(getODataLink(serverHostName,serviceVdb,1,serviceName));
             			
             			// Rest controls disabled.  May remove completely
             			restLinkTextBox.setEnabled(false);
@@ -174,7 +174,7 @@ public class DataServiceDetailsScreen extends Composite {
             					           serviceName+Constants.DOT+Constants.SERVICE_VIEW_NAME+
             					           Constants.SPACE+Constants.LIMIT_10;
             			
-            			queryResultsPanel.showResultsTable(Constants.SERVICES_VDB_JNDI, serviceSampleSQL);
+            			queryResultsPanel.showResultsTable(Constants.JNDI_PREFIX+serviceVdb, serviceSampleSQL);
             		}
             	}
             }

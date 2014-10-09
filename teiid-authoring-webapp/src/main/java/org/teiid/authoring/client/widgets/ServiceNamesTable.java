@@ -105,7 +105,7 @@ public class ServiceNamesTable extends Composite {
     }
     
     public void clear() {
-    	setData(Collections.EMPTY_LIST);
+    	setData(Collections.<ServiceRow>emptyList());
     }
     
     public String getSelectedRowString() {

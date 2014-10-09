@@ -18,7 +18,6 @@ package org.teiid.authoring.backend.server.services;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,14 +35,10 @@ import org.teiid.adminapi.impl.ModelMetaData;
 import org.teiid.adminapi.impl.VDBMetaData;
 import org.teiid.adminapi.impl.VDBMetadataParser;
 import org.teiid.authoring.backend.server.api.AdminApiClientAccessor;
-import org.teiid.authoring.backend.server.services.util.FilterUtil;
-import org.teiid.authoring.backend.server.services.util.JdbcSourceHelper;
 import org.teiid.authoring.backend.server.services.util.VdbHelper;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbModelBean;
-import org.teiid.authoring.share.beans.VdbResultSetBean;
-import org.teiid.authoring.share.beans.VdbSummaryBean;
 import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 import org.teiid.authoring.share.services.IVdbService;
@@ -372,7 +367,7 @@ public class VdbService implements IVdbService {
     	// Get VDB name and version for the specified deploymentName
     	Collection<? extends VDB> allVdbs = null;
     	try {
-    		allVdbs = clientAccessor.getClient().getVDBs();
+    		allVdbs = clientAccessor.getClient().getVdbs();
     		for(VDB vdbMeta : allVdbs) {
     			String deployName = vdbMeta.getPropertyValue("deployment-name");
     			if(deployName!=null && deployName.equals(deploymentName)) {
@@ -430,6 +425,69 @@ public class VdbService implements IVdbService {
 		} catch (AdminApiClientException e) {
 			throw new DataVirtUiException(e.getMessage());
 		}
+    }
+    
+    /**
+     * @see org.jboss.datavirt.ui.client.shared.services.IArtifactService#delete(org.jboss.datavirt.ui.client.shared.beans.ArtifactBean)
+     */
+    @Override
+    public void deleteDynamicVdbsWithPrefix(String vdbPrefix) throws DataVirtUiException {
+    	// Get the list of vdbNames that start with the prefix
+    	List<String> vdbsToDelete = new ArrayList<String>();
+    	Collection<String> allNames = getAllVdbNames();
+    	for(String vdbName : allNames) {
+    		if(vdbName.startsWith(vdbPrefix)) {
+    			vdbsToDelete.add(vdbName);
+    		}
+    	}
+    	    	
+    	try {
+			clientAccessor.getClient().deleteVDBs(vdbsToDelete);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+    }
+    
+    public List<VdbDetailsBean> getDynamicVdbsWithPrefix(String vdbPrefix) throws DataVirtUiException {
+    	// Collect all of the Service VDB names
+    	List<String> svcVdbNames = new ArrayList<String>();
+    	Collection<String> allVdbNames = null;
+    	try {
+    		allVdbNames = clientAccessor.getClient().getVdbNames(true,false,false);
+    		for(String vdbName : allVdbNames) {
+    			if(vdbName!=null && vdbName.startsWith(vdbPrefix)) {
+    				svcVdbNames.add(vdbName);
+    			}
+    		}
+    	} catch (AdminApiClientException e) {
+    		throw new DataVirtUiException(e);
+    	}
+    	
+    	// Alphabetic sort
+    	Collections.sort(svcVdbNames);
+    	
+    	List<VdbDetailsBean> svcVdbs = new ArrayList<VdbDetailsBean>(svcVdbNames.size());
+    	for(String svcVdbName : svcVdbNames) {
+    		svcVdbs.add(getVdbDetails(svcVdbName));
+    	}
+    	
+    	return svcVdbs;
+    }
+    
+    private Collection<String> getAllVdbNames() throws DataVirtUiException {
+    	Collection<String> allNames = new ArrayList<String>();
+    	
+    	// Get VDB name and version for the specified deploymentName
+    	Collection<? extends VDB> allVdbs = null;
+    	try {
+    		allVdbs = clientAccessor.getClient().getVdbs();
+    		for(VDB vdbMeta : allVdbs) {
+    			allNames.add(vdbMeta.getName());
+    		}
+    	} catch (AdminApiClientException e) {
+    		throw new DataVirtUiException(e);
+    	}
+    	return allNames;
     }
     
     public VdbDetailsBean deploySourceVDBAddImportAndRedeploy(String vdbName, int modelsPageNumber, String sourceVDBName, String modelName, String dataSourceName, String translator) throws DataVirtUiException {
