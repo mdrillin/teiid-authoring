@@ -126,16 +126,6 @@ public class TeiidRpcService {
         }
     }
    
-    public void getQueryableDataSourceMap(final IRpcServiceInvocationHandler<Map<String,String>> handler) {
-        RemoteCallback<Map<String,String>> successCallback = new DelegatingRemoteCallback<Map<String,String>>(handler);
-        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
-        try {
-        	remoteTeiidService.call(successCallback, errorCallback).getQueryableDataSourceMap();
-        } catch (DataVirtUiException e) {
-            errorCallback.error(null, e);
-        }
-    }
-
     public void getDefaultTranslatorMap(final IRpcServiceInvocationHandler<Map<String,String>> handler) {
         RemoteCallback<Map<String,String>> successCallback = new DelegatingRemoteCallback<Map<String,String>>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);

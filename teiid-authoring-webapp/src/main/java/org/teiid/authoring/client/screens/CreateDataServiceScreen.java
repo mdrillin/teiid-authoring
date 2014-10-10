@@ -40,6 +40,7 @@ import org.teiid.authoring.client.widgets.QueryResultsPanel;
 import org.teiid.authoring.client.widgets.TablesProcNamesTable;
 import org.teiid.authoring.client.widgets.VisibilityRadios;
 import org.teiid.authoring.share.Constants;
+import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.NotificationBean;
 import org.teiid.authoring.share.beans.QueryColumnBean;
 import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
@@ -74,7 +75,6 @@ import com.google.gwt.view.client.SingleSelectionModel;
 @WorkbenchScreen(identifier = "CreateDataServiceScreen")
 public class CreateDataServiceScreen extends Composite {
 
-	private Map<String,String> sourceNameToJndiMap = new HashMap<String,String>();
 	private Map<String,String> shortToLongTableNameMap = new HashMap<String,String>();
 	
 	private String statusEnterName = null;
@@ -169,7 +169,7 @@ public class CreateDataServiceScreen extends Composite {
     	tablesAndProcsTable.clear();
     	columnsTable.clear();
     	
-    	doGetQueryableSources(false);
+    	doGetQueryableSources();
 
     	// SelectionModel to handle Source selection 
     	final SingleSelectionModel<CheckableNameRow> dsSelectionModel = new SingleSelectionModel<CheckableNameRow>();
@@ -269,25 +269,26 @@ public class CreateDataServiceScreen extends Composite {
     /**
      * Populate the DataSource ListBox
      */
-    protected void doGetQueryableSources(boolean teiidOnly) {
-        teiidService.getQueryableDataSourceMap(new IRpcServiceInvocationHandler<Map<String,String>>() {
-            @Override
-            public void onReturn(Map<String,String> sourceToJndiMap) {
-            	sourceNameToJndiMap.clear();
-            	sourceNameToJndiMap.putAll(sourceToJndiMap);
+    protected void doGetQueryableSources( ) {
+    	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
+    		@Override
+    		public void onReturn(List<DataSourcePageRow> dsInfos) {
+    			// Create list of DataSources that are accessible.  Only the Sources that have 'OK' state
+    			// have an associated VDB source and are reachable...
             	List<CheckableNameRow> dsList = new ArrayList<CheckableNameRow>();
-            	for(String dsName : sourceNameToJndiMap.keySet()) {
-            		if(dsName.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX)) {
+    			for(DataSourcePageRow row : dsInfos) {
+    				if(row.getState()==DataSourcePageRow.State.OK) {
+    					String dsName = row.getName();
             			dsList.add(createCheckableNameRow(dsName,false));
-            		}
-            	}
+    				}
+    			}
             	dsNamesTable.setData(dsList);
-            }
-            @Override
-            public void onError(Throwable error) {
+    		}
+    		@Override
+    		public void onError(Throwable error) {
                 notificationService.sendErrorNotification(i18n.format("createdataservice.error-getting-svcsources"), error); //$NON-NLS-1$
-            }
-        });
+    		}
+    	});
     }
     
     /**
@@ -295,10 +296,13 @@ public class CreateDataServiceScreen extends Composite {
      * @param dataSourceName the name of the source
      */
     protected void doGetTablesAndProcs(String dataSourceName) {
-		queryService.getTablesAndProcedures(sourceNameToJndiMap.get(dataSourceName), dataSourceName, new IRpcServiceInvocationHandler<List<QueryTableProcBean>>() {
+    	String vdbSrcName = Constants.SERVICE_SOURCE_VDB_PREFIX+dataSourceName;
+    	String vdbSrcJndi = Constants.JNDI_PREFIX+vdbSrcName;
+		queryService.getTablesAndProcedures(vdbSrcJndi, vdbSrcName, new IRpcServiceInvocationHandler<List<QueryTableProcBean>>() {
 			@Override
 			public void onReturn(List<QueryTableProcBean> tablesAndProcs) {
 				List<String> nameList = new ArrayList<String>();
+				shortToLongTableNameMap.clear();
 				for(QueryTableProcBean tp : tablesAndProcs) {
 					String name = tp.getName();
 					if(name!=null) {
@@ -328,8 +332,9 @@ public class CreateDataServiceScreen extends Composite {
      */
     protected void doGetTableColumns(String source, String table, int page) {
     	String filterText = "";
+    	String vdbSrcJndi = Constants.JNDI_PREFIX+Constants.SERVICE_SOURCE_VDB_PREFIX+source;
     	// String filterText = (String)stateService.get(ApplicationStateKeys.QUERY_COLUMNS_FILTER_TEXT,"");
-    	queryService.getQueryColumnResultSet(page, filterText, sourceNameToJndiMap.get(source), table,
+    	queryService.getQueryColumnResultSet(page, filterText, vdbSrcJndi, table,
     			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
     		@Override
     		public void onReturn(QueryColumnResultSetBean data) {
@@ -419,7 +424,7 @@ public class CreateDataServiceScreen extends Composite {
     	final String viewModel = serviceName;
     	String viewDdl = viewDdlTextArea.getText();
     	boolean isVisible = serviceVisibleRadios.isVisibleSelected();
-    	List<String> rqdImportVdbNames = dsNamesTable.getSelectedSourceNames();
+    	List<String> rqdImportVdbNames = getSrcVdbNames(dsNamesTable);
     	
     	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
     	viewModelRequest.setName(serviceName);
@@ -451,6 +456,20 @@ public class CreateDataServiceScreen extends Composite {
     }
     
     /**
+     * Get the corresponding SrcVdbNames for the DSTable row selections
+     * @param dsNamesTable the DataSource names table
+     * @return
+     */
+    private List<String> getSrcVdbNames(DataSourceNamesTable dsNamesTable) {
+    	List<String> selectedDSNames = dsNamesTable.getSelectedSourceNames();
+    	List<String> srcVdbNames = new ArrayList<String>(selectedDSNames.size());
+    	for(String dsName : selectedDSNames) {
+    		srcVdbNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
+    	}
+    	return srcVdbNames;
+    }
+    
+    /**
      * Event handler that fires when the user clicks the Test button.
      * @param event
      */
@@ -471,7 +490,7 @@ public class CreateDataServiceScreen extends Composite {
     	String serviceDescription = this.serviceDescriptionTextBox.getText();
     	String viewDdl = viewDdlTextArea.getText();
     	boolean isVisible = serviceVisibleRadios.isVisibleSelected();
-    	List<String> rqdImportVdbNames = dsNamesTable.getSelectedSourceNames();
+    	List<String> rqdImportVdbNames = getSrcVdbNames(dsNamesTable);
     	
     	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
     	viewModelRequest.setName(serviceName);
@@ -493,14 +512,13 @@ public class CreateDataServiceScreen extends Composite {
     			queryResultsPanel.showResultsTable(testVdbJndi, serviceSampleSQL);
 
                 haveSuccessfullyTested = true;
-                createServiceButton.setEnabled(true);                
+                updateStatus();
             }
             @Override
             public void onError(Throwable error) {
                 notificationService.sendErrorNotification(i18n.format("createdataservice.testing-service-error"), error); //$NON-NLS-1$
                 haveSuccessfullyTested = false;
-                createServiceButton.setEnabled(false);                
-//                addModelInProgressMessage.setVisible(false);
+                updateStatus();
             }
         });           	
     }

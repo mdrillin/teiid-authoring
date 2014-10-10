@@ -52,6 +52,13 @@ public class QueryRpcService {
     public QueryRpcService() {
     }
 
+    public void testConnection(final String sourceJndiName, final String dsName, final IRpcServiceInvocationHandler<String> handler) {
+        RemoteCallback<String> successCallback = new DelegatingRemoteCallback<String>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+
+        remoteQueryService.call(successCallback, errorCallback).testConnection(sourceJndiName,dsName);
+    }
+    
     public void getDataSourceNames(final boolean teiidOnly, final IRpcServiceInvocationHandler<List<String>> handler) {
         RemoteCallback<List<String>> successCallback = new DelegatingRemoteCallback<List<String>>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);

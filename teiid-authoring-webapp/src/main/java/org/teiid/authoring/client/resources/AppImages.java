@@ -30,6 +30,9 @@ public interface AppImages extends ClientBundle {
     @Source("images/EmptyLibraryImage.jpg")
     ImageResource emptyLibraryImage();
     
+    @Source("images/spinner_16.gif")
+    ImageResource spinnner16x16Image();
+    
     @Source("images/Error_16x16.png")
     ImageResource errorIcon16x16Image();
     

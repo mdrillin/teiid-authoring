@@ -27,8 +27,14 @@ public class DataSourcePageRow extends AbstractPageRow {
 
     private String name;
     private String type;
-    private boolean hasVdb = false;
-    private String translator;
+    private State deploymentState = State.OK;
+    private String message;
+
+    public enum State {
+        DEPLOYING, 
+        OK,
+        ERROR
+    }
     
     public String getName() {
         return name;
@@ -46,20 +52,20 @@ public class DataSourcePageRow extends AbstractPageRow {
         this.type = type;
     }
 
-	public boolean hasVdb() {
-		return hasVdb;
+	public void setState(State dsState) {
+		this.deploymentState = dsState;
+	}
+	
+	public State getState() {
+		return this.deploymentState;
 	}
 
-	public void setHasVdb(boolean hasVdb) {
-		this.hasVdb = hasVdb;
+	public String getMessage() {
+		return message;
 	}
 
-	public String getTranslator() {
-		return translator;
-	}
-
-	public void setTranslator(String translator) {
-		this.translator = translator;
+	public void setMessage(String message) {
+		this.message = message;
 	}
 
 }

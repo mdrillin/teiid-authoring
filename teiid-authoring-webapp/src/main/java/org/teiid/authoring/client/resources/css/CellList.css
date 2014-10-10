@@ -1,0 +1,27 @@
+.cellListWidget {
+  color: #021650;
+  background-color: #021650;
+}
+
+.cellListEvenItem {
+  cursor: pointer;
+  zoom: 1;
+  background: white;
+}
+
+.cellListOddItem {
+  cursor: pointer;
+  zoom: 1;
+  background: white;
+}
+
+.cellListKeyboardSelectedItem {
+  background: #ffc;
+}
+
+.cellListSelectedItem {
+  background-color: white;
+  color: white;
+  height: auto;
+  overflow: visible;
+}

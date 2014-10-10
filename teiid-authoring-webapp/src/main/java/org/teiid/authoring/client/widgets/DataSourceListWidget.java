@@ -20,10 +20,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.teiid.authoring.client.resources.AppResource;
+import org.teiid.authoring.client.resources.CellListResources;
 import org.teiid.authoring.client.resources.ImageHelper;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 
 import com.google.gwt.cell.client.AbstractCell;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.CellList;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
@@ -52,16 +54,17 @@ public class DataSourceListWidget extends Composite {
      * @return the panel widget
      */
     protected void createListPanel() {
-        // Create a CellList.
-        DataSourceCell contactCell = new DataSourceCell( );
+       	CellList.Resources resources = GWT.create(CellListResources.class);
+        DataSourceCell dataSourceCell = new DataSourceCell( );
         
-    	dsList = new CellList<DataSourcePageRow>(contactCell);
+    	dsList = new CellList<DataSourcePageRow>(dataSourceCell,resources);
     	dsList.setPageSize(3);
+    	
     	//dsList.setKeyboardPagingPolicy(KeyboardPagingPolicy.INCREASE_RANGE);
     	//dsList.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.BOUND_TO_SELECTION);
     	
         scrollPanel.add(dsList);
-        scrollPanel.setHeight("600px");
+        scrollPanel.setHeight("500px");
     }
     
     public void clear() {
@@ -107,27 +110,31 @@ public class DataSourceListWidget extends Composite {
        * The html of the images used for ok or error.
        */
         private final String okImageHtml;
+        private final String deployingImageHtml;
         private final String errorImageHtml;
 
       public DataSourceCell( ) {
-        this.okImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().okIcon32x32Image()).getHTML();
-        this.errorImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().errorIcon32x32Image()).getHTML();
+        this.okImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().okIcon16x16Image()).getHTML();
+        this.deployingImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().spinnner16x16Image()).getHTML();
+        this.errorImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().errorIcon16x16Image()).getHTML();
       }
 
       @Override
-      public void render(Context context, DataSourcePageRow value, SafeHtmlBuilder sb) {
+      public void render(Context context, DataSourcePageRow dsRow, SafeHtmlBuilder sb) {
         // Value can be null, so do a null check..
-        if (value == null) {
+        if (dsRow == null) {
           return;
         }
 
         String statusImageHtml = null;
-        if(value.hasVdb()) {
+        if(dsRow.getState()==DataSourcePageRow.State.OK) {
         	statusImageHtml = this.okImageHtml;
+        } else if(dsRow.getState()==DataSourcePageRow.State.DEPLOYING) {
+            statusImageHtml = this.deployingImageHtml;
         } else {
         	statusImageHtml = this.errorImageHtml;
         }
-        String dType = value.getType();
+        String dType = dsRow.getType();
         String dTypeImageHtml = ImageHelper.getInstance().getDataSourceImageHtmlForType(dType);
                 
         sb.appendHtmlConstant("<table>");
@@ -142,9 +149,9 @@ public class DataSourceListWidget extends Composite {
         sb.appendHtmlConstant("</td>");
         
         // Add the name and address.
-        sb.appendHtmlConstant("<td class='h6'><h6>");
-        sb.appendEscaped(value.getName());
-        sb.appendHtmlConstant("</h6></td></tr></table>");
+        sb.appendHtmlConstant("<td><h4>");
+        sb.appendEscaped(dsRow.getName());
+        sb.appendHtmlConstant("</h4></td></tr></table>");
       }
     }  
 

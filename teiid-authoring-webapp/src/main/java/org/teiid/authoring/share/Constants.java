@@ -35,6 +35,7 @@ public class Constants {
 	public static final String SERVICE_VDB_PREFIX = "SvcVdb_";
 	public static final String SERVICE_TEST_VDB_PREFIX = "SvcTestVdb_";
 	public static final String SERVICE_SOURCE_VDB_PREFIX = "SvcSourceVdb_";
+	public static final String PREVIEW_VDB_PREFIX = "PREVIEW_";
 	
 	public static final String JNDI_PREFIX = "java:/";
 	public static final String SERVICE_NAME_KEY = "service-name";
@@ -43,6 +44,8 @@ public class Constants {
 	public static final String DELETE_SERVICE_KEY = "delete-service";
 	
 	public static final String DATA_SOURCE_NEW_NAME = "MyNewSource";
+	public static final String DATA_SOURCE_NO_TRANSLATOR_DEFINED = "The Data Source does not have a translator";
+	public static final String DATA_SOURCE_AVAILABLE = "The Data Source is available";
 	
 	public static final String DS_TYPE_FILE = "file";
 	public static final String DS_TYPE_GOOGLE = "google";

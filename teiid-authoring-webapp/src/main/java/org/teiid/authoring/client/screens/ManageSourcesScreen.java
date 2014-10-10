@@ -57,6 +57,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 
@@ -69,10 +70,14 @@ import com.google.gwt.view.client.SingleSelectionModel;
 @WorkbenchScreen(identifier = "ManageSourcesScreen")
 public class ManageSourcesScreen extends Composite {
 
+	private String selectionStatusMsg_noSelection;
+	
 	private Map<String,String> defaultTranslatorMap = new HashMap<String,String>();
 	private SingleSelectionModel<DataSourcePageRow> listSelectionModel;
+	private List<DataSourcePageRow> currentDataSourceList = new ArrayList<DataSourcePageRow>();
 	private boolean propPanelVisible = false;
 	private ConfirmationDialog confirmationDialog;
+	private HTMLPanel selectStatusHtmlPanel;
 
     @Inject
     protected ClientMessages i18n;
@@ -96,6 +101,9 @@ public class ManageSourcesScreen extends Composite {
     
     @Inject @DataField("list-datasources")
     protected DataSourceListWidget dsList;
+    
+    @Inject @DataField("panel-selection-status")
+    protected VerticalPanel selectionStatusPanel;
     
     @Inject @DataField("details-deckpanel")
     protected DeckPanel detailsDeckPanel;
@@ -125,6 +133,7 @@ public class ManageSourcesScreen extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
+    	selectionStatusMsg_noSelection = i18n.format("managesources.selected-source-no-selection");
     	String selectSourcePanelHtml = i18n.format("managesources.select-source-text");
         HTMLPanel selectSourcePanel = new HTMLPanel(selectSourcePanelHtml);
         
@@ -144,8 +153,10 @@ public class ManageSourcesScreen extends Composite {
     			DataSourcePageRow row = listSelectionModel.getSelectedObject();
     			if(row!=null) {
         			showPropertiesPanel(row.getName());
+        			setSelectionStatusMessage(row.getMessage());
     			} else {
     				showBlankMessagePanel();
+        			setSelectionStatusMessage(selectionStatusMsg_noSelection);
     			}
     		}
     	});
@@ -167,11 +178,20 @@ public class ManageSourcesScreen extends Composite {
     	}
     }
     
+    public void setSelectionStatusMessage(String message) {
+    	if(selectStatusHtmlPanel!=null) {
+    		selectionStatusPanel.remove(0);
+    	}
+    	if(message==null) message=i18n.format("managesources.selected-source-status-unavailable");
+    	selectStatusHtmlPanel = new HTMLPanel("<p>"+message+"</p>");
+    	selectionStatusPanel.add(selectStatusHtmlPanel);
+    }
+    
     /**
      * Handles UiEvents
      * @param dEvent
      */
-    public void onDialogEvent(@Observes UiEvent dEvent) {
+    public void onUiEvent(@Observes UiEvent dEvent) {
     	// User has OK'd source deletion
     	if(dEvent.getType() == UiEventType.DELETE_SOURCE_OK) {
     		confirmationDialog.hide();
@@ -179,9 +199,33 @@ public class ManageSourcesScreen extends Composite {
     	// User has cancelled source deletion
     	} else if(dEvent.getType() == UiEventType.DELETE_SOURCE_CANCEL) {
     		confirmationDialog.hide();
-    	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_CHANGED) {
-        	doGetDataSourceInfos(dEvent.getDataSourceName());
+    	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DEPLOY_STARTING) {
+        	updateDataSourceInfos(dEvent.getDataSourceName(), UiEventType.DATA_SOURCE_DEPLOY_STARTING);
+    	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DEPLOY_SUCCESS) {
+    		doGetDataSourceInfos(dEvent.getDataSourceName());
+    	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DEPLOY_FAIL) {
+    		doGetDataSourceInfos(dEvent.getDataSourceName());
     	}
+    }
+    
+    /**
+     * Just update the current DS in the DS List with the given event
+     * @param dsName the datasource that changed
+     * @param eventType the event type
+     */
+    private void updateDataSourceInfos(String dsName, UiEventType eventType) {
+    	for(DataSourcePageRow dsRow : this.currentDataSourceList) {
+    		if(dsRow.getName().equals(dsName)) {
+    			if(eventType==UiEventType.DATA_SOURCE_DEPLOY_STARTING) {
+    				dsRow.setState(DataSourcePageRow.State.DEPLOYING);
+    			} else if(eventType==UiEventType.DATA_SOURCE_DEPLOY_SUCCESS) {
+    				dsRow.setState(DataSourcePageRow.State.OK);
+    			} else if(eventType==UiEventType.DATA_SOURCE_DEPLOY_FAIL) {
+    				dsRow.setState(DataSourcePageRow.State.ERROR);
+    			}
+    		}
+    	}
+    	dsList.setData(this.currentDataSourceList);
     }
     
     /**
@@ -324,6 +368,9 @@ public class ManageSourcesScreen extends Composite {
     					tableRowList.add(row);
     				}
     			}
+    			currentDataSourceList.clear();
+    			currentDataSourceList.addAll(tableRowList);
+    			
     			dsList.setData(tableRowList);
     			if(selectedDS!=null) {
     				dsList.setSelection(selectedDS);

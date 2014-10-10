@@ -81,7 +81,7 @@ public class DataSourceService implements IDataSourceService {
 		try {
 			List<String> allDSList = getDataSourceNames();
 			for(String sourceName : allDSList) {
-				if(sourceName!=null && !sourceName.isEmpty() && !sourceName.startsWith("PREVIEW_")) {
+				if(sourceName!=null && !sourceName.isEmpty() && !sourceName.startsWith(Constants.PREVIEW_VDB_PREFIX)) {
 					filteredDsList.add(sourceName);
 				}
 			}
@@ -145,7 +145,7 @@ public class DataSourceService implements IDataSourceService {
 		try {
 			List<String> allDSList = getDataSourceNames();
 			for(String sourceName : allDSList) {
-				if(sourceName!=null && !sourceName.isEmpty() && !sourceName.startsWith("PREVIEW_")) {
+				if(sourceName!=null && !sourceName.isEmpty() && !sourceName.startsWith(Constants.PREVIEW_VDB_PREFIX)) {
 					filteredDsList.add(sourceName);
 				}
 			}
@@ -183,7 +183,12 @@ public class DataSourceService implements IDataSourceService {
     		DataSourcePageRow dataSourcePageRow = new DataSourcePageRow();
     		dataSourcePageRow.setName( dsName );
     		dataSourcePageRow.setType(typeList.get(i));
-    		dataSourcePageRow.setHasVdb(hasSrcVdbList.get(i));
+    		if(hasSrcVdbList.get(i)) {
+    			dataSourcePageRow.setState(DataSourcePageRow.State.OK);
+    		} else {
+    			dataSourcePageRow.setState(DataSourcePageRow.State.ERROR);
+    			dataSourcePageRow.setMessage("The dataSource does not have a corresponding VDB");
+    		}
     		resultDSPageRowList.add( dataSourcePageRow );
     		i++;
     	}

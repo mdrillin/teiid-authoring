@@ -153,7 +153,7 @@ public class QueryService implements IQueryService {
     	Iterator<String> nameIter = dsNames.iterator();
     	while(nameIter.hasNext()) {
     		String dsName = nameIter.next();
-    		if(dsName!=null && !dsName.startsWith("java:/PREVIEW_")) {
+    		if(dsName!=null && !dsName.startsWith("java:/"+Constants.PREVIEW_VDB_PREFIX)) {
     			DataSource ds = mDatasources.get(dsName);
     			if(!teiidOnly) {
     				resultList.add(dsName);
@@ -188,7 +188,9 @@ public class QueryService implements IQueryService {
 
     	// Get Tables and Procedures for the Datasource
     	if( connection!=null) {
-    		String schemaName = dsName.substring(dsName.indexOf(Constants.SERVICE_SOURCE_VDB_PREFIX)+Constants.SERVICE_SOURCE_VDB_PREFIX.length());
+    		int indx = dsName.indexOf(Constants.SERVICE_SOURCE_VDB_PREFIX);
+    		int startIndx = indx + Constants.SERVICE_SOURCE_VDB_PREFIX.length();
+    		String schemaName = dsName.substring(startIndx);
     		tablesAndProcs.addAll(getTeiidTables(connection,dsName,schemaName));
     		tablesAndProcs.addAll(getTeiidProcedures(connection));
     	}
@@ -203,6 +205,52 @@ public class QueryService implements IQueryService {
     	return tablesAndProcs;
     }
 
+    /*
+     * Test the connection to the supplied DataSource.  Return status message of connection attempt.
+     * @param dataSourceJndiName the jndi name of the data source.
+     * @param dsName the name of the data source
+     * @return the status message - 'OK' if connection is ok.
+     */
+    public String testConnection(String dataSourceJndiName,String dsName) {
+    	String statusMessage = null;
+    	
+    	// Get DataSources Map
+    	Map<String, DataSource> mDatasources;
+		try {
+			mDatasources = JdbcSourceHelper.getInstance().getDataSourceMap();
+		} catch (DataVirtUiException e1) {
+			statusMessage = "Problem loading the available sources";
+			return statusMessage;
+		}
+
+    	// Get a connection for the supplied data source name
+    	Connection connection;
+		try {
+			connection = getConnection(dataSourceJndiName, mDatasources);
+		} catch (SQLException e) {
+			statusMessage = "Source connection failed!  Please check the source properties and server log";
+			return statusMessage;
+		}
+		if(connection==null) return "Could not connect to the source";
+		
+    	// Attempt to get tables - to test the connection
+		String schemaName = dsName.substring(dsName.indexOf(Constants.SERVICE_SOURCE_VDB_PREFIX)+Constants.SERVICE_SOURCE_VDB_PREFIX.length());
+		try {
+			getTeiidTables(connection,dsName,schemaName);
+		} catch (DataVirtUiException e1) {
+			statusMessage = "Source connection failed!  Please check the source properties and server log";
+			return statusMessage;
+		}
+
+		// Close Connection
+		try {
+			closeConnection(connection);
+		} catch (SQLException e) {
+		}
+		
+		return "OK";
+    }
+    
     /*
      * (non-Javadoc)
      * @see org.teiid.tools.webquery.client.TeiidService#executeSql(java.lang.String, java.lang.String)
@@ -597,7 +645,7 @@ public class QueryService implements IQueryService {
      * @param connection the JDBC connection
      * @return the list of table names
      */
-    private List<QueryTableProcBean> getTeiidTables(Connection connection, String catalogName, String schemaName) {
+    private List<QueryTableProcBean> getTeiidTables(Connection connection, String catalogName, String schemaName) throws DataVirtUiException {
     	// Get the list of Tables
     	List<String> tableNameList = new ArrayList<String>();
     	List<String> tableSchemaList = new ArrayList<String>();
@@ -622,6 +670,7 @@ public class QueryService implements IQueryService {
     			}
     			resultSet.close();
     		} catch (Exception e) {
+    			throw new DataVirtUiException(e);
     		}
     	}
 
@@ -705,7 +754,7 @@ public class QueryService implements IQueryService {
      * @param connection the JDBC connection
      * @return the list of procedure names
      */
-    private List<QueryTableProcBean> getTeiidProcedures(Connection connection) {
+    private List<QueryTableProcBean> getTeiidProcedures(Connection connection) throws DataVirtUiException {
     	// Get the list of Procedures
     	List<String> procNameList = new ArrayList<String>();
     	List<String> procSchemaList = new ArrayList<String>();
@@ -732,6 +781,7 @@ public class QueryService implements IQueryService {
     			}
     			resultSet.close();
     		} catch (Exception e) {
+    			throw new DataVirtUiException(e);
     		}
     	}
     	

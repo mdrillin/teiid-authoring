@@ -34,12 +34,8 @@ import org.uberfire.paging.PageResponse;
 @Remote
 public interface IQueryService {
 
-    /**
-     * Get the list of all Data Source Names.
-     * @param teiidOnly if 'true' returns only the teiid sources
-     * @return the list of data source names
-     * @throws DataVirtUiException
-     */
+    public String testConnection(String dataSourceJndiName,String dsName);
+    
     public List<String> getDataSourceNames(boolean teiidOnly) throws DataVirtUiException;
 
     public List<QueryTableProcBean> getTablesAndProcedures(String dataSourceJndiName, String dsName) throws DataVirtUiException;

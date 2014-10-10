@@ -15,6 +15,7 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 
 /**
@@ -69,7 +70,7 @@ public class JdbcSourceHelper {
     	Iterator<String> nameIter = dsNames.iterator();
     	while(nameIter.hasNext()) {
     		String dsName = nameIter.next();
-    		if(dsName!=null && !dsName.startsWith("java:/PREVIEW_")) {
+    		if(dsName!=null && !dsName.startsWith("java:/"+Constants.PREVIEW_VDB_PREFIX)) {
     			DataSource ds = mDatasources.get(dsName);
     			if(!teiidOnly) {
     				resultList.add(dsName);

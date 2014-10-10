@@ -72,7 +72,10 @@ public class TeiidService implements ITeiidService {
     
     @Inject
     private AdminApiClientAccessor clientAccessor;
-    
+ 
+    @Inject
+    private QueryService queryService;
+
     /**
      * Constructor.
      */
@@ -85,7 +88,7 @@ public class TeiidService implements ITeiidService {
 		try {
 			List<String> allDSList = getDataSourceNames();
 			for(String sourceName : allDSList) {
-				if(sourceName!=null && !sourceName.isEmpty() && !sourceName.startsWith("PREVIEW_")) {
+				if(sourceName!=null && !sourceName.isEmpty() && !sourceName.startsWith(Constants.PREVIEW_VDB_PREFIX)) {
 					filteredDsList.add(sourceName);
 				}
 			}
@@ -144,12 +147,14 @@ public class TeiidService implements ITeiidService {
      */
     public List<DataSourcePageRow> getDataSources( final String filters, final String srcVdbPrefix ) {
 
-    	// Get list of all Server Sources (except preview vdb sources)
+    	// Get list of all Server Sources (except preview vdb and test VDB sources)
     	List<String> filteredDsList = new ArrayList<String>();
 		try {
 			List<String> allDSList = getDataSourceNames();
 			for(String sourceName : allDSList) {
-				if(sourceName!=null && !sourceName.isEmpty() && !sourceName.startsWith("PREVIEW_")) {
+				if(!StringUtils.isEmpty(sourceName) && 
+				   !sourceName.startsWith(Constants.PREVIEW_VDB_PREFIX) &&
+				   !sourceName.startsWith(Constants.SERVICE_TEST_VDB_PREFIX) ) {
 					filteredDsList.add(sourceName);
 				}
 			}
@@ -187,12 +192,31 @@ public class TeiidService implements ITeiidService {
     		DataSourcePageRow dataSourcePageRow = new DataSourcePageRow();
     		dataSourcePageRow.setName( dsName );
     		dataSourcePageRow.setType(typeList.get(i));
-    		dataSourcePageRow.setHasVdb(hasSrcVdbList.get(i));
+    		// If DataSource has a corresponding VDB Source, check connection to the VDB Source
+    		if(hasSrcVdbList.get(i)) {
+    			String vdbSource = srcVdbPrefix+dsName;
+    			String connectionStatus = testConnection(vdbSource);
+    			if(!connectionStatus.equals("OK")) {
+    				dataSourcePageRow.setState(DataSourcePageRow.State.ERROR);
+    				dataSourcePageRow.setMessage(connectionStatus);
+    			} else {
+    				dataSourcePageRow.setState(DataSourcePageRow.State.OK);
+    				dataSourcePageRow.setMessage(Constants.DATA_SOURCE_AVAILABLE);
+    			}
+    		} else {
+    			dataSourcePageRow.setState(DataSourcePageRow.State.ERROR);
+    			dataSourcePageRow.setMessage(Constants.DATA_SOURCE_NO_TRANSLATOR_DEFINED);
+    		}
     		resultDSPageRowList.add( dataSourcePageRow );
     		i++;
     	}
     	
     	return resultDSPageRowList;
+    }
+    
+    private String testConnection(String sourceName) {
+    	String sourceJndiName = Constants.JNDI_PREFIX+sourceName;
+    	return queryService.testConnection(sourceJndiName,sourceName);
     }
     
     private boolean hasSourceVdb(String dsName, String vdbPrefix, List<String> allDsNames) {
@@ -304,37 +328,36 @@ public class TeiidService implements ITeiidService {
      * Gets the 'testable' DataSources - those that are jdbc sources
      * @throws DataVirtUiException
      */
-    public Map<String,String> getQueryableDataSourceMap( ) throws DataVirtUiException {
-        Collection<Properties> dsSummaryPropsCollection = null;
-        try {
-        	dsSummaryPropsCollection = clientAccessor.getClient().getDataSourceSummaryPropsCollection();
-		} catch (AdminApiClientException e) {
-			throw new DataVirtUiException(e.getMessage());
-		}
-        
-        // Create a Map of *all* Datasources and their jndi names
-        Map<String,String> allSourcesToJndiMap = new HashMap<String,String>();
-        for(Properties dsProps : dsSummaryPropsCollection) {
-            String sourceName = dsProps.getProperty("name");
-            String jndiName = dsProps.getProperty("jndi-name");
-            if( !StringUtils.isEmpty(sourceName) && !StringUtils.isEmpty(sourceName) ) {
-            	allSourcesToJndiMap.put(sourceName, jndiName);
-            }
-        }
-        
-        // Gets jdbc Jndi names available on the server
-        List<String> jdbcJndiNames = JdbcSourceHelper.getInstance().getJdbcSourceNames(false);
-        
-        Map<String,String> resultMap = new HashMap<String,String>();
-        for(String allDsName : allSourcesToJndiMap.keySet()) {
-        	if(jdbcJndiNames.contains(allSourcesToJndiMap.get(allDsName))) {
-        		resultMap.put(allDsName,allSourcesToJndiMap.get(allDsName));
-        	}
-        }
-        
-        return resultMap;
-    }
-
+//    public Map<String,String> getQueryableDataSourceMap( ) throws DataVirtUiException {
+//        Collection<Properties> dsSummaryPropsCollection = null;
+//        try {
+//        	dsSummaryPropsCollection = clientAccessor.getClient().getDataSourceSummaryPropsCollection();
+//		} catch (AdminApiClientException e) {
+//			throw new DataVirtUiException(e.getMessage());
+//		}
+//        
+//        // Create a Map of *all* Datasources and their jndi names
+//        Map<String,String> allSourcesToJndiMap = new HashMap<String,String>();
+//        for(Properties dsProps : dsSummaryPropsCollection) {
+//            String sourceName = dsProps.getProperty("name");
+//            String jndiName = dsProps.getProperty("jndi-name");
+//            if( !StringUtils.isEmpty(sourceName) && !StringUtils.isEmpty(sourceName) ) {
+//            	allSourcesToJndiMap.put(sourceName, jndiName);
+//            }
+//        }
+//        
+//        // Gets jdbc Jndi names available on the server
+//        List<String> jdbcJndiNames = JdbcSourceHelper.getInstance().getJdbcSourceNames(false);
+//        
+//        Map<String,String> resultMap = new HashMap<String,String>();
+//        for(String allDsName : allSourcesToJndiMap.keySet()) {
+//        	if(jdbcJndiNames.contains(allSourcesToJndiMap.get(allDsName))) {
+//        		resultMap.put(allDsName,allSourcesToJndiMap.get(allDsName));
+//        	}
+//        }
+//        
+//        return resultMap;
+//    }
     /**
      * Gets the current Translators
      * @throws DataVirtUiException

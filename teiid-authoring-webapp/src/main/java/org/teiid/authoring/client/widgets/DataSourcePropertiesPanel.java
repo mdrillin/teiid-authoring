@@ -39,7 +39,6 @@ import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -115,7 +114,7 @@ public class DataSourcePropertiesPanel extends Composite {
     @Inject @DataField("btn-dsprops-save2")
     protected Button saveSourceChanges2;
     
-    @Inject Event<UiEvent> saveEvent;
+    @Inject Event<UiEvent> statusEvent;
     
     /**
      * Called after construction.
@@ -478,6 +477,10 @@ public class DataSourcePropertiesPanel extends Composite {
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("ds-properties-panel.creating-vdbwsource-title"), //$NON-NLS-1$
                 i18n.format("ds-properties-panel.creating-vdbwsource-msg", dsName)); //$NON-NLS-1$
+    	
+        // fire event
+        fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,dsName,null);
+
         teiidService.createVdbAndVdbSource(detailsBean, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
@@ -485,10 +488,8 @@ public class DataSourcePropertiesPanel extends Composite {
                         i18n.format("ds-properties-panel.vdbwsource-created"), //$NON-NLS-1$
                         i18n.format("ds-properties-panel.create-vdbwsource-success-msg")); //$NON-NLS-1$
 
-            	// fire event with the created DataSource name
-				UiEvent uiEvent = new UiEvent(UiEventType.DATA_SOURCE_CHANGED);
-				uiEvent.setDataSourceName(dsName);
-            	saveEvent.fire(uiEvent);
+            	// fire event
+                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_SUCCESS,dsName,null);
             }
             @Override
             public void onError(Throwable error) {
@@ -496,10 +497,8 @@ public class DataSourcePropertiesPanel extends Composite {
                         i18n.format("ds-properties-panel.create-vdbwsource-error"), //$NON-NLS-1$
                         error);
                 
-            	// fire event with the created DataSource name
-				UiEvent uiEvent = new UiEvent(UiEventType.DATA_SOURCE_CHANGED);
-				uiEvent.setDataSourceName(dsName);
-            	saveEvent.fire(uiEvent);
+            	// fire event
+                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_FAIL,dsName,null);
             }
         });
     }
@@ -513,6 +512,10 @@ public class DataSourcePropertiesPanel extends Composite {
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("ds-properties-panel.creating-datasource-title"), //$NON-NLS-1$
                 i18n.format("ds-properties-panel.creating-datasource-msg", dsName)); //$NON-NLS-1$
+
+        // fire event
+        fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,dsName,null);
+
         teiidService.createDataSourceWithVdb(detailsBean, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
@@ -520,10 +523,8 @@ public class DataSourcePropertiesPanel extends Composite {
                         i18n.format("ds-properties-panel.datasource-created"), //$NON-NLS-1$
                         i18n.format("ds-properties-panel.create-success-msg")); //$NON-NLS-1$
 
-            	// fire event with the created DataSource name
-				UiEvent uiEvent = new UiEvent(UiEventType.DATA_SOURCE_CHANGED);
-				uiEvent.setDataSourceName(dsName);
-            	saveEvent.fire(uiEvent);
+            	// fire event
+                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_SUCCESS,dsName,null);
             }
             @Override
             public void onError(Throwable error) {
@@ -531,12 +532,21 @@ public class DataSourcePropertiesPanel extends Composite {
                         i18n.format("ds-properties-panel.create-error"), //$NON-NLS-1$
                         error);
                 
-            	// fire event with the created DataSource name
-				UiEvent uiEvent = new UiEvent(UiEventType.DATA_SOURCE_CHANGED);
-				uiEvent.setDataSourceName(dsName);
-            	saveEvent.fire(uiEvent);
+            	// fire event
+                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_FAIL,dsName,null);
             }
         });
+    }
+    
+    /**
+     * Fire status event for a dataSource
+     * @param eventType the type of event
+     * @param dataSourceName the datasource name
+     */
+    private void fireStatusEvent(UiEventType eventType, String dataSourceName, String message) {
+		UiEvent uiEvent = new UiEvent(eventType);
+		uiEvent.setDataSourceName(dataSourceName);
+		statusEvent.fire(uiEvent);
     }
     
     /**

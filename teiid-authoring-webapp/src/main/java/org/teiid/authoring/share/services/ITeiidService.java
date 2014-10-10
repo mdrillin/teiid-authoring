@@ -51,8 +51,6 @@ public interface ITeiidService {
 
     public List<String> getTranslators( ) throws DataVirtUiException;
 
-    public Map<String,String> getQueryableDataSourceMap( ) throws DataVirtUiException;
-
     public Map<String,String> getDefaultTranslatorMap() throws DataVirtUiException;
         
     public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean dataSourceWithVdb) throws DataVirtUiException;
