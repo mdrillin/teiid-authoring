@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<div>
+  <!-- Title and Description -->
+  <div class="h4" data-field="label-vieweditor-title"></div>
+  <div data-field="label-vieweditor-description"></div>
+
+  <!-- Markup Editor -->
+  <table width="100%" style="border-style:solid;border-width:2px;border-color:#999999;">
+    <!-- Markup DDL area -->
+    <tr style="background-color:#BBBBBB"><td width="100%" style="border-style:solid;border-width:2px;border-color:#999999;">View Markup</td></tr>
+    <tr>
+      <td width="100%"><textarea data-field="textarea-vieweditor-viewDdl" class="form-control" rows="6"></textarea></td>
+    </tr>
+    <!-- Markup Helpers -->
+    <tr style="background-color:#BBBBBB"><td width="100%" style="border-style:solid;border-width:2px;border-color:#999999;">Markup Helpers</td></tr>
+    <tr><td width="100%"><button data-field="btn-vieweditor-manage-sources" class="btn btn-default">Manage Sources</button></td></tr>
+    <tr>
+      <td>
+        <div data-field="picker-tables"></div>
+      </td>
+    </tr>
+    <tr>
+      <td width="100%">
+        <button data-field="btn-vieweditor-createDdl" class="btn btn-default">Create markup</button>
+        <button data-field="btn-vieweditor-addToDdl" class="btn btn-default">Add fields to markup</button>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Test Button -->
+  <button data-field="btn-vieweditor-test" class="btn btn-primary">Test View Markup</button>
+
+  <!-- Example Data Area -->
+  <h4>Example Data</h4>
+  <div data-field="table-vieweditor-queryResults"></div>
+    
+</div>
+
+        

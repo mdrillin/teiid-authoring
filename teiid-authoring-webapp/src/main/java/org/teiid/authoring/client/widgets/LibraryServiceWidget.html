@@ -1,21 +1,15 @@
 <!DOCTYPE html>
 <div style="float:left;padding-top:10px;padding-right:10px;">
-  <table style="width:250px;height:200px;border:1px solid gray;">
-    <tr><td>
-      <form class="form-horizontal" role="form">
-        <div class="form-group">
-          <span class="col-md-12 h4" data-field="label-servicewidget-name" />
-        </div>
-        <div class="form-group">
-          <span class="col-md-12" data-field="label-servicewidget-description" />
-        </div>
-        <div class="form-group">
-          <div class="col-md-12">
-            <button data-field="btn-servicewidget-view" class="btn btn-primary btn-xs">View Details</button>
-            <span data-field="listbox-servicewidget-more-actions" />
-          </div>
-        </div>
-      </form>
+  <table style="width:250px;height:200px;border:4px solid gray;">
+    <tr><td style="vertical-align:top;padding-left:8px;padding-top:8px">
+      <span data-field="label-servicewidget-name" style="font-weight:bold;font-size:125%">Service Name</span>
+    </td></tr>
+    <tr><td style="vertical-align:top;padding-left:8px">
+      <span data-field="label-servicewidget-description" style="font-style:italic;color:#666666">This is the service description</span>
+    </td></tr>
+    <tr><td style="vertical-align:bottom;padding-left:8px;padding-bottom:8px">
+      <button data-field="btn-servicewidget-view" class="btn btn-primary btn-xs">View Details</button>
+      <span data-field="listbox-servicewidget-more-actions" />
     </td></tr>
   </table>
 </div>

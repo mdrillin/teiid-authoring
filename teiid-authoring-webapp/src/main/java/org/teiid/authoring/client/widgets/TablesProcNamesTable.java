@@ -21,7 +21,6 @@ import java.util.List;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -34,7 +33,7 @@ public class TablesProcNamesTable extends Composite {
 
 	private static String COLUMN_HEADER_NAME = "Tables";
 
-    protected FlowPanel panel = new FlowPanel();
+    protected VerticalPanel panel = new VerticalPanel();
     protected Label label = new Label();
 
     private SimpleTable<String> table;

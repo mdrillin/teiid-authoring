@@ -15,36 +15,29 @@
  */
 package org.teiid.authoring.client.screens;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.dialogs.UiEvent;
+import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
-import org.teiid.authoring.client.utils.DdlHelper;
-import org.teiid.authoring.client.widgets.CheckableNameRow;
-import org.teiid.authoring.client.widgets.ColumnNamesTable;
-import org.teiid.authoring.client.widgets.DataSourceNamesTable;
-import org.teiid.authoring.client.widgets.QueryResultsPanel;
-import org.teiid.authoring.client.widgets.TablesProcNamesTable;
+import org.teiid.authoring.client.widgets.ViewEditorPanel;
 import org.teiid.authoring.client.widgets.VisibilityRadios;
 import org.teiid.authoring.share.Constants;
-import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.NotificationBean;
-import org.teiid.authoring.share.beans.QueryColumnBean;
-import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
-import org.teiid.authoring.share.beans.QueryTableProcBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.services.StringUtils;
@@ -63,8 +56,6 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.view.client.SelectionChangeEvent;
-import com.google.gwt.view.client.SingleSelectionModel;
 
 /**
  * CreateDataServiceScreen - used for creation of Data Services
@@ -75,16 +66,8 @@ import com.google.gwt.view.client.SingleSelectionModel;
 @WorkbenchScreen(identifier = "CreateDataServiceScreen")
 public class CreateDataServiceScreen extends Composite {
 
-	private Map<String,String> shortToLongTableNameMap = new HashMap<String,String>();
-	
 	private String statusEnterName = null;
-	private String statusEnterView = null;
 	private String statusClickCreate = null;
-	private String statusTestView = null;
-	private String queryResultDefaultMsg = null;
-	private boolean haveSuccessfullyTested = false;
-	
-	private String selectedTable = null;
 	
     @Inject
     private PlaceManager placeManager;
@@ -109,39 +92,15 @@ public class CreateDataServiceScreen extends Composite {
     
     @Inject @DataField("label-create-service-status")
     protected Label statusLabel;
-    
-    @Inject @DataField("btn-create-service-createDdl")
-    protected Button createDdlButton;
-    
-    @Inject @DataField("btn-create-service-addToDdl")
-    protected Button addToDdlButton;
-        
-    @Inject @DataField("btn-create-service-test")
-    protected Button testViewButton;
+ 
+    @Inject @DataField("view-editor-create-service")
+    protected ViewEditorPanel viewEditorPanel;
     
     @Inject @DataField("btn-create-service-create")
     protected Button createServiceButton;
     
     @Inject @DataField("btn-create-service-cancel")
     protected Button cancelButton;
-    
-    @Inject @DataField("btn-create-service-manage-sources")
-    protected Button manageSourceButton;
-    
-    @Inject @DataField("table-datasources")
-    protected DataSourceNamesTable dsNamesTable;
-    
-    @Inject @DataField("table-tables-procs")
-    protected TablesProcNamesTable tablesAndProcsTable;
-
-    @Inject @DataField("table-columns")
-    protected ColumnNamesTable columnsTable;
-    
-    @Inject @DataField("textarea-create-service-viewDdl")
-    protected TextArea viewDdlTextArea;
-    
-    @Inject @DataField("table-create-service-queryResults")
-    protected QueryResultsPanel queryResultsPanel;
     
     @Override
     @WorkbenchPartTitle
@@ -160,74 +119,32 @@ public class CreateDataServiceScreen extends Composite {
     @PostConstruct
     protected void postConstruct() {
 		statusEnterName = i18n.format("createdataservice.status-label-enter-name");
-		statusEnterView = i18n.format("createdataservice.status-label-enter-view");
-		statusTestView = i18n.format("createdataservice.status-label-test-view");
 		statusClickCreate = i18n.format("createdataservice.status-label-click-create");
-		queryResultDefaultMsg = i18n.format("createdataservice.query-results-default-message");
+		
+		viewEditorPanel.setTitle(i18n.format("createdataservice.vieweditor-title"));
+		viewEditorPanel.setDescription(i18n.format("createdataservice.vieweditor-description"));
 		
     	serviceVisibleRadios.setValue(true);
-    	tablesAndProcsTable.clear();
-    	columnsTable.clear();
-    	
-    	doGetQueryableSources();
-
-    	// SelectionModel to handle Source selection 
-    	final SingleSelectionModel<CheckableNameRow> dsSelectionModel = new SingleSelectionModel<CheckableNameRow>();
-    	dsNamesTable.setSelectionModel(dsSelectionModel); 
-    	dsSelectionModel. addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
-    		public void onSelectionChange( SelectionChangeEvent event) { 
-    			tablesAndProcsTable.clear();
-    			columnsTable.clear();
-    			CheckableNameRow selectedRow = dsSelectionModel.getSelectedObject();
-    			if (selectedRow != null) {
-    				doGetTablesAndProcs(selectedRow.getName());
-    			}
-    		} });
-
-    	// SelectionModel to handle Table-procedure selection 
-    	final SingleSelectionModel<String> tableSelectionModel = new SingleSelectionModel<String>();
-    	tablesAndProcsTable.setSelectionModel(tableSelectionModel); 
-    	tableSelectionModel. addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
-    		public void onSelectionChange( SelectionChangeEvent event) { 
-    			String selected = tableSelectionModel.getSelectedObject();
-    			selectedTable = selected;
-    			if (selected != null) {
-    				CheckableNameRow theSource = dsSelectionModel.getSelectedObject();
-    				String longTableName = shortToLongTableNameMap.get(selected);
-    				doGetTableColumns(theSource.getName(), longTableName, 1);
-    			}
-    		} });
     	
     	serviceNameTextBox.addKeyUpHandler(new KeyUpHandler() {
             @Override
             public void onKeyUp(KeyUpEvent event) {
-            	haveSuccessfullyTested = false;
-            	// Show default querypanel message
-            	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
+            	viewEditorPanel.setServiceName(serviceNameTextBox.getText());
             	// Update status
             	updateStatus();
             }
         });
-    	
-    	viewDdlTextArea.addKeyUpHandler(new KeyUpHandler() {
-            @Override
-            public void onKeyUp(KeyUpEvent event) {
-            	haveSuccessfullyTested = false;
-            	// Show default querypanel message
-            	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
-            	// Update status
-            	updateStatus();
-            }
-        });
-    	
-    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
-    	
+    	    	
     	// Set the initial status
     	updateStatus();
     	
     }
     
-    private void updateStatus( ) {
+    /**
+     * Update the screen status.  Ensures that the service name is valid, then checks status
+     * of the viewEditor panel.
+     */
+	private void updateStatus( ) {
     	boolean isOK = true;
     	
     	// Warning for missing service name
@@ -239,23 +156,11 @@ public class CreateDataServiceScreen extends Composite {
     	
 		// Check for missing view DDL - if serviceName passed
     	if(isOK) {
-    		String viewDdl = viewDdlTextArea.getText();
-    		if(StringUtils.isEmpty(viewDdl)) {
-    			statusLabel.setText(statusEnterView);
+    		String viewEditorStatus = viewEditorPanel.getStatus();
+    		if(!"OK".equals(viewEditorStatus)) {
+    			statusLabel.setText(viewEditorStatus);
     			isOK = false;
     		}
-    	}
-    	
-		// Force the user to successfully test the service first
-    	if(isOK) {
-    		// Force the user to successfully test the service
-    		if(!haveSuccessfullyTested) {
-    			statusLabel.setText(statusTestView);
-    			isOK = false;
-    		}
-    		testViewButton.setEnabled(true);
-    	} else {
-    		testViewButton.setEnabled(false);
     	}
     	
     	if(isOK) {
@@ -265,143 +170,18 @@ public class CreateDataServiceScreen extends Composite {
     		createServiceButton.setEnabled(false);
     	}
     }
-
+	
     /**
-     * Populate the DataSource ListBox
+     * Handles UiEvents from viewEditorPanel
+     * @param dEvent
      */
-    protected void doGetQueryableSources( ) {
-    	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
-    		@Override
-    		public void onReturn(List<DataSourcePageRow> dsInfos) {
-    			// Create list of DataSources that are accessible.  Only the Sources that have 'OK' state
-    			// have an associated VDB source and are reachable...
-            	List<CheckableNameRow> dsList = new ArrayList<CheckableNameRow>();
-    			for(DataSourcePageRow row : dsInfos) {
-    				if(row.getState()==DataSourcePageRow.State.OK) {
-    					String dsName = row.getName();
-            			dsList.add(createCheckableNameRow(dsName,false));
-    				}
-    			}
-            	dsNamesTable.setData(dsList);
-    		}
-    		@Override
-    		public void onError(Throwable error) {
-                notificationService.sendErrorNotification(i18n.format("createdataservice.error-getting-svcsources"), error); //$NON-NLS-1$
-    		}
-    	});
-    }
-    
-    /**
-     * Get the Tables and Procs for the supplied data source
-     * @param dataSourceName the name of the source
-     */
-    protected void doGetTablesAndProcs(String dataSourceName) {
-    	String vdbSrcName = Constants.SERVICE_SOURCE_VDB_PREFIX+dataSourceName;
-    	String vdbSrcJndi = Constants.JNDI_PREFIX+vdbSrcName;
-		queryService.getTablesAndProcedures(vdbSrcJndi, vdbSrcName, new IRpcServiceInvocationHandler<List<QueryTableProcBean>>() {
-			@Override
-			public void onReturn(List<QueryTableProcBean> tablesAndProcs) {
-				List<String> nameList = new ArrayList<String>();
-				shortToLongTableNameMap.clear();
-				for(QueryTableProcBean tp : tablesAndProcs) {
-					String name = tp.getName();
-					if(name!=null) {
-						if(name.contains(".PUBLIC.")) {
-							String shortName = name.substring(name.indexOf(".PUBLIC.")+".PUBLIC.".length());
-							shortToLongTableNameMap.put(shortName, name);
-							nameList.add(shortName);
-						} else if(!name.contains(".INFORMATION_SCHEMA.")) {
-							shortToLongTableNameMap.put(name, name);
-							nameList.add(name);
-						}
-					}
-				}
-				tablesAndProcsTable.setData(nameList);
-			}
-			@Override
-			public void onError(Throwable error) {
-				notificationService.sendErrorNotification(i18n.format("createdataservice.error-getting-tables-procs"), error); //$NON-NLS-1$
-			}
-		});
-
-    }
-    
-    /**
-     * Search for QueryColumns based on the current page and filter settings.
-     * @param page
-     */
-    protected void doGetTableColumns(String source, String table, int page) {
-    	String filterText = "";
-    	String vdbSrcJndi = Constants.JNDI_PREFIX+Constants.SERVICE_SOURCE_VDB_PREFIX+source;
-    	// String filterText = (String)stateService.get(ApplicationStateKeys.QUERY_COLUMNS_FILTER_TEXT,"");
-    	queryService.getQueryColumnResultSet(page, filterText, vdbSrcJndi, table,
-    			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
-    		@Override
-    		public void onReturn(QueryColumnResultSetBean data) {
-    			List<CheckableNameRow> colList = new ArrayList<CheckableNameRow>();
-    			List<QueryColumnBean> qColumns = data.getQueryColumns();
-    			for(QueryColumnBean col : qColumns) {
-    				colList.add(createCheckableNameRow(col.getName(),false));
-    			}
-    			columnsTable.setData(colList);
-    		}
-    		@Override
-    		public void onError(Throwable error) {
-    			notificationService.sendErrorNotification(i18n.format("createdataservice.error-getting-tablecols"), error); //$NON-NLS-1$
-    			// noColumnsMessage.setVisible(true);
-    			// columnFetchInProgressMessage.setVisible(false);
-    		}
-    	});
-
-    }
-
-    private CheckableNameRow createCheckableNameRow(String name, boolean isSelected) {
-		CheckableNameRow cRow = new CheckableNameRow();
-		cRow.setName(name);
-		cRow.setChecked(isSelected);
-		return cRow;
-    }
-    
-    /**
-     * Event handler that fires when the user clicks the create markup button.
-     * @param event
-     */
-    @EventHandler("btn-create-service-createDdl")
-    public void onCreateDdlButtonClick(ClickEvent event) {
-    	String theTable = (selectedTable==null) ? "NULL" : selectedTable;
-    	
-    	List<String> colNames = columnsTable.getSelectedColumnNames();
-    	// Types hardcoded to string for now
-    	List<String> typeNames = new ArrayList<String>(colNames.size());
-    	for(String colName : colNames) {
-    		typeNames.add("string");
+    public void onUiEvent(@Observes UiEvent dEvent) {
+    	// change received from viewEditor
+    	if(dEvent.getType() == UiEventType.VIEW_EDITOR_CHANGED) {
+    		updateStatus();
     	}
-    	
-    	String viewString = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, typeNames);
-    	viewDdlTextArea.setText(viewString);  
-    	
-    	haveSuccessfullyTested = false;
-    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
-    	updateStatus();
     }
-    
-    /**
-     * Event handler that fires when the user clicks the Add to markup button.
-     * @param event
-     */
-    @EventHandler("btn-create-service-addToDdl")
-    public void onAddToDdlButtonClick(ClickEvent event) {
-    	String colString = columnsTable.getSelectedRowString();
 
-    	String currentDdl = viewDdlTextArea.getText();
-    	
-    	viewDdlTextArea.setText(currentDdl+"\n"+colString);  
-    	
-    	haveSuccessfullyTested = false;
-    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
-    	updateStatus();
-    }
-    
     /**
      * Event handler that fires when the user clicks the Create button.
      * @param event
@@ -422,9 +202,9 @@ public class CreateDataServiceScreen extends Composite {
             	
     	String serviceDescription = this.serviceDescriptionTextBox.getText();
     	final String viewModel = serviceName;
-    	String viewDdl = viewDdlTextArea.getText();
+    	String viewDdl = viewEditorPanel.getViewDdl();
     	boolean isVisible = serviceVisibleRadios.isVisibleSelected();
-    	List<String> rqdImportVdbNames = getSrcVdbNames(dsNamesTable);
+    	List<String> rqdImportVdbNames = viewEditorPanel.getSrcVdbNames();
     	
     	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
     	viewModelRequest.setName(serviceName);
@@ -456,74 +236,6 @@ public class CreateDataServiceScreen extends Composite {
     }
     
     /**
-     * Get the corresponding SrcVdbNames for the DSTable row selections
-     * @param dsNamesTable the DataSource names table
-     * @return
-     */
-    private List<String> getSrcVdbNames(DataSourceNamesTable dsNamesTable) {
-    	List<String> selectedDSNames = dsNamesTable.getSelectedSourceNames();
-    	List<String> srcVdbNames = new ArrayList<String>(selectedDSNames.size());
-    	for(String dsName : selectedDSNames) {
-    		srcVdbNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
-    	}
-    	return srcVdbNames;
-    }
-    
-    /**
-     * Event handler that fires when the user clicks the Test button.
-     * @param event
-     */
-    @EventHandler("btn-create-service-test")
-    public void onTestViewButtonClick(ClickEvent event) {
-    	doTestView();
-    }
-    
-    /**
-     * Create and deploy a Test Dynamic VDB, then attempt to query it.
-     */
-    private void doTestView() {
-    	final String serviceName = this.serviceNameTextBox.getText();
-        final NotificationBean notificationBean = notificationService.startProgressNotification(
-                i18n.format("createdataservice.testing-service-title"), //$NON-NLS-1$
-                i18n.format("createdataservice.testing-service-msg", serviceName)); //$NON-NLS-1$
-            	
-    	String serviceDescription = this.serviceDescriptionTextBox.getText();
-    	String viewDdl = viewDdlTextArea.getText();
-    	boolean isVisible = serviceVisibleRadios.isVisibleSelected();
-    	List<String> rqdImportVdbNames = getSrcVdbNames(dsNamesTable);
-    	
-    	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
-    	viewModelRequest.setName(serviceName);
-    	viewModelRequest.setDescription(serviceDescription);
-    	viewModelRequest.setDdl(viewDdl);
-    	viewModelRequest.setVisible(isVisible);
-    	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
-    	    	
-    	final String testVDBName = Constants.SERVICE_TEST_VDB_PREFIX+serviceName;
-    	teiidService.deployNewVDB(testVDBName, 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
-            @Override
-            public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
-                notificationService.completeProgressNotification(notificationBean.getUuid(),
-                        i18n.format("createdataservice.testing-service-complete"), //$NON-NLS-1$
-                        i18n.format("createdataservice.testing-service-complete-msg")); //$NON-NLS-1$
-
-                String testVdbJndi = "java:/"+testVDBName;
-    			String serviceSampleSQL = "SELECT * FROM "+serviceName+"."+Constants.SERVICE_VIEW_NAME+" LIMIT 10";
-    			queryResultsPanel.showResultsTable(testVdbJndi, serviceSampleSQL);
-
-                haveSuccessfullyTested = true;
-                updateStatus();
-            }
-            @Override
-            public void onError(Throwable error) {
-                notificationService.sendErrorNotification(i18n.format("createdataservice.testing-service-error"), error); //$NON-NLS-1$
-                haveSuccessfullyTested = false;
-                updateStatus();
-            }
-        });           	
-    }
-    
-    /**
      * Do a clean-up of any temporary VDBs that may have not been undeployed
      */
  	private void cleanupTestVdbs( ) {
@@ -537,15 +249,6 @@ public class CreateDataServiceScreen extends Composite {
     	});
  	}
    
-    /**
-     * Event handler that fires when the user clicks the Manage Sources button.
-     * @param event
-     */
-    @EventHandler("btn-create-service-manage-sources")
-    public void onManageSourcesButtonClick(ClickEvent event) {
-    	placeManager.goTo("ManageSourcesScreen");
-    }
-    
     /**
      * Event handler that fires when the user clicks the Cancel button.
      * @param event
