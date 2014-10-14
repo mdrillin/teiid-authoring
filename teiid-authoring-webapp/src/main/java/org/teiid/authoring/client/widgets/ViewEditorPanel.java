@@ -122,6 +122,7 @@ public class ViewEditorPanel extends Composite {
     	columnsTable.clear();
 
     	// Add the three picker tables to horizontal panel
+    	horizPanel.setSpacing(0);
     	horizPanel.add(dsNamesTable);
     	horizPanel.add(tablesAndProcsTable);
     	horizPanel.add(columnsTable);

@@ -64,7 +64,7 @@ public class DataSourceListWidget extends Composite {
     	//dsList.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.BOUND_TO_SELECTION);
     	
         scrollPanel.add(dsList);
-        scrollPanel.setHeight("500px");
+        scrollPanel.setHeight("600px");
     }
     
     public void clear() {
@@ -135,7 +135,7 @@ public class DataSourceListWidget extends Composite {
         	statusImageHtml = this.errorImageHtml;
         }
         String dType = dsRow.getType();
-        String dTypeImageHtml = ImageHelper.getInstance().getDataSourceImageHtmlForType(dType);
+        String dTypeImageHtml = ImageHelper.getInstance().getDataSourceForTypeSmallImageHtml(dType);
                 
         sb.appendHtmlConstant("<table>");
 

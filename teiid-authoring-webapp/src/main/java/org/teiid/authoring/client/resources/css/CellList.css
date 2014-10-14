@@ -20,7 +20,7 @@
 }
 
 .cellListSelectedItem {
-  background-color: white;
+  background-color: #DDDDDD;
   height: auto;
   overflow: visible;
 }

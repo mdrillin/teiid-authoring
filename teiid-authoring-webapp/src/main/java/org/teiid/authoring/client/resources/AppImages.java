@@ -27,7 +27,7 @@ public interface AppImages extends ClientBundle {
     @Source("images/teiid_user_logo.png")
     ImageResource ufUserLogo();
     
-    @Source("images/EmptyLibraryImage.jpg")
+    @Source("images/EmptyLibraryImage.png")
     ImageResource emptyLibraryImage();
     
     @Source("images/spinner_16.gif")
@@ -90,4 +90,42 @@ public interface AppImages extends ClientBundle {
     @Source("images/dstype_webservice.png")
     ImageResource dsType_webservice_Image();
 
+    @Source("images/dstype_blankbox_small.png")
+    ImageResource dsType_blankbox_small_Image();
+
+    @Source("images/dstype_google_small.png")
+    ImageResource dsType_google_small_Image();
+
+    @Source("images/dstype_h2_small.png")
+    ImageResource dsType_h2_small_Image();
+
+    @Source("images/dstype_infinispan_small.png")
+    ImageResource dsType_infinispan_small_Image();
+
+    @Source("images/dstype_modeshape_small.png")
+    ImageResource dsType_modeshape_small_Image();
+
+    @Source("images/dstype_mongodb_small.png")
+    ImageResource dsType_mongodb_small_Image();
+
+    @Source("images/dstype_mysql_small.png")
+    ImageResource dsType_mysql_small_Image();
+
+    @Source("images/dstype_postgres_small.png")
+    ImageResource dsType_postgres_small_Image();
+
+    @Source("images/dstype_salesforce_small.png")
+    ImageResource dsType_salesforce_small_Image();
+
+    @Source("images/dstype_teiid_small.png")
+    ImageResource dsType_teiid_small_Image();
+    
+    @Source("images/dstype_ldap_small.png")
+    ImageResource dsType_ldap_small_Image();
+    
+    @Source("images/dstype_file_small.png")
+    ImageResource dsType_file_small_Image();
+    
+    @Source("images/dstype_webservice_small.png")
+    ImageResource dsType_webservice_small_Image();
 }

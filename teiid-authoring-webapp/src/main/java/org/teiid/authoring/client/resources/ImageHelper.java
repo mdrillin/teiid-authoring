@@ -72,7 +72,7 @@ public class ImageHelper {
 	 * @param dsType the dataSource type
 	 * @return the image html
 	 */
-    public String getDataSourceImageHtmlForType(String dsType) {
+    public String getDataSourceForTypeImageHtml(String dsType) {
     	String imageHtml = null;
 
     	if(dsType.equals(Constants.DS_TYPE_FILE)) {
@@ -99,6 +99,43 @@ public class ImageHelper {
     		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_webservice_Image()).getHTML();
     	} else {
     		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_blankbox_Image()).getHTML();
+    	}
+    	
+    	return imageHtml;
+    }
+    
+	/**
+	 * Get the image html string for the provided datasource type
+	 * @param dsType the dataSource type
+	 * @return the image html
+	 */
+    public String getDataSourceForTypeSmallImageHtml(String dsType) {
+    	String imageHtml = null;
+
+    	if(dsType.equals(Constants.DS_TYPE_FILE)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_file_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_GOOGLE)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_google_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_H2)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_h2_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_INFINISPAN)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_infinispan_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_LDAP)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_ldap_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_MODESHAPE)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_modeshape_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_MONGODB)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_mongodb_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_SALESFORCE)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_salesforce_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_TEIID)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_teiid_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_TEIID_LOCAL)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_teiid_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_WEBSERVICE)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_webservice_small_Image()).getHTML();
+    	} else {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_blankbox_small_Image()).getHTML();
     	}
     	
     	return imageHtml;
