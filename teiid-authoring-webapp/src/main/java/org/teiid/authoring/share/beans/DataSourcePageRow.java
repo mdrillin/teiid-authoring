@@ -28,7 +28,7 @@ public class DataSourcePageRow extends AbstractPageRow {
     private String name;
     private String type;
     private State deploymentState = State.OK;
-    private String message;
+    private String errorMessage;
 
     public enum State {
         DEPLOYING, 
@@ -60,12 +60,12 @@ public class DataSourcePageRow extends AbstractPageRow {
 		return this.deploymentState;
 	}
 
-	public String getMessage() {
-		return message;
+	public String getErrorMessage() {
+		return errorMessage;
 	}
 
-	public void setMessage(String message) {
-		this.message = message;
+	public void setErrorMessage(String message) {
+		this.errorMessage = message;
 	}
 
 }

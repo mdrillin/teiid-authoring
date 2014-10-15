@@ -66,6 +66,7 @@ public class DataSourcePropertiesPanel extends Composite {
 	private String statusSelectTrans = null;
 	private String statusClickSave = null;
 	private String statusEnterProps = null;
+	private String externalError = null;
 	
 	private ConfirmationDialog confirmationDialog;
 	private String clickedSourceType;
@@ -132,6 +133,8 @@ public class DataSourcePropertiesPanel extends Composite {
     	
     	doPopulateTranslatorListBox();
     	
+    	dataSourceCorePropertyEditor.setTitle(i18n.format("ds-properties-panel.coreproperties-title"));
+    	dataSourceAdvancedPropertyEditor.setTitle(i18n.format("ds-properties-panel.advproperties-title"));
     	dataSourceCorePropertyEditor.clear();
     	dataSourceAdvancedPropertyEditor.clear();
     	
@@ -327,6 +330,7 @@ public class DataSourcePropertiesPanel extends Composite {
                 		}
                 	});                	
                 	DOM.setStyleAttribute(button.getElement(), "cssFloat", "left");
+                	DOM.setStyleAttribute(button.getElement(), "margin", "5px");
                 	dTypesButtonPanel.add(button);
                 	dsTypeButtons.add(button);
                 }
@@ -699,7 +703,13 @@ public class DataSourcePropertiesPanel extends Composite {
         		saveSourceChanges1.setEnabled(true);
         		saveSourceChanges2.setEnabled(true);
     		} else {
-    			setInfoMessage(statusEnterProps);
+    			// External error was set - show it
+    			if(!StringUtils.isEmpty(this.externalError)) {
+    				setErrorMessage(this.externalError);
+    			// Show standard 'enter props' message
+    			} else {
+        			setInfoMessage(statusEnterProps);
+    			}
         		saveSourceChanges1.setEnabled(false);
         		saveSourceChanges2.setEnabled(false);
     		}
@@ -711,19 +721,29 @@ public class DataSourcePropertiesPanel extends Composite {
     }
     
     /**
-     * Set the status message
+     * Set the status info message
      */
-    public void setInfoMessage(String statusMsg) {
+    private void setInfoMessage(String statusMsg) {
     	statusLabel.setText(statusMsg);
     	setMessageStyle(MSG_INFO);
     }
+    
     /**
-     * Set the status message
+     * Allows externally setting an error prefix.  If error is set,
+     * then it is shown as a standard error message instead of standard info message
      */
-    public void setErrorMessage(String statusMsg) {
+    public void setExternalError(String externalError) {
+    	this.externalError = externalError;
+    }
+    
+    /**
+     * Set the status error message
+     */
+    private void setErrorMessage(String statusMsg) {
     	statusLabel.setText(statusMsg);
     	setMessageStyle(MSG_ERROR);
     }
+    
     private void setMessageStyle(String msgType) {
     	statusLabel.removeStyleName("alert-info");
     	statusLabel.removeStyleName("alert-danger");

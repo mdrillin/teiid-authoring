@@ -24,6 +24,7 @@ import java.util.Map;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
+import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.services.StringUtils;
@@ -33,6 +34,7 @@ import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -44,16 +46,28 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  */
 public class DataSourcePropertyEditor extends Composite {
 
+	private static final String NAME_WIDTH = "220px";
+	private static final String VALUE_WIDTH = "600px";
+	
     protected VerticalPanel panel = new VerticalPanel();
     protected Label label = new Label();
+    protected Label titleLabel = new Label();
 
     private List<DataSourcePropertyBean> propertyList = new ArrayList<DataSourcePropertyBean>();
     private Map<String,TextBox> nameTextBoxMap = new HashMap<String,TextBox>();
+    
+    @Inject
+    private ClientMessages i18n;
     
 	@Inject Event<DataSourcePropertyBean> propertyChangeEvent;
 	
     public DataSourcePropertyEditor() {
         initWidget( panel );
+        titleLabel.addStyleName("h4");
+    }
+    
+    public void setTitle(String titleText) {
+    	titleLabel.setText(titleText);
     }
     
     public void setProperties(List<DataSourcePropertyBean> properties) {
@@ -64,13 +78,14 @@ public class DataSourcePropertyEditor extends Composite {
     	for(DataSourcePropertyBean prop : properties) {     		
         	HorizontalPanel nameValuePanel = new HorizontalPanel();
     		Label nameLabel = new Label();
-    		nameLabel.setWidth("180px");
+        	DOM.setStyleAttribute(nameLabel.getElement(), "fontWeight", "bold");
+    		nameLabel.setWidth(NAME_WIDTH);
     		nameLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
-    		nameLabel.setText(prop.getDisplayName());
+    		nameLabel.setText(prop.getDisplayName()+" :  ");
     		nameValuePanel.add(nameLabel);
     		
     		TextBox valueTextBox = new TextBox();
-    		valueTextBox.setWidth("400px");
+    		valueTextBox.setWidth(VALUE_WIDTH);
     		valueTextBox.setText(prop.getValue());
     		valueTextBox.addKeyUpHandler(new KeyUpHandler() {
     			@Override
@@ -92,6 +107,7 @@ public class DataSourcePropertyEditor extends Composite {
     		this.nameTextBoxMap.put(prop.getName(), valueTextBox);
     	}
     	panel.clear();
+    	panel.add(titleLabel);
     	panel.add(allPropsPanel);
     }
     
@@ -149,7 +165,7 @@ public class DataSourcePropertyEditor extends Composite {
     		// Check that required properties have a value
     		if(isRequired) {
     			if(propValue==null || propValue.trim().length()==0) {
-    				status = "A value is required for property: '"+propName+"'";
+    				status = i18n.format( "ds-properties-editor.value-required-message",propName);
     				break;
     			}
     		}
@@ -157,6 +173,8 @@ public class DataSourcePropertyEditor extends Composite {
 
     	return status;
     }
+    
+   
     
     public boolean anyPropertyHasChanged() {
     	boolean hasChanges = false;

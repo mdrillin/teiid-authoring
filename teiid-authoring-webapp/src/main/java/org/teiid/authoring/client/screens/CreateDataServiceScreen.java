@@ -157,7 +157,7 @@ public class CreateDataServiceScreen extends Composite {
 		// Check for missing view DDL - if serviceName passed
     	if(isOK) {
     		String viewEditorStatus = viewEditorPanel.getStatus();
-    		if(!"OK".equals(viewEditorStatus)) {
+    		if(!Constants.OK.equals(viewEditorStatus)) {
     			statusLabel.setText(viewEditorStatus);
     			isOK = false;
     		}

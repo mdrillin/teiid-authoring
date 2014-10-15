@@ -196,16 +196,15 @@ public class TeiidService implements ITeiidService {
     		if(hasSrcVdbList.get(i)) {
     			String vdbSource = srcVdbPrefix+dsName;
     			String connectionStatus = testConnection(vdbSource);
-    			if(!connectionStatus.equals("OK")) {
+    			if(!connectionStatus.equals(Constants.OK)) {
     				dataSourcePageRow.setState(DataSourcePageRow.State.ERROR);
-    				dataSourcePageRow.setMessage(connectionStatus);
+    				dataSourcePageRow.setErrorMessage(connectionStatus);
     			} else {
     				dataSourcePageRow.setState(DataSourcePageRow.State.OK);
-    				dataSourcePageRow.setMessage(Constants.DATA_SOURCE_AVAILABLE);
     			}
+    		// If DataSource has no corresponding source, the propsPanel will show 'no translator' error
     		} else {
     			dataSourcePageRow.setState(DataSourcePageRow.State.ERROR);
-    			dataSourcePageRow.setMessage(Constants.DATA_SOURCE_NO_TRANSLATOR_DEFINED);
     		}
     		resultDSPageRowList.add( dataSourcePageRow );
     		i++;

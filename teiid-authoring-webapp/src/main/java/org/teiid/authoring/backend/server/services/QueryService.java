@@ -219,7 +219,7 @@ public class QueryService implements IQueryService {
 		try {
 			mDatasources = JdbcSourceHelper.getInstance().getDataSourceMap();
 		} catch (DataVirtUiException e1) {
-			statusMessage = "Problem loading the available sources";
+			statusMessage = Constants.TEST_CONNECTION_ERROR_LOADING_SOURCES;
 			return statusMessage;
 		}
 
@@ -228,17 +228,17 @@ public class QueryService implements IQueryService {
 		try {
 			connection = getConnection(dataSourceJndiName, mDatasources);
 		} catch (SQLException e) {
-			statusMessage = "Source connection failed!  Please check the source properties and server log";
+			statusMessage = Constants.TEST_CONNECTION_FAILED;
 			return statusMessage;
 		}
-		if(connection==null) return "Could not connect to the source";
+		if(connection==null) return Constants.TEST_CONNECTION_FAILED;
 		
     	// Attempt to get tables - to test the connection
 		String schemaName = dsName.substring(dsName.indexOf(Constants.SERVICE_SOURCE_VDB_PREFIX)+Constants.SERVICE_SOURCE_VDB_PREFIX.length());
 		try {
 			getTeiidTables(connection,dsName,schemaName);
 		} catch (DataVirtUiException e1) {
-			statusMessage = "Source connection failed!  Please check the source properties and server log";
+			statusMessage = Constants.TEST_CONNECTION_FAILED;
 			return statusMessage;
 		}
 
@@ -248,7 +248,7 @@ public class QueryService implements IQueryService {
 		} catch (SQLException e) {
 		}
 		
-		return "OK";
+		return Constants.OK;
     }
     
     /*

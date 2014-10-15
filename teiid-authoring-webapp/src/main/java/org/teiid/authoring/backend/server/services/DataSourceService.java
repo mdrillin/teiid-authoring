@@ -187,7 +187,7 @@ public class DataSourceService implements IDataSourceService {
     			dataSourcePageRow.setState(DataSourcePageRow.State.OK);
     		} else {
     			dataSourcePageRow.setState(DataSourcePageRow.State.ERROR);
-    			dataSourcePageRow.setMessage("The dataSource does not have a corresponding VDB");
+    			dataSourcePageRow.setErrorMessage("The dataSource does not have a corresponding VDB");
     		}
     		resultDSPageRowList.add( dataSourcePageRow );
     		i++;

@@ -39,13 +39,6 @@ public class QueryResultsPanel extends Composite {
     @Inject
     protected QueryResultPagedTableDisplayer queryResultsTablePaged;
     
-//    <div class="form-group">
-//    <div class="col-md-6">
-//      <div class="alert alert-info" role="alert" data-field="label-query-results-status"></div>
-//    </div>
-//    <div class="col-md-6"></div>
-//  </div>
-    
     /**
      * Called after construction.
      */

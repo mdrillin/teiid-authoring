@@ -408,7 +408,7 @@ public class ViewEditorPanel extends Composite {
     }
     
 	private void updateStatus( ) {
-    	currentStatus = "OK";
+    	currentStatus = Constants.OK;
     	
     	// Must have the service name
     	if(StringUtils.isEmpty(this.serviceName)) {
@@ -416,7 +416,7 @@ public class ViewEditorPanel extends Composite {
     	}
     	
 		// Check view DDL - if serviceName ok
-    	if("OK".equals(currentStatus)) {
+    	if(Constants.OK.equals(currentStatus)) {
     		String viewDdl = viewDdlTextArea.getText();
     		if(StringUtils.isEmpty(viewDdl)) {
     			currentStatus = statusEnterView;
@@ -424,14 +424,14 @@ public class ViewEditorPanel extends Composite {
     	}
     	
 //		// Check at least one view source is defined
-//    	if("OK".equals(currentStatus)) {
+//    	if(Constants.OK.equals(currentStatus)) {
 //    		if(getSrcVdbNames().isEmpty()) {
 //    			currentStatus = statusDefineSources;
 //    		}
 //    	}
     	
 		// Force the user to successfully test the service first
-    	if("OK".equals(currentStatus)) {
+    	if(Constants.OK.equals(currentStatus)) {
     		// Force the user to successfully test the service
     		if(!haveSuccessfullyTested) {
     			currentStatus = statusTestView;

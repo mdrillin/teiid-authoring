@@ -38,7 +38,7 @@ import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
-import org.teiid.authoring.client.widgets.DataSourceListWidget;
+import org.teiid.authoring.client.widgets.DataSourceListPanel;
 import org.teiid.authoring.client.widgets.DataSourcePropertiesPanel;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
@@ -51,14 +51,11 @@ import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Anchor;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 
@@ -71,14 +68,11 @@ import com.google.gwt.view.client.SingleSelectionModel;
 @WorkbenchScreen(identifier = "ManageSourcesScreen")
 public class ManageSourcesScreen extends Composite {
 
-	private String selectionStatusMsg_noSelection;
-	
 	private Map<String,String> defaultTranslatorMap = new HashMap<String,String>();
 	private SingleSelectionModel<DataSourcePageRow> listSelectionModel;
 	private List<DataSourcePageRow> currentDataSourceList = new ArrayList<DataSourcePageRow>();
 	private boolean propPanelVisible = false;
 	private ConfirmationDialog confirmationDialog;
-	private HTMLPanel selectStatusHtmlPanel;
 
     @Inject
     protected ClientMessages i18n;
@@ -101,10 +95,7 @@ public class ManageSourcesScreen extends Composite {
     protected Anchor goToCreateServiceAnchor;
     
     @Inject @DataField("list-datasources")
-    protected DataSourceListWidget dsList;
-    
-    @Inject @DataField("panel-selection-status")
-    protected VerticalPanel selectionStatusPanel;
+    protected DataSourceListPanel dsListPanel;
     
     @Inject @DataField("details-deckpanel")
     protected DeckPanel detailsDeckPanel;
@@ -112,12 +103,6 @@ public class ManageSourcesScreen extends Composite {
     @Inject 
     protected DataSourcePropertiesPanel propsPanel;
     
-    @Inject @DataField("btn-manage-sources-add")
-    protected Button addSource;
-    
-    @Inject @DataField("btn-manage-sources-delete")
-    protected Button deleteSource;
-
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
@@ -134,7 +119,6 @@ public class ManageSourcesScreen extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
-    	selectionStatusMsg_noSelection = i18n.format("managesources.selected-source-no-selection");
     	String selectSourcePanelHtml = i18n.format("managesources.select-source-text");
         HTMLPanel selectSourcePanel = new HTMLPanel(selectSourcePanelHtml);
         
@@ -148,16 +132,15 @@ public class ManageSourcesScreen extends Composite {
 
     	// Selection model for the dsList
     	listSelectionModel = new SingleSelectionModel<DataSourcePageRow>();
-    	dsList.setSelectionModel(listSelectionModel);
+    	dsListPanel.setSelectionModel(listSelectionModel);
     	listSelectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
     		public void onSelectionChange(SelectionChangeEvent event) {
     			DataSourcePageRow row = listSelectionModel.getSelectedObject();
     			if(row!=null) {
         			showPropertiesPanel(row.getName());
-        			setSelectionStatusMessage(row.getMessage());
+        			propsPanel.setExternalError(row.getErrorMessage());
     			} else {
     				showBlankMessagePanel();
-        			setSelectionStatusMessage(selectionStatusMsg_noSelection);
     			}
     		}
     	});
@@ -179,22 +162,17 @@ public class ManageSourcesScreen extends Composite {
     	}
     }
     
-    public void setSelectionStatusMessage(String message) {
-    	if(selectStatusHtmlPanel!=null) {
-    		selectionStatusPanel.remove(0);
-    	}
-    	if(message==null) message=i18n.format("managesources.selected-source-status-unavailable");
-    	selectStatusHtmlPanel = new HTMLPanel("<p>"+message+"</p>");
-    	selectionStatusPanel.add(selectStatusHtmlPanel);
-    }
-    
     /**
      * Handles UiEvents
      * @param dEvent
      */
     public void onUiEvent(@Observes UiEvent dEvent) {
     	// User has OK'd source deletion
-    	if(dEvent.getType() == UiEventType.DELETE_SOURCE_OK) {
+    	if(dEvent.getType() == UiEventType.DATA_SOURCE_ADD) {
+    		onAddButtonClicked();
+    	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DELETE) {
+    		onDeleteButtonClicked();
+    	} else if(dEvent.getType() == UiEventType.DELETE_SOURCE_OK) {
     		confirmationDialog.hide();
     		onDeleteConfirm();
     	// User has cancelled source deletion
@@ -226,15 +204,14 @@ public class ManageSourcesScreen extends Composite {
     			}
     		}
     	}
-    	dsList.setData(this.currentDataSourceList);
+    	dsListPanel.setData(this.currentDataSourceList);
     }
     
     /**
-     * Event handler that fires when the user clicks the create button.
+     * Handler for DataSource added button clicks
      * @param event
      */
-    @EventHandler("btn-manage-sources-add")
-    public void onAddButtonClick(ClickEvent event) {
+    public void onAddButtonClicked() {
     	// Add a default Data Source
     	String newSourceName = getNewSourceName();
         DataSourceWithVdbDetailsBean sourceWithVdbBean = getDefaultSource(newSourceName);
@@ -255,7 +232,7 @@ public class ManageSourcesScreen extends Composite {
     private String getNewSourceName() {
     	String sourceRootName = Constants.DATA_SOURCE_NEW_NAME;
     	String newSourceName = Constants.DATA_SOURCE_NEW_NAME;
-    	Collection<String> existingNames = this.dsList.getDataSourceNames();
+    	Collection<String> existingNames = this.dsListPanel.getDataSourceNames();
     	int i = 1;
     	while(existingNames.contains(newSourceName)) {
     		newSourceName = sourceRootName+i;
@@ -265,11 +242,9 @@ public class ManageSourcesScreen extends Composite {
     }
     
     /**
-     * Event handler that fires when the user clicks the delete button.
-     * @param event
+     * Handler for DataSource delete button clicks
      */
-    @EventHandler("btn-manage-sources-delete")
-    public void onDeleteButtonClick(ClickEvent event) {
+    public void onDeleteButtonClicked() {
     	// Show confirmation dialog before the deletion
     	showConfirmDeleteDialog();
     }
@@ -372,9 +347,9 @@ public class ManageSourcesScreen extends Composite {
     			currentDataSourceList.clear();
     			currentDataSourceList.addAll(tableRowList);
     			
-    			dsList.setData(tableRowList);
+    			dsListPanel.setData(tableRowList);
     			if(selectedDS!=null) {
-    				dsList.setSelection(selectedDS);
+    				dsListPanel.setSelection(selectedDS);
     			} else {
     				showBlankMessagePanel();
     			}
