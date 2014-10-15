@@ -85,6 +85,9 @@ public class DataServiceDetailsScreen extends Composite {
 
     @Inject @DataField("anchor-goto-library")
     protected Anchor goToLibraryAnchor;
+
+    @Inject @DataField("anchor-download-clientjar")
+    protected Anchor downloadClientJarAnchor;
     
     @Inject @DataField("btn-edit-service")
     protected Button editServiceButton;
@@ -259,6 +262,15 @@ public class DataServiceDetailsScreen extends Composite {
     @EventHandler("anchor-goto-library")
     public void onGotoLibraryAnchorClick(ClickEvent event) {
     	placeManager.goTo("DataServicesLibraryScreen");
+    }
+    
+    /**
+     * Event handler that fires when the user clicks the Download Client jar anchor.
+     * @param event
+     */
+    @EventHandler("anchor-download-clientjar")
+    public void onDownloadClientJarAnchorClick(ClickEvent event) {
+    	Window.alert("Sorry, download not yet implemented");
     }
             
 }

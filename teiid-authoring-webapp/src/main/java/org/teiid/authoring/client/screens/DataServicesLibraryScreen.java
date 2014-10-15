@@ -17,6 +17,7 @@ package org.teiid.authoring.client.screens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -50,6 +51,7 @@ import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.PlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.IsWidget;
@@ -117,11 +119,15 @@ public class DataServicesLibraryScreen extends Composite {
     	// Process delete and clone requests from serviceWidget
     	String deleteName = place.getParameter(Constants.DELETE_SERVICE_KEY, "NONE");
     	String cloneName = place.getParameter(Constants.CLONE_SERVICE_KEY, "NONE");
+    	String saveName = place.getParameter(Constants.SAVE_SERVICE_KEY, "NONE");
     	if(!deleteName.equals("NONE")) {
     		deleteServiceName = deleteName;
     		confirmationDialog.show();
     	} else if(!cloneName.equals("NONE")) {
     		doCloneService(cloneName);
+    	} else if(!saveName.equals("NONE")) {
+    		doSaveServiceToFile(saveName);
+    		doGetServices();
     	} else {
     		doGetServices();
     	}
@@ -169,24 +175,9 @@ public class DataServicesLibraryScreen extends Composite {
     	teiidService.getDynamicVdbsWithPrefix(Constants.SERVICE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<VdbDetailsBean>>() {
     		@Override
     		public void onReturn(List<VdbDetailsBean> serviceVdbs) {
-    			List<ServiceRow> serviceTableRows = new ArrayList<ServiceRow>();
-    			// Each service VDB contains a single view that represents the service
-    			for(VdbDetailsBean serviceVdb : serviceVdbs) {
-    				Collection<VdbModelBean> modelList = serviceVdb.getModels();
-    				for(VdbModelBean model : modelList) {
-    					String modelName = model.getName();
-    					String description = model.getDescription();
-    					String modelType = model.getType();
-    					boolean isVisible = model.isVisible();
-    					if(modelType.equals(Constants.VIRTUAL)) {
-    						ServiceRow srow = new ServiceRow();
-    						srow.setName(modelName);
-    						srow.setDescription(description);
-    						srow.setVisible(isVisible);
-    						serviceTableRows.add(srow);
-    					}
-    				}
-    			}
+                // Convert VDBDetails to rows for the display
+    			List<ServiceRow> serviceTableRows = getServiceRows(serviceVdbs);
+
     			if(serviceTableRows.isEmpty()) {
     				placeManager.goTo("DataServicesEmptyLibraryScreen");
     			} else {
@@ -213,24 +204,9 @@ public class DataServicesLibraryScreen extends Composite {
                         i18n.format("dslibrary.delete-success"), //$NON-NLS-1$
                         i18n.format("dslibrary.delete-success-msg")); //$NON-NLS-1$
                 
-    			List<ServiceRow> serviceTableRows = new ArrayList<ServiceRow>();
-    			// Each service VDB contains a single view that represents the service
-    			for(VdbDetailsBean serviceVdb : serviceVdbs) {
-    				Collection<VdbModelBean> modelList = serviceVdb.getModels();
-    				for(VdbModelBean model : modelList) {
-    					String modelName = model.getName();
-    					String description = model.getDescription();
-    					String modelType = model.getType();
-    					boolean isVisible = model.isVisible();
-    					if(modelType.equals(Constants.VIRTUAL)) {
-    						ServiceRow srow = new ServiceRow();
-    						srow.setName(modelName);
-    						srow.setDescription(description);
-    						srow.setVisible(isVisible);
-    						serviceTableRows.add(srow);
-    					}
-    				}
-    			}
+                // Convert VDBDetails to rows for the display
+    			List<ServiceRow> serviceTableRows = getServiceRows(serviceVdbs);
+
     			if(serviceTableRows.isEmpty()) {
     				placeManager.goTo("DataServicesEmptyLibraryScreen");
     			} else {
@@ -259,24 +235,9 @@ public class DataServicesLibraryScreen extends Composite {
                         i18n.format("dslibrary.clone-success"), //$NON-NLS-1$
                         i18n.format("dslibrary.clone-success-msg")); //$NON-NLS-1$
                 
-    			List<ServiceRow> serviceTableRows = new ArrayList<ServiceRow>();
-    			// Each service VDB contains a single view that represents the service
-    			for(VdbDetailsBean serviceVdb : serviceVdbs) {
-    				Collection<VdbModelBean> modelList = serviceVdb.getModels();
-    				for(VdbModelBean model : modelList) {
-    					String modelName = model.getName();
-    					String description = model.getDescription();
-    					String modelType = model.getType();
-    					boolean isVisible = model.isVisible();
-    					if(modelType.equals(Constants.VIRTUAL)) {
-    						ServiceRow srow = new ServiceRow();
-    						srow.setName(modelName);
-    						srow.setDescription(description);
-    						srow.setVisible(isVisible);
-    						serviceTableRows.add(srow);
-    					}
-    				}
-    			}
+                // Convert VDBDetails to rows for the display
+    			List<ServiceRow> serviceTableRows = getServiceRows(serviceVdbs);
+
     			if(serviceTableRows.isEmpty()) {
     				placeManager.goTo("DataServicesEmptyLibraryScreen");
     			} else {
@@ -290,6 +251,39 @@ public class DataServicesLibraryScreen extends Composite {
     					error);
     		}
     	});
+    }
+    
+    /**
+     * Convert the list of VdbDetailsBeans to ServiceTableRows for the displayer
+     * @param serviceVdbs list of service VDB details
+     * @return the list of ServiceTableRows
+     */
+    private List<ServiceRow> getServiceRows(List<VdbDetailsBean> serviceVdbs) {
+    	if(serviceVdbs.isEmpty()) return Collections.emptyList();
+    	
+		List<ServiceRow> serviceRows = new ArrayList<ServiceRow>();
+		// Each service VDB contains a single view that represents the service
+		for(VdbDetailsBean serviceVdb : serviceVdbs) {
+			Collection<VdbModelBean> modelList = serviceVdb.getModels();
+			for(VdbModelBean model : modelList) {
+				String modelName = model.getName();
+				String description = model.getDescription();
+				String modelType = model.getType();
+				boolean isVisible = model.isVisible();
+				if(modelType.equals(Constants.VIRTUAL)) {
+					ServiceRow srow = new ServiceRow();
+					srow.setName(modelName);
+					srow.setDescription(description);
+					srow.setVisible(isVisible);
+					serviceRows.add(srow);
+				}
+			}
+		}
+		return serviceRows;
+    }
+    
+    protected void doSaveServiceToFile(String serviceName) {
+    	Window.alert("Sorry, save '"+serviceName+"' to a file - not implemented");
     }
      	
     /**

@@ -42,6 +42,7 @@ public class Constants {
 	public static final String SERVICE_VIEW_NAME = "SvcView";
 	public static final String CLONE_SERVICE_KEY = "clone-service";
 	public static final String DELETE_SERVICE_KEY = "delete-service";
+	public static final String SAVE_SERVICE_KEY = "save-service";
 	
 	public static final String DATA_SOURCE_NEW_NAME = "MyNewSource";
 	public static final String TEST_CONNECTION_FAILED = "Could not connect - please check source properties and server log, then enter desired properties";

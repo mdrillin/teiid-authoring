@@ -90,6 +90,9 @@ public interface AppImages extends ClientBundle {
     @Source("images/dstype_webservice.png")
     ImageResource dsType_webservice_Image();
 
+    @Source("images/dstype_addtype.png")
+    ImageResource dsType_addtype_Image();
+
     @Source("images/dstype_blankbox_small.png")
     ImageResource dsType_blankbox_small_Image();
 

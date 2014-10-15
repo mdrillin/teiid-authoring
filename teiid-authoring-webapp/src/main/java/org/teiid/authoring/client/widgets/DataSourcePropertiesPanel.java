@@ -19,6 +19,7 @@ import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
+import org.teiid.authoring.client.resources.AppResource;
 import org.teiid.authoring.client.resources.ImageHelper;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.TeiidRpcService;
@@ -39,6 +40,7 @@ import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -334,6 +336,18 @@ public class DataSourcePropertiesPanel extends Composite {
                 	dTypesButtonPanel.add(button);
                 	dsTypeButtons.add(button);
                 }
+                
+                // Add button for AddType
+                ImageResource addTypeImg = AppResource.INSTANCE.images().dsType_addtype_Image();
+                ToggleButton addTypeButton = new ToggleButton(new Image(addTypeImg));
+                addTypeButton.addClickHandler(new ClickHandler() {
+            		public void onClick(ClickEvent event) {
+                    	Window.alert("Sorry, feature not yet implemented");
+            		}
+            	});                	
+            	DOM.setStyleAttribute(addTypeButton.getElement(), "cssFloat", "left");
+            	DOM.setStyleAttribute(addTypeButton.getElement(), "margin", "5px");
+            	dTypesButtonPanel.add(addTypeButton);
             }
             @Override
             public void onError(Throwable error) {

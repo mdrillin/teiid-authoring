@@ -81,7 +81,7 @@ public class DataSourcePropertyEditor extends Composite {
         	DOM.setStyleAttribute(nameLabel.getElement(), "fontWeight", "bold");
     		nameLabel.setWidth(NAME_WIDTH);
     		nameLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
-    		nameLabel.setText(prop.getDisplayName()+" :  ");
+    		nameLabel.setText(prop.getDisplayName()+" --");
     		nameValuePanel.add(nameLabel);
     		
     		TextBox valueTextBox = new TextBox();
