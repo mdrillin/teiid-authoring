@@ -272,11 +272,12 @@ public class ViewEditorPanel extends Composite {
     			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
     		@Override
     		public void onReturn(QueryColumnResultSetBean data) {
-    			List<CheckableNameRow> colList = new ArrayList<CheckableNameRow>();
+    			List<CheckableNameTypeRow> colList = new ArrayList<CheckableNameTypeRow>();
     			List<QueryColumnBean> qColumns = data.getQueryColumns();
     			for(QueryColumnBean col : qColumns) {
-    				CheckableNameRow cRow = new CheckableNameRow();
+    				CheckableNameTypeRow cRow = new CheckableNameTypeRow();
     				cRow.setName(col.getName());
+    				cRow.setType(col.getType());
     				colList.add(cRow);
     			}
     			columnsTable.setData(colList);
@@ -300,13 +301,9 @@ public class ViewEditorPanel extends Composite {
     	String theTable = (selectedTable==null) ? "NULL" : selectedTable;
     	
     	List<String> colNames = columnsTable.getSelectedColumnNames();
-    	// Types hardcoded to string for now
-    	List<String> typeNames = new ArrayList<String>(colNames.size());
-    	for(String colName : colNames) {
-    		typeNames.add("string");
-    	}
+    	List<String> colTypes = columnsTable.getSelectedColumnTypes();
     	
-    	String viewString = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, typeNames);
+    	String viewString = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, colTypes);
     	viewDdlTextArea.setText(viewString);  
     	
     	haveSuccessfullyTested = false;

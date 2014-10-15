@@ -375,9 +375,9 @@ public class QueryService implements IQueryService {
         return resultSetBean;
     }
     
-    public List<String> getColumnNames( String dataSource, String selectSql ) throws DataVirtUiException {
+    public List<QueryColumnBean> getColumns( String dataSource, String selectSql ) throws DataVirtUiException {
 
-    	// Get DataSources Mape
+    	// Get DataSources Map
     	Map<String,DataSource> mDatasources = JdbcSourceHelper.getInstance().getDataSourceMap();
 
     	// Get a connection for the supplied data source name
@@ -388,7 +388,7 @@ public class QueryService implements IQueryService {
 			throw new DataVirtUiException(e.getMessage());
 		}
 
-		List<String> columnNames = new ArrayList<String>();
+		List<QueryColumnBean> columns = new ArrayList<QueryColumnBean>();
 		
     	try {
     		if(connection!=null && selectSql!=null && selectSql.trim().length()>0) {
@@ -400,9 +400,13 @@ public class QueryService implements IQueryService {
 
     			// List of the column names
     			int columnCount = resultSet.getMetaData().getColumnCount();
-    			columnNames = new ArrayList<String>(columnCount);
     			for (int i=1 ; i<=columnCount ; ++i) {
-    				columnNames.add(resultSet.getMetaData().getColumnName(i));
+    				QueryColumnBean qColumn = new QueryColumnBean();
+    				String colName = resultSet.getMetaData().getColumnName(i);
+    				String colType = resultSet.getMetaData().getColumnTypeName(i);
+    				qColumn.setName(colName);
+    				qColumn.setType(colType);
+    				columns.add(qColumn);
     			}
     			resultSet.close();
     			stmt.close();
@@ -419,7 +423,7 @@ public class QueryService implements IQueryService {
 			} catch (SQLException e1) {
 			}
     	}
-    	return columnNames;
+    	return columns;
     }
     
     public PageResponse<QueryResultPageRow> getQueryResults( final PageRequest pageRequest, String dataSource, String sql ) throws DataVirtUiException {

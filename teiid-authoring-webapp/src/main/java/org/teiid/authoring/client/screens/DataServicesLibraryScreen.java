@@ -21,11 +21,16 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
+import org.teiid.authoring.client.dialogs.ConfirmationDialog;
+import org.teiid.authoring.client.dialogs.UiEvent;
+import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
@@ -60,15 +65,19 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class DataServicesLibraryScreen extends Composite {
 
 	List<ServiceRow> currentServices = new ArrayList<ServiceRow>();    
+	private String deleteServiceName = null;
 	
 	@Inject
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;
     
+	private ConfirmationDialog confirmationDialog;
+    @Inject 
+    private ConfirmationContentPanel confirmationContent;
+    
     @Inject
     protected TeiidRpcService teiidService;
- 
     @Inject
     protected QueryRpcService queryService;
  
@@ -100,6 +109,7 @@ public class DataServicesLibraryScreen extends Composite {
     @PostConstruct
     protected void postConstruct() {
     	servicesPanel.add(serviceFlowListWidget);
+    	createConfirmationDialog();
     }
     
     @OnStartup
@@ -108,13 +118,44 @@ public class DataServicesLibraryScreen extends Composite {
     	String deleteName = place.getParameter(Constants.DELETE_SERVICE_KEY, "NONE");
     	String cloneName = place.getParameter(Constants.CLONE_SERVICE_KEY, "NONE");
     	if(!deleteName.equals("NONE")) {
-    		doRemoveService(deleteName);
+    		deleteServiceName = deleteName;
+    		confirmationDialog.show();
     	} else if(!cloneName.equals("NONE")) {
     		doCloneService(cloneName);
     	} else {
     		doGetServices();
     	}
      	cleanupTestVdbs();
+    }
+    
+    /**
+     * Create a dialog for confirming service deletion
+     */
+    private void createConfirmationDialog() {
+    	String dTitle = i18n.format("dslibrary.confirm-delete-dialog-title");
+    	String dMsg = i18n.format("dslibrary.confirm-delete-dialog-message");
+    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
+    	confirmationDialog.setContentTitle(dTitle);
+    	confirmationDialog.setContentMessage(dMsg);
+    	confirmationDialog.setOkCancelEventTypes(UiEventType.DELETE_SERVICE_OK, UiEventType.DELETE_SERVICE_CANCEL);
+    }
+    
+    /**
+     * Handles UiEvents
+     * @param dEvent
+     */
+    public void onUiEvent(@Observes UiEvent dEvent) {
+    	// User has OK'd source deletion
+    	if(dEvent.getType() == UiEventType.DELETE_SERVICE_OK) {
+    		confirmationDialog.hide();
+    		if(deleteServiceName!=null) {
+    			doRemoveService(deleteServiceName);
+    		}
+        // User has cancelled service deletion
+    	} else if(dEvent.getType() == UiEventType.DELETE_SERVICE_CANCEL) {
+        	confirmationDialog.hide();
+    		doGetServices();
+    	}
     }
     
     private void populateGrid(List<ServiceRow> serviceList) {

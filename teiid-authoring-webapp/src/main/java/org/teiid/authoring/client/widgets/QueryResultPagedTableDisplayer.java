@@ -25,6 +25,7 @@ import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
+import org.teiid.authoring.share.beans.QueryColumnBean;
 import org.teiid.authoring.share.beans.QueryResultPageRow;
 import org.uberfire.paging.PageRequest;
 import org.uberfire.paging.PageResponse;
@@ -139,18 +140,18 @@ public class QueryResultPagedTableDisplayer extends Composite {
     	final HorizontalPanel hPanel = new HorizontalPanel();
     	final int nRows = this.numberRows;
 
-		queryService.getColumnNames(dataSource, sql, new IRpcServiceInvocationHandler<List<String>>() {
+		queryService.getColumns(dataSource, sql, new IRpcServiceInvocationHandler<List<QueryColumnBean>>() {
 			@Override
-			public void onReturn(final List<String> colNames) {
+			public void onReturn(final List<QueryColumnBean> columns) {
 		    	table = new PagedTable<QueryResultPageRow>(nRows);
-		    	for(int i=0; i<colNames.size(); i++) {
+		    	for(int i=0; i<columns.size(); i++) {
 		    		final int colIndx = i;
 		    		TextColumn<QueryResultPageRow> col = new TextColumn<QueryResultPageRow>() {
 		    			public String getValue( QueryResultPageRow row ) {
 		    				return row.getColumnData().get(colIndx);
 		    			}
 		    		};
-		    		table.addColumn(col,colNames.get(i));
+		    		table.addColumn(col,columns.get(i).getName());
 		    	}
 	    		
 	            final Button refreshButton = new Button();

@@ -26,6 +26,7 @@ import org.jboss.errai.common.client.api.RemoteCallback;
 import org.teiid.authoring.client.services.rpc.DelegatingErrorCallback;
 import org.teiid.authoring.client.services.rpc.DelegatingRemoteCallback;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
+import org.teiid.authoring.share.beans.QueryColumnBean;
 import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
 import org.teiid.authoring.share.beans.QueryResultPageRow;
 import org.teiid.authoring.share.beans.QueryResultSetBean;
@@ -106,11 +107,11 @@ public class QueryRpcService {
         }
     }
     
-    public void getColumnNames(final String dataSource, final String sql, final IRpcServiceInvocationHandler<List<String>> handler) {
-        RemoteCallback<List<String>> successCallback = new DelegatingRemoteCallback<List<String>>(handler);
+    public void getColumns(final String dataSource, final String sql, final IRpcServiceInvocationHandler<List<QueryColumnBean>> handler) {
+        RemoteCallback<List<QueryColumnBean>> successCallback = new DelegatingRemoteCallback<List<QueryColumnBean>>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
-        	remoteQueryService.call(successCallback, errorCallback).getColumnNames(dataSource,sql);
+        	remoteQueryService.call(successCallback, errorCallback).getColumns(dataSource,sql);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }

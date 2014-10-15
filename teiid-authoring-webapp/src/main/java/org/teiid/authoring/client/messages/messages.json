@@ -71,6 +71,8 @@
   "dslibrary.clone-success" : "Service Duplicated", 
   "dslibrary.clone-success-msg" : "You have successfully duplicated the Data Service.",
   "dslibrary.service-clone-error" : "Error Duplicating Data Service",
+  "dslibrary.confirm-delete-dialog-title" : "Confirm Service Delete",
+  "dslibrary.confirm-delete-dialog-message" : "Continue with deletion of the Data Service?",
   "ds-properties-panel.error-populating-dstypes" : "Error populating data source types",
   "ds-properties-panel.error-populating-translators" : "Error populating translators",
   "ds-properties-panel.error-populating-properties" : "Error populating source properties",

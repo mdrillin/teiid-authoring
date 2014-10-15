@@ -40,7 +40,7 @@ public class ColumnNamesTable extends Composite {
     protected VerticalPanel panel = new VerticalPanel();
     protected Label label = new Label();
 
-    private SimpleTable<CheckableNameRow> table;
+    private SimpleTable<CheckableNameTypeRow> table;
 
     public ColumnNamesTable() {
         initWidget( panel );
@@ -52,20 +52,20 @@ public class ColumnNamesTable extends Composite {
      * @return the panel widget
      */
     protected Widget createTablePanel() {
-    	table = new SimpleTable<CheckableNameRow>();
+    	table = new SimpleTable<CheckableNameTypeRow>();
     	
         // Add Checkbox column
-    	Column<CheckableNameRow, Boolean> checkboxColumn= new Column<CheckableNameRow, Boolean>(new CheckboxCell(true,false))
+    	Column<CheckableNameTypeRow, Boolean> checkboxColumn= new Column<CheckableNameTypeRow, Boolean>(new CheckboxCell(true,false))
     			{
     		@Override
-    		public Boolean getValue(CheckableNameRow object)
+    		public Boolean getValue(CheckableNameTypeRow object)
     		{
     			if(object == null) return false;
     			return object.isChecked();
     		}
     	};
-    	checkboxColumn.setFieldUpdater(new FieldUpdater<CheckableNameRow, Boolean>() {
-    	    public void update(int index, CheckableNameRow object, Boolean value) {
+    	checkboxColumn.setFieldUpdater(new FieldUpdater<CheckableNameTypeRow, Boolean>() {
+    	    public void update(int index, CheckableNameTypeRow object, Boolean value) {
     	    	object.setChecked(value);
     	    }
     	});
@@ -75,8 +75,8 @@ public class ColumnNamesTable extends Composite {
         // --------------
     	// Name Column
     	// --------------
-        TextColumn<CheckableNameRow> nameColumn = new TextColumn<CheckableNameRow>() {
-            public String getValue( CheckableNameRow row ) {
+        TextColumn<CheckableNameTypeRow> nameColumn = new TextColumn<CheckableNameTypeRow>() {
+            public String getValue( CheckableNameTypeRow row ) {
                 return row.getName();
             }
         };
@@ -92,14 +92,14 @@ public class ColumnNamesTable extends Composite {
     }
     
     public void clear() {
-    	setData(Collections.<CheckableNameRow>emptyList());
+    	setData(Collections.<CheckableNameTypeRow>emptyList());
     }
     
     public String getSelectedRowString() {
     	StringBuilder sb = new StringBuilder();
     	
-    	List<CheckableNameRow> rows = table.getRowData();
-    	for(CheckableNameRow row : rows) {
+    	List<CheckableNameTypeRow> rows = table.getRowData();
+    	for(CheckableNameTypeRow row : rows) {
     		if(row.isChecked()) {
     			if(!sb.toString().isEmpty()) {
     				sb.append(",");
@@ -114,8 +114,8 @@ public class ColumnNamesTable extends Composite {
     public List<String> getSelectedColumnNames() {
     	List<String> colNames = new ArrayList<String>();
     	
-    	List<CheckableNameRow> rows = table.getRowData();
-    	for(CheckableNameRow row : rows) {
+    	List<CheckableNameTypeRow> rows = table.getRowData();
+    	for(CheckableNameTypeRow row : rows) {
     		if(row.isChecked() && row.getName()!=null) {
     			colNames.add(row.getName());
     		}
@@ -123,8 +123,20 @@ public class ColumnNamesTable extends Composite {
     	
     	return colNames;
     }
+    public List<String> getSelectedColumnTypes() {
+    	List<String> colTypes = new ArrayList<String>();
+    	
+    	List<CheckableNameTypeRow> rows = table.getRowData();
+    	for(CheckableNameTypeRow row : rows) {
+    		if(row.isChecked() && row.getType()!=null) {
+    			colTypes.add(row.getType());
+    		}
+    	}
+    	
+    	return colTypes;
+    }
     
-    public void setData(List<CheckableNameRow> rows) {
+    public void setData(List<CheckableNameTypeRow> rows) {
     	table.setRowData(rows);
     }
     

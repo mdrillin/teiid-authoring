@@ -18,6 +18,7 @@ package org.teiid.authoring.share.services;
 import java.util.List;
 
 import org.jboss.errai.bus.server.annotations.Remote;
+import org.teiid.authoring.share.beans.QueryColumnBean;
 import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
 import org.teiid.authoring.share.beans.QueryResultPageRow;
 import org.teiid.authoring.share.beans.QueryResultSetBean;
@@ -44,7 +45,7 @@ public interface IQueryService {
 
     public QueryResultSetBean executeSql(int page, String dataSource, String sql) throws DataVirtUiException;
 
-    public List<String> getColumnNames( String dataSource, String sql ) throws DataVirtUiException;
+    public List<QueryColumnBean> getColumns( String dataSource, String sql ) throws DataVirtUiException;
 
     public PageResponse<QueryResultPageRow> getQueryResults( final PageRequest pageRequest, String dataSource, String sql ) throws DataVirtUiException;
 

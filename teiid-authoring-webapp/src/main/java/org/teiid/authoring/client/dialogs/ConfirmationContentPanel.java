@@ -34,9 +34,7 @@ public class ConfirmationContentPanel extends Composite {
     @Inject @DataField("btn-cancel")
     protected Button cancelButton;
     
-    @Inject Event<UiEvent> okEvent;
-    
-    @Inject Event<UiEvent> cancelEvent;
+    @Inject Event<UiEvent> buttonEvent;
     
     /**
      * Called after construction.
@@ -68,7 +66,7 @@ public class ConfirmationContentPanel extends Composite {
      */
     @EventHandler("btn-ok")
     public void onOkButtonClick(ClickEvent event) {
-    	okEvent.fire(new UiEvent(this.okType));
+    	buttonEvent.fire(new UiEvent(this.okType));
     }
     
     /**
@@ -77,7 +75,7 @@ public class ConfirmationContentPanel extends Composite {
      */
     @EventHandler("btn-cancel")
     public void onCancelButtonClick(ClickEvent event) {
-    	cancelEvent.fire(new UiEvent(this.cancelType));
+    	buttonEvent.fire(new UiEvent(this.cancelType));
     }
        
 }
