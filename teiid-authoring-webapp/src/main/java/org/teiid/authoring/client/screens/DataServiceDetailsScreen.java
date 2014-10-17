@@ -42,6 +42,7 @@ import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Anchor;
@@ -270,7 +271,18 @@ public class DataServiceDetailsScreen extends Composite {
      */
     @EventHandler("anchor-download-clientjar")
     public void onDownloadClientJarAnchorClick(ClickEvent event) {
+//        String contentUrl = getWebContext() + "/services/dataVirtDownload?vdbname="+currentVdbDetails.getName(); //$NON-NLS-1$
+//       	Window.Location.assign(contentUrl);
+       	
     	Window.alert("Sorry, download not yet implemented");
+    }
+    
+    private String getWebContext() {
+        String context = GWT.getModuleBaseURL().replace( GWT.getModuleName() + "/", "" );
+        if ( context.endsWith( "/" ) ) {
+            context = context.substring( 0, context.length() - 1 );
+        }
+        return context;
     }
             
 }

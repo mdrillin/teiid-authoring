@@ -73,6 +73,15 @@ profile in pom.xml to use that. -->
     <url-pattern>/services/dataVirtUpload</url-pattern>
   </servlet-mapping>
   
+  <servlet>
+    <servlet-name>DataVirtDownload</servlet-name>
+    <servlet-class>org.teiid.authoring.backend.server.servlets.DataVirtDownloadServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DataVirtDownload</servlet-name>
+    <url-pattern>/services/dataVirtDownload</url-pattern>
+  </servlet-mapping>
+
   <context-param>
     <param-name>errai.properties</param-name>
     <param-value>/WEB-INF/errai.properties</param-value>

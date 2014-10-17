@@ -50,6 +50,7 @@ import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.PlaceRequest;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
@@ -283,9 +284,18 @@ public class DataServicesLibraryScreen extends Composite {
     }
     
     protected void doSaveServiceToFile(String serviceName) {
-    	Window.alert("Sorry, save '"+serviceName+"' to a file - not implemented");
+        String contentUrl = getWebContext() + "/services/dataVirtDownload?vdbname="+Constants.SERVICE_VDB_PREFIX+serviceName; //$NON-NLS-1$
+       	Window.Location.assign(contentUrl);
     }
      	
+    private String getWebContext() {
+        String context = GWT.getModuleBaseURL().replace( GWT.getModuleName() + "/", "" );
+        if ( context.endsWith( "/" ) ) {
+            context = context.substring( 0, context.length() - 1 );
+        }
+        return context;
+    }
+    
     /**
      * Do a clean-up of any temporary VDBs that may have not been undeployed
      */

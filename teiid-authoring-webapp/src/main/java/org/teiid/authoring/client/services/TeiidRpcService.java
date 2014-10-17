@@ -64,6 +64,16 @@ public class TeiidRpcService {
             errorCallback.error(null, e);
         }
     }
+    
+    public void getVdbXml(String dsName, final IRpcServiceInvocationHandler<String> handler) {
+        RemoteCallback<String> successCallback = new DelegatingRemoteCallback<String>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteTeiidService.call(successCallback, errorCallback).getVdbXml(dsName);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
 
     public void getDataSourceTypes(final IRpcServiceInvocationHandler<List<String>> handler) {
         RemoteCallback<List<String>> successCallback = new DelegatingRemoteCallback<List<String>>(handler);

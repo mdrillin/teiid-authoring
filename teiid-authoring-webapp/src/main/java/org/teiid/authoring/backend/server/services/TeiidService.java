@@ -569,6 +569,25 @@ public class TeiidService implements ITeiidService {
     	return driverName;
     }
          
+    /**
+     * Get the dynamic VDB xml
+     * @param vdbName the name of the vdb
+     * @return the vdb xml text
+     */
+    public String getVdbXml(String vdbName) throws DataVirtUiException {
+    	String vdbXml = null;
+
+    	try {
+    		VDBMetaData vdb = clientAccessor.getClient().getVDB(vdbName,1);
+
+    		vdbXml = vdbHelper.getVdbString(vdb);
+    	} catch (Exception e) {
+			throw new DataVirtUiException(e.getMessage());
+    	}
+    	
+    	return vdbXml;
+    }  
+    
     public void deleteDataSource(String dsName) throws DataVirtUiException {
     	try {
 			clientAccessor.getClient().deleteDataSource(dsName);

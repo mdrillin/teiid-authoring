@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
-import org.teiid.authoring.backend.server.services.VdbService;
+import org.teiid.authoring.backend.server.services.TeiidService;
 import org.teiid.authoring.share.Constants;
 
 /**
@@ -40,7 +40,7 @@ public class DataVirtDownloadServlet extends HttpServlet {
 	private static final long serialVersionUID = DataVirtDownloadServlet.class.hashCode();
 
     @Inject
-    protected VdbService vdbService;
+    protected TeiidService teiidService;
 
     /**
 	 * Constructor.
@@ -58,7 +58,7 @@ public class DataVirtDownloadServlet extends HttpServlet {
 		try {
 	        String vdbName = req.getParameter("vdbname"); //$NON-NLS-1$
 			
-    		String vdbXml =vdbService.getVdbXml(vdbName);
+    		String vdbXml = teiidService.getVdbXml(vdbName);
 
 			doDownloadVdb(httpResponse, vdbName + Constants.DYNAMIC_VDB_SUFFIX, new ByteArrayInputStream(vdbXml.getBytes("UTF-8")));
 			

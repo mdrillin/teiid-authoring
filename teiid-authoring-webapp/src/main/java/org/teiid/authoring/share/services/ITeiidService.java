@@ -47,6 +47,8 @@ public interface ITeiidService {
 
     public List<DataSourcePropertyBean> getDataSourceTypeProperties(String dsType) throws DataVirtUiException;
 
+    public String getVdbXml(String vdbName) throws DataVirtUiException;
+    
     public List<String> getDataSourceNames( ) throws DataVirtUiException;
 
     public List<String> getTranslators( ) throws DataVirtUiException;
