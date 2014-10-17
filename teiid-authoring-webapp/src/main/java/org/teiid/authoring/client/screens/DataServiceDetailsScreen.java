@@ -271,10 +271,8 @@ public class DataServiceDetailsScreen extends Composite {
      */
     @EventHandler("anchor-download-clientjar")
     public void onDownloadClientJarAnchorClick(ClickEvent event) {
-//        String contentUrl = getWebContext() + "/services/dataVirtDownload?vdbname="+currentVdbDetails.getName(); //$NON-NLS-1$
-//       	Window.Location.assign(contentUrl);
-       	
-    	Window.alert("Sorry, download not yet implemented");
+        String contentUrl = getWebContext() + "/services/dataVirtDownload?jarname=clientjar"; //$NON-NLS-1$
+       	Window.Location.assign(contentUrl);
     }
     
     private String getWebContext() {
