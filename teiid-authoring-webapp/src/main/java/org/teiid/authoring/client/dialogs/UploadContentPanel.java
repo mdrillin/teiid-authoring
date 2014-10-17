@@ -8,6 +8,7 @@ import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.messages.ClientMessages;
+import org.teiid.authoring.client.widgets.IImportCompletionHandler;
 import org.teiid.authoring.client.widgets.ImportDataSourceTypeFormSubmitHandler;
 import org.teiid.authoring.client.widgets.TemplatedFormPanel;
 
@@ -66,6 +67,20 @@ public class UploadContentPanel extends Composite {
 		formHandler.setDialog(theDialog);
 	}
 
+    /**
+     * @return the completionHandler
+     */
+    public IImportCompletionHandler getCompletionHandler() {
+        return formHandler.getCompletionHandler();
+    }
+
+    /**
+     * @param completionHandler the completionHandler to set
+     */
+    public void setCompletionHandler(IImportCompletionHandler completionHandler) {
+        this.formHandler.setCompletionHandler(completionHandler);
+    }
+    
 	/**
 	 * Event handler that fires when the user clicks the Upload button.
 	 * @param event

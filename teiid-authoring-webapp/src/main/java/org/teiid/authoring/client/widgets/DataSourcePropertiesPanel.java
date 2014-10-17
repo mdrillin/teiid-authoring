@@ -324,6 +324,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	teiidService.getDataSourceTypes(new IRpcServiceInvocationHandler<List<String>>() {
             @Override
             public void onReturn(List<String> dsTypes) {
+            	dTypesButtonPanel.clear();
             	dsTypeButtons.clear();
             	// Generates toggle buttons for each type
                 for(String dType : dsTypes) {
@@ -358,6 +359,14 @@ public class DataSourcePropertiesPanel extends Composite {
                 ToggleButton addTypeButton = new ToggleButton(new Image(addTypeImg));
                 addTypeButton.addClickHandler(new ClickHandler() {
             		public void onClick(ClickEvent event) {
+            			uploadContent.setCompletionHandler(new IImportCompletionHandler() {
+            	            @Override
+            	            public void onImportComplete() {
+            	                if (isAttached()) {
+            	                	doPopulateSourceTypesPanel();
+            	                }
+            	            }
+            	        });
             	    	uploadDialog = new UploadDialog(uploadContent, "title" );
             	    	uploadDialog.show();
             		}

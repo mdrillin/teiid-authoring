@@ -82,8 +82,6 @@ public class ImportDataSourceTypeFormSubmitHandler implements SubmitHandler, Sub
      */
     @Override
     public void onSubmitComplete(SubmitCompleteEvent event) {
-        Window.alert("SubmitHandler.onSubmitComplete");
-        
         dialog.hide();
 
         ImportResult results = ImportResult.fromResult(event.getResults());
