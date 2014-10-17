@@ -1,0 +1,17 @@
+.custom-ToggleButton
+{
+    background-color            :    #ffa;
+    color                       :    #555;
+
+    text-align                  :    center;
+}
+.custom-ToggleButton-up-hovering
+{
+    color                       :    #009;
+    background-color            :    #ffd;
+}
+.custom-ToggleButton-down, .demo-ToggleButton-down-hovering
+{
+    background-color            :    #ff0;
+    padding                     :    0px 9px;
+}

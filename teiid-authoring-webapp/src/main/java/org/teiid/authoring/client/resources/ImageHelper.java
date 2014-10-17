@@ -68,6 +68,31 @@ public class ImageHelper {
     }
     
 	/**
+	 * Determine if the type has a known image 
+	 * @param dsType the dataSource type
+	 * @return 'true' if a specific image is found, 'false' if not.
+	 */
+    public boolean hasKnownImage(String dsType) {
+    	boolean hasImage = false;
+    	if(dsType.equals(Constants.DS_TYPE_FILE) ||
+    	   dsType.equals(Constants.DS_TYPE_GOOGLE) ||
+    	   dsType.equals(Constants.DS_TYPE_H2) ||
+    	   dsType.equals(Constants.DS_TYPE_INFINISPAN) ||
+    	   dsType.equals(Constants.DS_TYPE_LDAP) ||
+    	   dsType.equals(Constants.DS_TYPE_MODESHAPE) ||
+    	   dsType.equals(Constants.DS_TYPE_MONGODB) ||
+    	   dsType.equals(Constants.DS_TYPE_SALESFORCE) ||
+    	   dsType.equals(Constants.DS_TYPE_TEIID) ||
+    	   dsType.equals(Constants.DS_TYPE_TEIID_LOCAL) ||
+    	   dsType.equals(Constants.DS_TYPE_WEBSERVICE)) {
+    		hasImage = true;
+    	} else {
+    		hasImage = false;
+    	}
+    	return hasImage;
+    }
+    
+	/**
 	 * Get the image html string for the provided datasource type
 	 * @param dsType the dataSource type
 	 * @return the image html

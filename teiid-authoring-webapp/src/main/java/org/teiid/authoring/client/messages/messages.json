@@ -115,6 +115,17 @@
   "vieweditor-panel.testing-service-msg" : "Testing service '{0}', please wait...",
   "vieweditor-panel.testing-service-complete" : "Service Tested",
   "vieweditor-panel.testing-service-complete-msg" : "Successfully Tested the service",
-  "vieweditor-panel.testing-service-error" : "Error Testing the Data Service"
+  "vieweditor-panel.testing-service-error" : "Error Testing the Data Service",
+  "upload-dtype-dialog.dialog-title" : "Add a Data Source Type",
+  "upload-dtype-dialog.dialog-choosefile-message" : "Choose a file to upload (JDBC Type4 driver).",
+  "upload-dtype-dialog.dialog-entername-message" : "Enter a name for the new type",
+  "import-datasource-type-submit.uploading.title" : "Uploading Data Source type",
+  "import-datasource-type-submit.uploading.msg" : "Please wait while your upload is processed...",
+  "import-datasource-type-submit.upload-error.title" : "Uploading Data Source type [!Error!]",
+  "import-datasource-type-submit.upload-error.msg" : "Something went wrong with your upload!  Please contact your system administrator.",
+  "import-datasource-type-submit.upload-success.msg" : "The Data Source type was uploaded, with {0} datasource(s) successfully processed and {1} failed.",
+  "import-datasource-type-submit.upload-complete.msg" : "Thank you for waiting - your upload has completed successfully.",
+  "import-datasource-type-submit.click-here-1" : "Click here",
+  "import-datasource-type-submit.upload-complete.title" : "Uploading Data Source type [Complete]"
 }
 		

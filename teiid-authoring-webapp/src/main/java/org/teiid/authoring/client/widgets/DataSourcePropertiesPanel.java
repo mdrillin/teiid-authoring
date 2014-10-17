@@ -11,6 +11,7 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.jboss.errai.ioc.client.container.SyncBeanManager;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -18,6 +19,8 @@ import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
 import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
+import org.teiid.authoring.client.dialogs.UploadContentPanel;
+import org.teiid.authoring.client.dialogs.UploadDialog;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.resources.AppResource;
 import org.teiid.authoring.client.resources.ImageHelper;
@@ -40,7 +43,6 @@ import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -58,11 +60,15 @@ public class DataSourcePropertiesPanel extends Composite {
 	private static final String MSG_ERROR = "ERROR";
 	
     @Inject
+    private SyncBeanManager iocManager;
+    @Inject
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;
     @Inject 
     private ConfirmationContentPanel confirmationContent;
+    @Inject 
+    private UploadContentPanel uploadContent;
     
 	private String statusEnterName = null;
 	private String statusSelectTrans = null;
@@ -71,6 +77,7 @@ public class DataSourcePropertiesPanel extends Composite {
 	private String externalError = null;
 	
 	private ConfirmationDialog confirmationDialog;
+	private UploadDialog uploadDialog;
 	private String clickedSourceType;
     
 	// List of all available translators
@@ -124,6 +131,8 @@ public class DataSourcePropertiesPanel extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
+    	AppResource.INSTANCE.css().customToggleStyle().ensureInjected();
+    	
     	dsDetailsPanelTitle.setText("Data Source: [New Source]");
     	
 		statusEnterName = i18n.format("ds-properties-panel.status-enter-name");
@@ -320,7 +329,14 @@ public class DataSourcePropertiesPanel extends Composite {
                 for(String dType : dsTypes) {
                 	ImageResource img = ImageHelper.getInstance().getDataSourceImageForType(dType);
                 	Image buttonImage = new Image(img);
-                	ToggleButton button = new ToggleButton(buttonImage);
+                	ToggleButton button;
+                	if(!ImageHelper.getInstance().hasKnownImage(dType)) {
+                    	button = new ToggleButton(dType,dType);
+                		button.addStyleName("custom-ToggleButton");
+                		button.setSize("170px", "55px");
+                	} else {
+                    	button = new ToggleButton(buttonImage);
+                	}
                 	button.getElement().setId(dType);
                 	button.addClickHandler(new ClickHandler() {
                 		public void onClick(ClickEvent event) {
@@ -342,7 +358,8 @@ public class DataSourcePropertiesPanel extends Composite {
                 ToggleButton addTypeButton = new ToggleButton(new Image(addTypeImg));
                 addTypeButton.addClickHandler(new ClickHandler() {
             		public void onClick(ClickEvent event) {
-                    	Window.alert("Sorry, feature not yet implemented");
+            	    	uploadDialog = new UploadDialog(uploadContent, "title" );
+            	    	uploadDialog.show();
             		}
             	});                	
             	DOM.setStyleAttribute(addTypeButton.getElement(), "cssFloat", "left");

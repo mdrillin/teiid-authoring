@@ -55,6 +55,10 @@ public class ConfirmationContentPanel extends Composite {
         messagePanel.add(htmlPanel);
     }
     
+    public void addContentPanel(VerticalPanel panel) {
+    	messagePanel.add(panel);
+    }
+    
     public void setOkCancelEventTypes(UiEventType okType, UiEventType cancelType) {
     	this.okType = okType;
     	this.cancelType = cancelType;

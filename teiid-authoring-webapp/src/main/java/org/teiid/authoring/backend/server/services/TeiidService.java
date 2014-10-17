@@ -868,7 +868,7 @@ public class TeiidService implements ITeiidService {
     	return getVdbDetails(vdbName, 1);
     }
     
-    private void deployVdbWithSource(String vdbName, InputStream vdbContent) throws DataVirtUiException {
+    public void deployVdbWithSource(String vdbName, InputStream vdbContent) throws DataVirtUiException {
 		// Deployment name for vdb must end in '-vdb.xml'
 		String deploymentName = vdbName + Constants.DYNAMIC_VDB_SUFFIX;
 

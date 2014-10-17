@@ -11,4 +11,6 @@ public interface AppResource
 
     AppImages images();
     
+    AppCss css();
+    
 }

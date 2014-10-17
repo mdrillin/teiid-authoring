@@ -2,6 +2,7 @@ package org.teiid.authoring.client.dialogs;
 
 import org.kie.uberfire.client.common.Popup;
 
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 /**
@@ -35,6 +36,10 @@ public class ConfirmationDialog extends Popup {
 
     public void setContentMessage(String message) {
     	this.contentPanel.setMessage(message);
+    }
+    
+    public void setContentPanel(VerticalPanel panel) {
+    	this.contentPanel.addContentPanel(panel);
     }
     
     public void setOkCancelEventTypes(UiEventType okType, UiEventType cancelType) {
