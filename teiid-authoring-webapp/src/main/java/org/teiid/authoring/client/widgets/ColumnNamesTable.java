@@ -140,6 +140,10 @@ public class ColumnNamesTable extends Composite {
     	table.setRowData(rows);
     }
     
+    public List<CheckableNameTypeRow> getData() {
+    	return table.getRowData();
+    }
+    
     public void setSelectionModel( final SelectionModel selectionModel ) {
         table.setSelectionModel( selectionModel );
     }

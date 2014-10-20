@@ -60,8 +60,6 @@ public class DataSourcePropertiesPanel extends Composite {
 	private static final String MSG_ERROR = "ERROR";
 	
     @Inject
-    private SyncBeanManager iocManager;
-    @Inject
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;

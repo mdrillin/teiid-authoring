@@ -13,18 +13,61 @@
     </tr>
     
     <tr style="background-color:#BBBBBB"><td width="100%" height="30px" style="border-style:solid;border-width:2px;border-color:#999999;font-weight:bold;">Markup Helpers</td></tr>
-    <tr><td width="100%" style="padding-left:340px;padding-top:10px"><button data-field="btn-vieweditor-manage-sources" class="btn btn-primary btn-sm">Manage Sources</button></td></tr>
-    <tr>
-      <td style="padding-left:110px">
-        <div data-field="picker-tables"></div>
-      </td>
-    </tr>
-    <tr>
-      <td width="100%" style="text-align:right;padding-right:160px;padding-bottom:10px">
-        <button data-field="btn-vieweditor-createDdl" class="btn btn-default btn-sm">Create markup</button>
-        <button data-field="btn-vieweditor-addToDdl" class="btn btn-default btn-sm">Add fields to markup</button>
-      </td>
-    </tr>
+
+    <tr><td width="100%">
+    <!-- Nav tabs -->
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="active"><a href="#sources" role="tab" data-toggle="tab">Active Sources</a></li>
+        <li><a href="#samples" role="tab" data-toggle="tab">View Templates</a></li>
+      </ul>
+
+      <!-- Tab panes -->
+      <div class="tab-content">
+        <div class="tab-pane active" id="sources">
+          <table>
+          <tr>
+            <td width="100%" style="padding-left:110px;padding-top:8px">
+              <label data-field="lbl-vieweditor-sources-message" style="font-style:italic" />
+            </td>
+          </tr>
+          <tr><td width="100%" style="padding-left:340px;padding-top:10px"><button data-field="btn-vieweditor-manage-sources" class="btn btn-primary btn-sm">Manage Sources</button></td></tr>
+          <tr>
+            <td style="padding-left:110px">
+              <div data-field="picker-tables"></div>
+            </td>
+          </tr>
+          <tr>
+            <td width="100%" style="text-align:right;padding-right:160px;padding-bottom:10px">
+              <button data-field="btn-vieweditor-createDdl" class="btn btn-default btn-sm">Create markup</button>
+              <button data-field="btn-vieweditor-addToDdl" class="btn btn-default btn-sm">Add fields to markup</button>
+            </td>
+          </tr>
+          </table>
+        </div>
+        <div class="tab-pane" id="samples">
+          <table width="95%">
+          <tr>
+            <td width="100%" style="padding-left:30px;padding-top:8px">
+              <label data-field="lbl-vieweditor-samples-message" style="font-style:italic" />
+            </td>
+          </tr>
+          <tr>
+            <td width="100%" style="padding-left:30px;padding-top:5px">
+              <span data-field="listbox-vieweditor-templates"></span>
+            </td>
+          </tr>
+          <tr>
+            <td width="100%" style="padding-left:30px;padding-top:5px"><textarea data-field="textarea-vieweditor-sampleDdl" class="form-control" rows="6"></textarea></td>
+          </tr>
+          <tr>
+            <td width="100%" style="text-align:right;padding-right:160px;padding-bottom:10px">
+              <button data-field="btn-vieweditor-apply-sample" class="btn btn-default btn-sm">Apply</button>
+            </td>
+          </tr>
+          </table>
+        </div>
+      </div> 
+    </td></tr>
   </table>
   
   <!-- START -->

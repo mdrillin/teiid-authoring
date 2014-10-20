@@ -34,6 +34,7 @@ import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
+import org.teiid.authoring.client.resources.AppResource;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.TeiidRpcService;
@@ -51,6 +52,7 @@ import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
 
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
@@ -94,7 +96,10 @@ public class ManageSourcesScreen extends Composite {
     @Inject @DataField("anchor-goto-create-service")
     protected Anchor goToCreateServiceAnchor;
     
-    @Inject @DataField("list-datasources")
+    @Inject @DataField("dslist-deckpanel")
+    protected DeckPanel dsListDeckPanel;
+    
+    @Inject
     protected DataSourceListPanel dsListPanel;
     
     @Inject @DataField("details-deckpanel")
@@ -128,6 +133,11 @@ public class ManageSourcesScreen extends Composite {
     	detailsDeckPanel.showWidget(1);
     	propPanelVisible=false;
     	
+    	// Deck panel for DataSource list
+    	HTMLPanel spinnerPanel = new HTMLPanel(AbstractImagePrototype.create(AppResource.INSTANCE.images().spinnner24x24Image()).getHTML());
+    	dsListDeckPanel.add(spinnerPanel);
+    	dsListDeckPanel.add(dsListPanel);
+    	dsListDeckPanel.showWidget(0);
     	doGetDataSourceInfos(null);
 
     	// Selection model for the dsList
@@ -279,6 +289,7 @@ public class ManageSourcesScreen extends Composite {
      * @param dsDetailsBean the data source details
      */
     private void doCreateDataSource(final DataSourceWithVdbDetailsBean detailsBean) {
+    	dsListDeckPanel.showWidget(0);
     	final String dsName = detailsBean.getName();
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("managesources.creating-datasource-title"), //$NON-NLS-1$
@@ -293,12 +304,14 @@ public class ManageSourcesScreen extends Composite {
 
                 // Refresh Page
             	doGetDataSourceInfos(detailsBean.getName());
+            	dsListDeckPanel.showWidget(1);
             }
             @Override
             public void onError(Throwable error) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("managesources.create-error"), //$NON-NLS-1$
                         error);
+            	dsListDeckPanel.showWidget(1);
             }
         });
     }
@@ -307,6 +320,7 @@ public class ManageSourcesScreen extends Composite {
      * Called when the user confirms the dataSource deletion.
      */
     private void doDeleteDataSources(final List<String> dsNames, final String selectedDS) {
+    	dsListDeckPanel.showWidget(0);
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("managesources.deleting-datasource-title"), //$NON-NLS-1$
                 i18n.format("managesources.deleting-datasource-msg", "sourceList")); //$NON-NLS-1$
@@ -318,12 +332,14 @@ public class ManageSourcesScreen extends Composite {
                         i18n.format("managesources.delete-success-msg")); //$NON-NLS-1$
 
             	doGetDataSourceInfos(selectedDS);
+            	dsListDeckPanel.showWidget(1);
             }
             @Override
             public void onError(Throwable error) {
               notificationService.completeProgressNotification(notificationBean.getUuid(),
               i18n.format("managesources.delete-error"), //$NON-NLS-1$
               error);
+          	  dsListDeckPanel.showWidget(1);
             }
         });
     }
@@ -333,6 +349,7 @@ public class ManageSourcesScreen extends Composite {
      * @param selectedDS the selected DataSource, if selection is desired.
      */
     protected void doGetDataSourceInfos(final String selectedDS) {
+    	dsListDeckPanel.showWidget(0);
     	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
     		@Override
     		public void onReturn(List<DataSourcePageRow> dsInfos) {
@@ -355,9 +372,11 @@ public class ManageSourcesScreen extends Composite {
     			}
     			
     	    	doPopulateDefaultTranslatorMappings();
+    	    	dsListDeckPanel.showWidget(1);
     		}
     		@Override
     		public void onError(Throwable error) {
+    	    	dsListDeckPanel.showWidget(1);
     			notificationService.sendErrorNotification(i18n.format("managesources.error-getting-datasources"), error); //$NON-NLS-1$
     		}
     	});

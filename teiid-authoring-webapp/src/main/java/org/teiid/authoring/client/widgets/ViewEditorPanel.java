@@ -7,11 +7,14 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.event.Event;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
+import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
@@ -31,13 +34,17 @@ import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.services.StringUtils;
 import org.uberfire.client.mvp.PlaceManager;
 
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
@@ -52,7 +59,6 @@ public class ViewEditorPanel extends Composite {
 	private String statusEnterName = null;
 	private String statusEnterView = null;
 	private String statusTestView = null;
-	private String statusDefineSources = null;
 	private String queryResultDefaultMsg = null;
 	private String currentStatus = null;
 	
@@ -104,6 +110,26 @@ public class ViewEditorPanel extends Composite {
     @Inject @DataField("table-vieweditor-queryResults")
     protected QueryResultsPanel queryResultsPanel;
     
+    @Inject @DataField("lbl-vieweditor-sources-message")
+    protected Label sourcesMessageLabel;
+    
+    @Inject @DataField("lbl-vieweditor-samples-message")
+    protected Label samplesMessageLabel;
+    
+    @Inject @DataField("listbox-vieweditor-templates")
+    protected ListBox ddlTemplatesListBox;
+
+    @Inject @DataField("textarea-vieweditor-sampleDdl")
+    protected TextArea sampleDdlTextArea;
+    
+    @Inject @DataField("btn-vieweditor-apply-sample")
+    protected Button applySampleDdlButton;
+    
+    @Inject 
+    private ConfirmationContentPanel confirmationContent;
+	private ConfirmationDialog confirmationDialog;
+	private String workingDdl;
+	
     @Inject Event<UiEvent> stateChangedEvent;
     
     /**
@@ -115,7 +141,6 @@ public class ViewEditorPanel extends Composite {
 		statusEnterName = i18n.format("vieweditor-panel.status-label-enter-name");
 		statusEnterView = i18n.format("vieweditor-panel.status-label-enter-view");
 		statusTestView = i18n.format("vieweditor-panel.status-label-test-view");
-		statusDefineSources = i18n.format("vieweditor-panel.status-label-define-sources");
 		currentStatus = statusEnterView;
 
     	tablesAndProcsTable.clear();
@@ -169,8 +194,57 @@ public class ViewEditorPanel extends Composite {
             }
         });
     	
+    	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-picksource-message"));
+    	samplesMessageLabel.setText(i18n.format("vieweditor-panel.sample-ddl-message"));
+
+    	populateDdlTemplatesListBox();
+    	sampleDdlTextArea.setText(DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_SINGLE_SOURCE));
+    	// Change Listener for Type ListBox
+    	ddlTemplatesListBox.addChangeHandler(new ChangeHandler()
+        {
+        	// Changing the Type selection will re-populate property table with defaults for that type
+        	public void onChange(ChangeEvent event)
+        	{
+        		String ddlSample = null;
+        		String template = getSelectedDdlTemplate(); 
+        		if(template.equals(DdlHelper.DDL_TEMPLATE_SINGLE_SOURCE)) {
+        			ddlSample = DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_SINGLE_SOURCE);
+        		} else if(template.equals(DdlHelper.DDL_TEMPLATE_TWO_SOURCE_JOIN)) {
+        			ddlSample = DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_TWO_SOURCE_JOIN);
+        		} else if(template.equals(DdlHelper.DDL_TEMPLATE_FLAT_FILE)) {
+        			ddlSample = DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_FLAT_FILE);
+        		} 
+        		sampleDdlTextArea.setText(ddlSample);
+        	}
+        });
+    	
     	updateStatus();
     }
+    
+    /**
+     * Init the List of Service actions
+     */
+    private void populateDdlTemplatesListBox( ) {
+    	// Make sure clear first
+    	ddlTemplatesListBox.clear();
+
+    	ddlTemplatesListBox.insertItem(DdlHelper.DDL_TEMPLATE_SINGLE_SOURCE, 0);
+    	ddlTemplatesListBox.insertItem(DdlHelper.DDL_TEMPLATE_TWO_SOURCE_JOIN, 1);
+    	ddlTemplatesListBox.insertItem(DdlHelper.DDL_TEMPLATE_FLAT_FILE, 2);
+    	
+    	// Initialize by setting the selection to the first item.
+    	ddlTemplatesListBox.setSelectedIndex(0);
+    }
+    
+    /**
+     * Get the selected action from the MoreActions dropdown
+     * @return
+     */
+    private String getSelectedDdlTemplate() {
+    	int index = ddlTemplatesListBox.getSelectedIndex();
+    	return ddlTemplatesListBox.getValue(index);
+    }
+    
     
     public void setTitle(String title) {
     	viewEditorPanelTitle.setText(title);
@@ -208,6 +282,8 @@ public class ViewEditorPanel extends Composite {
     				}
     			}
             	dsNamesTable.setData(dsList);
+            	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-picksource-message"));
+            	updateStatus();
     		}
     		@Override
     		public void onError(Throwable error) {
@@ -249,6 +325,8 @@ public class ViewEditorPanel extends Composite {
 					}
 				}
 				tablesAndProcsTable.setData(nameList);
+            	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-picktable-message"));
+            	updateStatus();
 			}
 			@Override
 			public void onError(Throwable error) {
@@ -281,6 +359,8 @@ public class ViewEditorPanel extends Composite {
     				colList.add(cRow);
     			}
     			columnsTable.setData(colList);
+            	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-pickcolumns-message"));
+            	updateStatus();
     		}
     		@Override
     		public void onError(Throwable error) {
@@ -303,12 +383,20 @@ public class ViewEditorPanel extends Composite {
     	List<String> colNames = columnsTable.getSelectedColumnNames();
     	List<String> colTypes = columnsTable.getSelectedColumnTypes();
     	
-    	String viewString = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, colTypes);
-    	viewDdlTextArea.setText(viewString);  
-    	
-    	haveSuccessfullyTested = false;
-    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
-    	updateStatus();
+    	if(colNames.isEmpty()) {
+    		Window.alert("Please select one or more columns");
+    		return;
+    	}
+     	String viewDdl = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, colTypes);
+    	// Nothing in viewDDL area - safe to replace.
+    	if(StringUtils.isEmpty(viewDdlTextArea.getText())) {
+    		replaceViewMarkup(viewDdl);
+        // has View DDL - prompt before replace.
+    	} else {
+    		workingDdl = viewDdl;
+    		showConfirmOverwriteDialog();
+    	}
+    
     }
     
     /**
@@ -318,10 +406,75 @@ public class ViewEditorPanel extends Composite {
     @EventHandler("btn-vieweditor-addToDdl")
     public void onAddToDdlButtonClick(ClickEvent event) {
     	String colString = columnsTable.getSelectedRowString();
+    	if(colString.isEmpty()) {
+    		Window.alert("Please select one or more columns");
+    		return;
+    	}
 
     	String currentDdl = viewDdlTextArea.getText();
     	
     	viewDdlTextArea.setText(currentDdl+"\n"+colString);  
+    	
+    	haveSuccessfullyTested = false;
+    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
+    	updateStatus();
+    }
+    
+    /**
+     * Event handler that fires when the user clicks the Apply sample button.
+     * @param event
+     */
+    @EventHandler("btn-vieweditor-apply-sample")
+    public void onApplySampleDdlButtonClick(ClickEvent event) {
+    	String ddlTemplate = sampleDdlTextArea.getText();
+    	if(ddlTemplate.isEmpty()) {
+    		Window.alert("Please select a template");
+    		return;
+    	}
+    	// Nothing in viewDDL area - safe to replace.
+    	if(StringUtils.isEmpty(viewDdlTextArea.getText())) {
+    		replaceViewMarkup(ddlTemplate);
+        // has View DDL - prompt before replace.
+    	} else {
+    		workingDdl = ddlTemplate;
+    		showConfirmOverwriteDialog();
+    	}
+    }
+    
+    /**
+     * Shows the confirmation dialog for overwrite of view markup
+     */
+    private void showConfirmOverwriteDialog() {
+    	String dTitle = i18n.format("ds-properties-panel.confirm-overwrite-dialog-title");
+    	String dMsg = i18n.format("ds-properties-panel.confirm-overwrite-dialog-message");
+    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
+    	confirmationDialog.setContentTitle(dTitle);
+    	confirmationDialog.setContentMessage(dMsg);
+    	confirmationDialog.setOkCancelEventTypes(UiEventType.VIEW_MARKUP_REPLACE_OK, UiEventType.VIEW_MARKUP_REPLACE_CANCEL);
+    	confirmationDialog.show();
+    }
+    
+    /**
+     * Handles UiEvents
+     * @param dEvent
+     */
+    public void onDialogEvent(@Observes UiEvent dEvent) {
+    	// User has OK'd source rename
+    	if(dEvent.getType() == UiEventType.VIEW_MARKUP_REPLACE_OK) {
+    		confirmationDialog.hide();
+    		replaceViewMarkup(workingDdl);
+    	// User has OK'd source redeploy
+    	} else if(dEvent.getType() == UiEventType.VIEW_MARKUP_REPLACE_CANCEL) {
+    		confirmationDialog.hide();
+    	} 
+    }
+    
+    /**
+     * Replace the ViewMarkup TextArea with the supplied DDL
+     * @param ddl
+     */
+    private void replaceViewMarkup(String ddl) {
+    	viewDdlTextArea.setText(ddl);  
     	
     	haveSuccessfullyTested = false;
     	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
@@ -352,7 +505,6 @@ public class ViewEditorPanel extends Composite {
                 i18n.format("vieweditor-panel.testing-service-title"), //$NON-NLS-1$
                 i18n.format("vieweditor-panel.testing-service-msg", serviceName)); //$NON-NLS-1$
             	
-    	final String viewModel = serviceName;
     	String viewDdl = viewDdlTextArea.getText();
     	List<String> rqdImportVdbNames = getSrcVdbNames();
     	
@@ -429,6 +581,21 @@ public class ViewEditorPanel extends Composite {
 //    			currentStatus = statusDefineSources;
 //    		}
 //    	}
+    	
+    	List<CheckableNameTypeRow> colRows = columnsTable.getData();
+    	if(colRows.isEmpty()) {
+    		createDdlButton.setEnabled(false);
+    		addToDdlButton.setEnabled(false);
+    	} else {
+    		createDdlButton.setEnabled(true);
+    		addToDdlButton.setEnabled(true);
+    	}
+    	
+    	if(StringUtils.isEmpty(sampleDdlTextArea.getText())) {
+    		applySampleDdlButton.setEnabled(false);
+    	} else {
+    		applySampleDdlButton.setEnabled(true);
+    	}
     	
 		// Force the user to successfully test the service first
     	if(Constants.OK.equals(currentStatus)) {
