@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
 import org.jboss.errai.databinding.client.api.DataBinder;
@@ -13,6 +14,8 @@ import org.jboss.errai.ui.shared.api.annotations.Bound;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.dialogs.UiEvent;
+import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.share.Constants;
 import org.uberfire.client.mvp.PlaceManager;
@@ -21,7 +24,6 @@ import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
@@ -54,6 +56,8 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 
     @Inject @DataField("listbox-servicewidget-more-actions")
     protected ListBox moreActionsListBox;
+    
+    @Inject Event<UiEvent> uiEvent;
     
 	public ServiceRow getModel() {
 		return serviceBinder.getModel();
@@ -119,6 +123,17 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
     	return moreActionsListBox.getValue(index);
     }
     
+    /**
+     * Fire status event for a dataSource
+     * @param eventType the type of event
+     * @param dataSourceName the datasource name
+     */
+    private void fireUiEvent(UiEventType eventType, String serviceName) {
+		UiEvent sEvent = new UiEvent(eventType);
+		sEvent.setDataServiceName(serviceName);
+		uiEvent.fire(sEvent);
+    }
+    
 	/**
 	 * Event handler that fires when the user clicks the ViewService button.
 	 * @param event
@@ -176,11 +191,7 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
     }
     
     protected void doSaveToFile( ) {
-		String svcName = getModel().getName();
-		Map<String,String> parameters = new HashMap<String,String>();
-		parameters.put(Constants.SAVE_SERVICE_KEY, svcName);
-
-		placeManager.goTo(new DefaultPlaceRequest("DataServicesLibraryScreen",parameters));
+    	fireUiEvent(UiEventType.SAVE_SERVICE, getModel().getName());
     }
 
 }

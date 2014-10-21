@@ -70,8 +70,9 @@ import com.google.gwt.user.client.ui.TextBox;
 @WorkbenchScreen(identifier = "EditDataServiceScreen")
 public class EditDataServiceScreen extends Composite {
 
-	private String statusEnterName = null;
-	private String statusClickSave = null;
+	private String statusEnterName;
+	private String statusClickSave;
+	private String serviceOriginalName;
 	
     @Inject
     private PlaceManager placeManager;
@@ -133,7 +134,7 @@ public class EditDataServiceScreen extends Composite {
     public void onStartup( final PlaceRequest place ) {
     	String serviceName = place.getParameter(Constants.SERVICE_NAME_KEY, "[unknown]");
     	serviceNameTextBox.setText(serviceName);
-    	serviceNameTextBox.setEnabled(false);
+    	serviceOriginalName = serviceName;
     	
     	viewEditorPanel.setServiceName(serviceName);
     	serviceNameTextBox.addKeyUpHandler(new KeyUpHandler() {
@@ -245,6 +246,12 @@ public class EditDataServiceScreen extends Composite {
                         i18n.format("editdataservice.saving-service-complete"), //$NON-NLS-1$
                         i18n.format("editdataservice.saving-service-complete-msg")); //$NON-NLS-1$
 
+                // Delete the original named VDB if there was a rename
+                if(!serviceName.equals(serviceOriginalName)) {
+                	deleteVdb(Constants.SERVICE_VDB_PREFIX+serviceOriginalName);
+                }
+                
+                // Cleanup test VDBs
                 cleanupTestVdbs();
             	
             	Map<String,String> parameters = new HashMap<String,String>();
@@ -266,6 +273,20 @@ public class EditDataServiceScreen extends Composite {
  		teiidService.deleteDynamicVdbsWithPrefix(Constants.SERVICE_TEST_VDB_PREFIX, new IRpcServiceInvocationHandler<Void>() {
     		@Override
     		public void onReturn(Void data) {
+    		}
+    		@Override
+    		public void onError(Throwable error) {
+    		}
+    	});
+ 	}
+ 	
+    /**
+     * Deletes the original VDB on a VDB rename operation
+     */
+ 	private void deleteVdb(String vdbName) {
+ 		teiidService.deleteDataSourceAndVdb(vdbName,vdbName, new IRpcServiceInvocationHandler<List<VdbDetailsBean>>() {
+    		@Override
+    		public void onReturn(List<VdbDetailsBean> data) {
     		}
     		@Override
     		public void onError(Throwable error) {

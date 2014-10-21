@@ -52,6 +52,7 @@ import org.uberfire.mvp.PlaceRequest;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
@@ -120,15 +121,11 @@ public class DataServicesLibraryScreen extends Composite {
     	// Process delete and clone requests from serviceWidget
     	String deleteName = place.getParameter(Constants.DELETE_SERVICE_KEY, "NONE");
     	String cloneName = place.getParameter(Constants.CLONE_SERVICE_KEY, "NONE");
-    	String saveName = place.getParameter(Constants.SAVE_SERVICE_KEY, "NONE");
     	if(!deleteName.equals("NONE")) {
     		deleteServiceName = deleteName;
     		confirmationDialog.show();
     	} else if(!cloneName.equals("NONE")) {
     		doCloneService(cloneName);
-    	} else if(!saveName.equals("NONE")) {
-    		doSaveServiceToFile(saveName);
-    		doGetServices();
     	} else {
     		doGetServices();
     	}
@@ -162,6 +159,9 @@ public class DataServicesLibraryScreen extends Composite {
     	} else if(dEvent.getType() == UiEventType.DELETE_SERVICE_CANCEL) {
         	confirmationDialog.hide();
     		doGetServices();
+    	// User requesting save service to file
+    	} else if(dEvent.getType() == UiEventType.SAVE_SERVICE) {
+    		doSaveServiceToFile(dEvent.getDataServiceName());    		
     	}
     }
     

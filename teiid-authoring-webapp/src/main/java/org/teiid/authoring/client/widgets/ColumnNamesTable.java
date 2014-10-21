@@ -35,7 +35,7 @@ import com.google.gwt.view.client.SelectionModel;
  */
 public class ColumnNamesTable extends Composite {
 
-	private static String COLUMN_HEADER_NAME = "Fields";
+	private static String COLUMN_HEADER_NAME = "Columns";
 
     protected VerticalPanel panel = new VerticalPanel();
     protected Label label = new Label();
