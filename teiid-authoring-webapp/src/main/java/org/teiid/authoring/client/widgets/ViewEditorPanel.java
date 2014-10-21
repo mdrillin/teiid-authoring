@@ -129,6 +129,8 @@ public class ViewEditorPanel extends Composite {
     private ConfirmationContentPanel confirmationContent;
 	private ConfirmationDialog confirmationDialog;
 	private String workingDdl;
+	private SingleSelectionModel<CheckableNameRow> dsSelectionModel;
+	private SingleSelectionModel<String> tableSelectionModel;
 	
     @Inject Event<UiEvent> stateChangedEvent;
     
@@ -156,9 +158,9 @@ public class ViewEditorPanel extends Composite {
     	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
 
     	// SelectionModel to handle Source selection 
-    	final SingleSelectionModel<CheckableNameRow> dsSelectionModel = new SingleSelectionModel<CheckableNameRow>();
+    	dsSelectionModel = new SingleSelectionModel<CheckableNameRow>();
     	dsNamesTable.setSelectionModel(dsSelectionModel); 
-    	dsSelectionModel. addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
+    	dsSelectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
     		public void onSelectionChange( SelectionChangeEvent event) { 
     			tablesAndProcsTable.clear();
     			columnsTable.clear();
@@ -169,9 +171,9 @@ public class ViewEditorPanel extends Composite {
     		} });
 
     	// SelectionModel to handle Table-procedure selection 
-    	final SingleSelectionModel<String> tableSelectionModel = new SingleSelectionModel<String>();
+    	tableSelectionModel = new SingleSelectionModel<String>();
     	tablesAndProcsTable.setSelectionModel(tableSelectionModel); 
-    	tableSelectionModel. addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
+    	tableSelectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
     		public void onSelectionChange( SelectionChangeEvent event) { 
     			String selected = tableSelectionModel.getSelectedObject();
     			selectedTable = selected;
@@ -281,7 +283,8 @@ public class ViewEditorPanel extends Composite {
             			dsList.add(createCheckableNameRow(dsName,false));
     				}
     			}
-            	dsNamesTable.setData(dsList);
+            	dsSelectionModel.clear();
+             	dsNamesTable.setData(dsList);
             	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-picksource-message"));
             	updateStatus();
     		}
@@ -324,6 +327,7 @@ public class ViewEditorPanel extends Composite {
 						}
 					}
 				}
+				tableSelectionModel.clear();
 				tablesAndProcsTable.setData(nameList);
             	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-picktable-message"));
             	updateStatus();

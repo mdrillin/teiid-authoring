@@ -263,8 +263,10 @@ public class ManageSourcesScreen extends Composite {
      * Shows the confirmation dialog for deleting a DataSource
      */
     private void showConfirmDeleteDialog() {
+		DataSourcePageRow row = listSelectionModel.getSelectedObject();
+		String dsName = row.getName();
     	String dTitle = i18n.format("managesources.confirm-delete-dialog-title");
-    	String dMsg = i18n.format("managesources.confirm-delete-dialog-message");
+    	String dMsg = i18n.format("managesources.confirm-delete-dialog-message",dsName);
     	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
     	confirmationDialog.setContentTitle(dTitle);
     	confirmationDialog.setContentMessage(dMsg);

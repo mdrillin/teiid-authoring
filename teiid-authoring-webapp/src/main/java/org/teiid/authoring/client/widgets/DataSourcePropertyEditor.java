@@ -107,8 +107,10 @@ public class DataSourcePropertyEditor extends Composite {
     		this.nameTextBoxMap.put(prop.getName(), valueTextBox);
     	}
     	panel.clear();
-    	panel.add(titleLabel);
-    	panel.add(allPropsPanel);
+    	if(properties.size()>0) {
+    		panel.add(titleLabel);
+    		panel.add(allPropsPanel);
+    	}
     }
     
     

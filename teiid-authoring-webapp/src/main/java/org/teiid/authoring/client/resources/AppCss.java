@@ -9,5 +9,9 @@ public interface AppCss extends ClientBundle {
 	@NotStrict
     @Source("css/CustomToggle.css")
     CssResource customToggleStyle();
+	
+	@NotStrict
+    @Source("css/DataGrid.css")
+    CssResource customDataGridStyle();
     
 }

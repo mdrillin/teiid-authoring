@@ -113,7 +113,7 @@ public class DataServicesLibraryScreen extends Composite {
     @PostConstruct
     protected void postConstruct() {
     	servicesPanel.add(serviceFlowListWidget);
-    	createConfirmationDialog();
+    	createConfirmDeleteDialog();
     }
     
     @OnStartup
@@ -123,6 +123,8 @@ public class DataServicesLibraryScreen extends Composite {
     	String cloneName = place.getParameter(Constants.CLONE_SERVICE_KEY, "NONE");
     	if(!deleteName.equals("NONE")) {
     		deleteServiceName = deleteName;
+        	String dMsg = i18n.format("dslibrary.confirm-delete-dialog-message",deleteServiceName);
+        	confirmationDialog.setContentMessage(dMsg);
     		confirmationDialog.show();
     	} else if(!cloneName.equals("NONE")) {
     		doCloneService(cloneName);
@@ -134,8 +136,9 @@ public class DataServicesLibraryScreen extends Composite {
     
     /**
      * Create a dialog for confirming service deletion
+     * @param serviceName the name of the service
      */
-    private void createConfirmationDialog() {
+    private void createConfirmDeleteDialog( ) {
     	String dTitle = i18n.format("dslibrary.confirm-delete-dialog-title");
     	String dMsg = i18n.format("dslibrary.confirm-delete-dialog-message");
     	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );

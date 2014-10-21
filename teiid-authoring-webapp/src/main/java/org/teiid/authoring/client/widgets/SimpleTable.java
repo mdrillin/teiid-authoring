@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.kie.uberfire.client.resources.CommonResources;
 import org.kie.uberfire.shared.preferences.GridGlobalPreferences;
+import org.teiid.authoring.client.resources.DataGridResources;
 
 import com.github.gwtbootstrap.client.ui.DataGrid;
 import com.github.gwtbootstrap.client.ui.Label;
@@ -65,7 +66,8 @@ public class SimpleTable<T>
     private String emptyTableCaption;
 
     public SimpleTable() {
-        dataGrid = new DataGrid<T>();
+    	DataGridResources.INSTANCE.dataGridStyle().ensureInjected();
+    	dataGrid = new DataGrid<T>(Integer.MAX_VALUE,DataGridResources.INSTANCE);
         setupGridTable();
     }
     
