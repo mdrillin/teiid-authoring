@@ -11,7 +11,6 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import org.jboss.errai.ioc.client.container.SyncBeanManager;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -49,6 +48,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
@@ -331,8 +331,7 @@ public class DataSourcePropertiesPanel extends Composite {
                 	ToggleButton button;
                 	if(!ImageHelper.getInstance().hasKnownImage(dType)) {
                     	button = new ToggleButton(dType,dType);
-                		button.addStyleName("custom-ToggleButton");
-                		button.setSize("170px", "55px");
+                		button.setStylePrimaryName("customToggle");
                 	} else {
                     	button = new ToggleButton(buttonImage);
                 	}
@@ -348,13 +347,14 @@ public class DataSourcePropertiesPanel extends Composite {
                 	});                	
                 	DOM.setStyleAttribute(button.getElement(), "cssFloat", "left");
                 	DOM.setStyleAttribute(button.getElement(), "margin", "5px");
+                	DOM.setStyleAttribute(button.getElement(), "padding", "0px");
                 	dTypesButtonPanel.add(button);
                 	dsTypeButtons.add(button);
                 }
                 
                 // Add button for AddType
                 ImageResource addTypeImg = AppResource.INSTANCE.images().dsType_addtype_Image();
-                ToggleButton addTypeButton = new ToggleButton(new Image(addTypeImg));
+                PushButton addTypeButton = new PushButton(new Image(addTypeImg));
                 addTypeButton.addClickHandler(new ClickHandler() {
             		public void onClick(ClickEvent event) {
             			uploadContent.setCompletionHandler(new IImportCompletionHandler() {
@@ -371,6 +371,7 @@ public class DataSourcePropertiesPanel extends Composite {
             	});                	
             	DOM.setStyleAttribute(addTypeButton.getElement(), "cssFloat", "left");
             	DOM.setStyleAttribute(addTypeButton.getElement(), "margin", "5px");
+            	DOM.setStyleAttribute(addTypeButton.getElement(), "padding", "0px");
             	dTypesButtonPanel.add(addTypeButton);
             }
             @Override
