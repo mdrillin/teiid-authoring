@@ -15,6 +15,7 @@
  */
 package org.teiid.authoring.client.widgets;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,18 +28,18 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.SelectionModel;
 
 /**
- * Composite for display of DataSource names
+ * Composite for display of View Source names
  */
-public class DataSourceNamesTable extends Composite {
+public class ViewSourceNamesTable extends Composite {
 
-	private static String COLUMN_HEADER_NAME = "Sources";
+	private static String COLUMN_HEADER_NAME = "Required Sources";
 
     protected VerticalPanel panel = new VerticalPanel();
     protected Label label = new Label();
 
     private SimpleTable<String> table;
 
-    public DataSourceNamesTable() {
+    public ViewSourceNamesTable() {
         initWidget( panel );
         panel.add(createTablePanel());
     }
@@ -49,20 +50,16 @@ public class DataSourceNamesTable extends Composite {
      */
     protected Widget createTablePanel() {
     	table = new SimpleTable<String>();
-    	
-        // --------------
-    	// Name Column
-    	// --------------
         TextColumn<String> nameColumn = new TextColumn<String>() {
             public String getValue( String row ) {
                 return row;
             }
         };
         table.addColumn( nameColumn, COLUMN_HEADER_NAME );
-        table.setColumnWidth(nameColumn, 300, Unit.PX);
+        table.setColumnWidth(nameColumn, 250, Unit.PX);
         
-    	table.setWidth("305px");
-    	table.setHeight("200px");
+    	table.setWidth("270px");
+    	table.setHeight("130px");
     	
         VerticalPanel verticalPanel = new VerticalPanel();
         verticalPanel.add(table);
@@ -77,7 +74,19 @@ public class DataSourceNamesTable extends Composite {
     	table.setRowData(rows);
     }
     
-    public List<String> getData() {
+    public void addData(List<String> rows) {
+    	List<String> currentRows = getData();
+    	List<String> newRows = new ArrayList<String>();
+    	newRows.addAll(currentRows);
+    	for(String row : rows) {
+    		if(!newRows.contains(row)) {
+    			newRows.add(row);
+    		}
+    	}
+    	table.setRowData(newRows);
+    }
+    
+    public List<String> getData( ) {
     	return table.getRowData();
     }
     

@@ -35,7 +35,6 @@ import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.widgets.ViewEditorPanel;
-import org.teiid.authoring.client.widgets.VisibilityRadios;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.NotificationBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
@@ -51,6 +50,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
@@ -87,8 +87,10 @@ public class CreateDataServiceScreen extends Composite {
     @Inject @DataField("textarea-create-service-description")
     protected TextArea serviceDescriptionTextBox;
     
-    @Inject @DataField("radios-create-service-visibility")
-    protected VisibilityRadios serviceVisibleRadios;
+//    @Inject @DataField("radios-create-service-visibility")
+//    protected VisibilityRadios serviceVisibleRadios;
+    @Inject @DataField("checkbox-create-service-visibility")
+    protected CheckBox serviceVisibleCheckbox;
     
     @Inject @DataField("label-create-service-status")
     protected Label statusLabel;
@@ -124,7 +126,8 @@ public class CreateDataServiceScreen extends Composite {
 		viewEditorPanel.setTitle(i18n.format("createdataservice.vieweditor-title"));
 		viewEditorPanel.setDescription(i18n.format("createdataservice.vieweditor-description"));
 		
-    	serviceVisibleRadios.setValue(true);
+		serviceVisibleCheckbox.setText(i18n.format("createdataservice.checkbox-service-visible"));
+    	serviceVisibleCheckbox.setValue(true);
     	
     	serviceNameTextBox.addKeyUpHandler(new KeyUpHandler() {
             @Override
@@ -203,8 +206,8 @@ public class CreateDataServiceScreen extends Composite {
     	String serviceDescription = this.serviceDescriptionTextBox.getText();
     	final String viewModel = serviceName;
     	String viewDdl = viewEditorPanel.getViewDdl();
-    	boolean isVisible = serviceVisibleRadios.isVisibleSelected();
-    	List<String> rqdImportVdbNames = viewEditorPanel.getSrcVdbNames();
+    	boolean isVisible = serviceVisibleCheckbox.getValue();
+    	List<String> rqdImportVdbNames = viewEditorPanel.getViewSourceVdbNames();
     	
     	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
     	viewModelRequest.setName(serviceName);

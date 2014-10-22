@@ -18,6 +18,7 @@ package org.teiid.authoring.share.beans;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.jboss.errai.common.client.api.annotations.Portable;
 import org.jboss.errai.databinding.client.api.Bindable;
@@ -36,7 +37,8 @@ public class VdbDetailsBean extends VdbSummaryBean implements Serializable {
     private String updatedBy;
     private String version;
     private Collection<VdbModelBean> models = new ArrayList<VdbModelBean>();
-    private int modelsPerPage;
+    private List<String> importedVdbNames = new ArrayList<String>();
+	private int modelsPerPage;
     private int startIndex;
     private int endIndex;
 
@@ -126,6 +128,14 @@ public class VdbDetailsBean extends VdbSummaryBean implements Serializable {
         this.version = version;
     }
     
+    public List<String> getImportedVdbNames() {
+		return importedVdbNames;
+	}
+
+	public void setImportedVdbNames(List<String> importedVdbNames) {
+		this.importedVdbNames = importedVdbNames;
+	}
+	
     /**
      * @return the total number of Models
      */

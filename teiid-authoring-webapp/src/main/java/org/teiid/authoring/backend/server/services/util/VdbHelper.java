@@ -152,6 +152,13 @@ public class VdbHelper {
 				vdbDetailsBean.setType("archive");				
 			}
 
+			List<VDBImportMetadata> vdbImports = vdb.getVDBImports();
+			List<String> vdbImportNames = new ArrayList<String>(vdbImports.size());
+			for(VDBImportMetadata importMeta : vdbImports) {
+				vdbImportNames.add(importMeta.getName());
+			}
+			vdbDetailsBean.setImportedVdbNames(vdbImportNames);
+			
 			// ------------
 			// VDB Status
 			// ------------

@@ -1,6 +1,7 @@
 package org.teiid.authoring.client.widgets;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,7 @@ public class ViewEditorPanel extends Composite {
 	private boolean haveSuccessfullyTested = false;
 	private String statusEnterName = null;
 	private String statusEnterView = null;
+	private String statusDefineViewSources = null;
 	private String statusTestView = null;
 	private String queryResultDefaultMsg = null;
 	private String currentStatus = null;
@@ -103,6 +105,9 @@ public class ViewEditorPanel extends Composite {
     
     @Inject @DataField("textarea-vieweditor-viewDdl")
     protected TextArea viewDdlTextArea;
+ 
+    @Inject @DataField("panel-vieweditor-viewsources")
+    protected ViewSourcePanel viewSourcePanel;
     
     @Inject @DataField("btn-vieweditor-test")
     protected Button testViewButton;
@@ -129,7 +134,9 @@ public class ViewEditorPanel extends Composite {
     private ConfirmationContentPanel confirmationContent;
 	private ConfirmationDialog confirmationDialog;
 	private String workingDdl;
-	private SingleSelectionModel<CheckableNameRow> dsSelectionModel;
+	private List<String> workingViewSrcNames;
+	private String selectedDataSrcName;
+	private SingleSelectionModel<String> dsSelectionModel;
 	private SingleSelectionModel<String> tableSelectionModel;
 	
     @Inject Event<UiEvent> stateChangedEvent;
@@ -142,6 +149,7 @@ public class ViewEditorPanel extends Composite {
 		queryResultDefaultMsg = i18n.format("vieweditor-panel.query-results-default-message");
 		statusEnterName = i18n.format("vieweditor-panel.status-label-enter-name");
 		statusEnterView = i18n.format("vieweditor-panel.status-label-enter-view");
+		statusDefineViewSources = i18n.format("vieweditor-panel.status-label-define-viewsources");
 		statusTestView = i18n.format("vieweditor-panel.status-label-test-view");
 		currentStatus = statusEnterView;
 
@@ -158,15 +166,16 @@ public class ViewEditorPanel extends Composite {
     	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
 
     	// SelectionModel to handle Source selection 
-    	dsSelectionModel = new SingleSelectionModel<CheckableNameRow>();
+    	dsSelectionModel = new SingleSelectionModel<String>();
     	dsNamesTable.setSelectionModel(dsSelectionModel); 
     	dsSelectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
     		public void onSelectionChange( SelectionChangeEvent event) { 
     			tablesAndProcsTable.clear();
     			columnsTable.clear();
-    			CheckableNameRow selectedRow = dsSelectionModel.getSelectedObject();
-    			if (selectedRow != null) {
-    				doGetTablesAndProcs(selectedRow.getName());
+    			String srcName = dsSelectionModel.getSelectedObject();
+    			selectedDataSrcName = srcName;
+    			if (srcName != null) {
+    				doGetTablesAndProcs(srcName);
     			}
     		} });
 
@@ -178,9 +187,9 @@ public class ViewEditorPanel extends Composite {
     			String selected = tableSelectionModel.getSelectedObject();
     			selectedTable = selected;
     			if (selected != null) {
-    				CheckableNameRow theSource = dsSelectionModel.getSelectedObject();
+    				String srcName = dsSelectionModel.getSelectedObject();
     				String longTableName = shortToLongTableNameMap.get(selected);
-    				doGetTableColumns(theSource.getName(), longTableName, 1);
+    				doGetTableColumns(srcName, longTableName, 1);
     			}
     		} });
     	
@@ -195,6 +204,10 @@ public class ViewEditorPanel extends Composite {
             	updateStatus();
             }
         });
+    	
+    	// starting viewSources list is empty
+    	List<String> sList = new ArrayList<String>();
+    	viewSourcePanel.setData(sList,dsNamesTable.getData());
     	
     	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-picksource-message"));
     	samplesMessageLabel.setText(i18n.format("vieweditor-panel.sample-ddl-message"));
@@ -215,6 +228,8 @@ public class ViewEditorPanel extends Composite {
         			ddlSample = DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_TWO_SOURCE_JOIN);
         		} else if(template.equals(DdlHelper.DDL_TEMPLATE_FLAT_FILE)) {
         			ddlSample = DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_FLAT_FILE);
+        		} else if(template.equals(DdlHelper.DDL_TEMPLATE_WEBSERVICE)) {
+        			ddlSample = DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_WEBSERVICE);
         		} 
         		sampleDdlTextArea.setText(ddlSample);
         	}
@@ -233,6 +248,7 @@ public class ViewEditorPanel extends Composite {
     	ddlTemplatesListBox.insertItem(DdlHelper.DDL_TEMPLATE_SINGLE_SOURCE, 0);
     	ddlTemplatesListBox.insertItem(DdlHelper.DDL_TEMPLATE_TWO_SOURCE_JOIN, 1);
     	ddlTemplatesListBox.insertItem(DdlHelper.DDL_TEMPLATE_FLAT_FILE, 2);
+    	ddlTemplatesListBox.insertItem(DdlHelper.DDL_TEMPLATE_WEBSERVICE, 3);
     	
     	// Initialize by setting the selection to the first item.
     	ddlTemplatesListBox.setSelectedIndex(0);
@@ -261,6 +277,15 @@ public class ViewEditorPanel extends Composite {
     	updateStatus();
     }
     
+    public void setViewSources(List<String> viewSources) {
+    	this.viewSourcePanel.setData(viewSources,dsNamesTable.getData());
+    	updateStatus();
+    }
+    
+    public List<String> getViewSources( ) {
+    	return this.viewSourcePanel.getData();
+    }
+    
     public String getViewDdl( ) {
     	return this.viewDdlTextArea.getText();    	
     }
@@ -276,15 +301,15 @@ public class ViewEditorPanel extends Composite {
     		public void onReturn(List<DataSourcePageRow> dsInfos) {
     			// Create list of DataSources that are accessible.  Only the Sources that have 'OK' state
     			// have an associated VDB source and are reachable...
-            	List<CheckableNameRow> dsList = new ArrayList<CheckableNameRow>();
+            	List<String> dsList = new ArrayList<String>();
     			for(DataSourcePageRow row : dsInfos) {
     				if(row.getState()==DataSourcePageRow.State.OK) {
-    					String dsName = row.getName();
-            			dsList.add(createCheckableNameRow(dsName,false));
+            			dsList.add(row.getName());
     				}
     			}
             	dsSelectionModel.clear();
              	dsNamesTable.setData(dsList);
+             	viewSourcePanel.setAllAvailableSources(dsList);
             	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-picksource-message"));
             	updateStatus();
     		}
@@ -295,13 +320,6 @@ public class ViewEditorPanel extends Composite {
     	});
     }
  
-    private CheckableNameRow createCheckableNameRow(String name, boolean isSelected) {
-		CheckableNameRow cRow = new CheckableNameRow();
-		cRow.setName(name);
-		cRow.setChecked(isSelected);
-		return cRow;
-    }
-
     /**
      * Get the Tables and Procs for the supplied data source
      * @param dataSourceName the name of the source
@@ -386,6 +404,8 @@ public class ViewEditorPanel extends Composite {
     	
     	List<String> colNames = columnsTable.getSelectedColumnNames();
     	List<String> colTypes = columnsTable.getSelectedColumnTypes();
+    	List<String> selectedSourceNames = new ArrayList<String>();
+    	selectedSourceNames.add(this.selectedDataSrcName);
     	
     	if(colNames.isEmpty()) {
     		Window.alert("Please select one or more columns");
@@ -394,10 +414,12 @@ public class ViewEditorPanel extends Composite {
      	String viewDdl = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, colTypes);
     	// Nothing in viewDDL area - safe to replace.
     	if(StringUtils.isEmpty(viewDdlTextArea.getText())) {
-    		replaceViewMarkup(viewDdl);
+    		replaceViewMarkup(viewDdl,selectedSourceNames);
+    		viewSourcePanel.setData(selectedSourceNames,dsNamesTable.getData());
         // has View DDL - prompt before replace.
     	} else {
     		workingDdl = viewDdl;
+    		workingViewSrcNames = selectedSourceNames;
     		showConfirmOverwriteDialog();
     	}
     
@@ -416,8 +438,11 @@ public class ViewEditorPanel extends Composite {
     	}
 
     	String currentDdl = viewDdlTextArea.getText();
-    	
     	viewDdlTextArea.setText(currentDdl+"\n"+colString);  
+    	
+    	List<String> selectedSrcNames = new ArrayList<String>();
+    	selectedSrcNames.add(this.selectedDataSrcName);
+    	this.viewSourcePanel.addData(selectedSrcNames,dsNamesTable.getData());
     	
     	haveSuccessfullyTested = false;
     	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
@@ -437,10 +462,11 @@ public class ViewEditorPanel extends Composite {
     	}
     	// Nothing in viewDDL area - safe to replace.
     	if(StringUtils.isEmpty(viewDdlTextArea.getText())) {
-    		replaceViewMarkup(ddlTemplate);
+    		replaceViewMarkup(ddlTemplate,Collections.<String>emptyList());
         // has View DDL - prompt before replace.
     	} else {
     		workingDdl = ddlTemplate;
+    		workingViewSrcNames = Collections.<String>emptyList();
     		showConfirmOverwriteDialog();
     	}
     }
@@ -466,19 +492,25 @@ public class ViewEditorPanel extends Composite {
     	// User has OK'd source rename
     	if(dEvent.getType() == UiEventType.VIEW_MARKUP_REPLACE_OK) {
     		confirmationDialog.hide();
-    		replaceViewMarkup(workingDdl);
+    		replaceViewMarkup(workingDdl,workingViewSrcNames);
     	// User has OK'd source redeploy
     	} else if(dEvent.getType() == UiEventType.VIEW_MARKUP_REPLACE_CANCEL) {
     		confirmationDialog.hide();
-    	} 
+    	} else if(dEvent.getType() == UiEventType.VIEW_SOURCES_CHANGED) {
+    		updateStatus();
+    	}
     }
     
     /**
      * Replace the ViewMarkup TextArea with the supplied DDL
-     * @param ddl
+     * @param ddl the ddl
+     * @param viewSrcNames the viewSrcNames needed for this view
      */
-    private void replaceViewMarkup(String ddl) {
+    private void replaceViewMarkup(String ddl,List<String> viewSrcNames) {
     	viewDdlTextArea.setText(ddl);  
+    	if(viewSrcNames!=null) {
+    		viewSourcePanel.setData(viewSrcNames,dsNamesTable.getData());
+    	}
     	
     	haveSuccessfullyTested = false;
     	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
@@ -510,7 +542,7 @@ public class ViewEditorPanel extends Composite {
                 i18n.format("vieweditor-panel.testing-service-msg", serviceName)); //$NON-NLS-1$
             	
     	String viewDdl = viewDdlTextArea.getText();
-    	List<String> rqdImportVdbNames = getSrcVdbNames();
+    	List<String> rqdImportVdbNames = getViewSourceVdbNames();
     	
     	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
     	viewModelRequest.setName(serviceName);
@@ -544,13 +576,13 @@ public class ViewEditorPanel extends Composite {
     }
     
     /**
-     * Get the corresponding SrcVdbNames for the DSTable row selections
+     * Get the corresponding SrcVdbNames for the View Source names table
      * @return
      */
-    public List<String> getSrcVdbNames( ) {
-    	List<String> selectedDSNames = this.dsNamesTable.getSelectedSourceNames();
-    	List<String> srcVdbNames = new ArrayList<String>(selectedDSNames.size());
-    	for(String dsName : selectedDSNames) {
+    public List<String> getViewSourceVdbNames( ) {
+    	List<String> viewSourceNames = viewSourcePanel.getData();
+    	List<String> srcVdbNames = new ArrayList<String>(viewSourceNames.size());
+    	for(String dsName : viewSourceNames) {
     		srcVdbNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
     	}
     	return srcVdbNames;
@@ -579,12 +611,12 @@ public class ViewEditorPanel extends Composite {
     		}
     	}
     	
-//		// Check at least one view source is defined
-//    	if(Constants.OK.equals(currentStatus)) {
-//    		if(getSrcVdbNames().isEmpty()) {
-//    			currentStatus = statusDefineSources;
-//    		}
-//    	}
+		// Check at least one view source is defined
+    	if(Constants.OK.equals(currentStatus)) {
+    		if(getViewSources().isEmpty()) {
+    			currentStatus = statusDefineViewSources;
+    		}
+    	}
     	
     	List<CheckableNameTypeRow> colRows = columnsTable.getData();
     	if(colRows.isEmpty()) {

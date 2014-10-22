@@ -15,6 +15,7 @@
  */
 package org.teiid.authoring.client.screens;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +37,6 @@ import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.widgets.ViewEditorPanel;
-import org.teiid.authoring.client.widgets.VisibilityRadios;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.NotificationBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
@@ -55,6 +55,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
@@ -92,8 +93,8 @@ public class EditDataServiceScreen extends Composite {
     @Inject @DataField("textarea-edit-service-description")
     protected TextArea serviceDescriptionTextBox;
     
-    @Inject @DataField("radios-edit-service-visibility")
-    protected VisibilityRadios serviceVisibleRadios;
+    @Inject @DataField("checkbox-edit-service-visibility")
+    protected CheckBox serviceVisibleCheckBox;
     
     @Inject @DataField("label-edit-service-status")
     protected Label statusLabel;
@@ -128,6 +129,7 @@ public class EditDataServiceScreen extends Composite {
 		
 		viewEditorPanel.setTitle(i18n.format("editdataservice.vieweditor-title"));
 		viewEditorPanel.setDescription(i18n.format("editdataservice.vieweditor-description"));
+		serviceVisibleCheckBox.setText(i18n.format("editdataservice.checkbox-service-visible"));
     }
     
     @OnStartup
@@ -196,12 +198,22 @@ public class EditDataServiceScreen extends Composite {
             			serviceDescriptionTextBox.setText(description);
             			
             			boolean isVisible = vdbModel.isVisible();
-            			serviceVisibleRadios.setValue(isVisible);
+            			serviceVisibleCheckBox.setValue(isVisible);
             			
             			String ddl = vdbModel.getDdl();
             			viewEditorPanel.setViewDdl(ddl);
             		}
             	}
+    			List<String> importVdbs = vdbDetailsBean.getImportedVdbNames();
+    			List<String> srcNames = new ArrayList<String>(importVdbs.size());
+    			for(String importVdbName : importVdbs) {
+    				if(importVdbName.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX)) {
+    			    	// The source VDB name, but without the prefix
+    			    	String srcName = importVdbName.substring(importVdbName.indexOf(Constants.SERVICE_SOURCE_VDB_PREFIX)+Constants.SERVICE_SOURCE_VDB_PREFIX.length());
+    					srcNames.add(srcName);
+    				}
+    			}
+    			viewEditorPanel.setViewSources(srcNames);
             	
             	// Set the initial status
             	updateStatus();
@@ -228,8 +240,8 @@ public class EditDataServiceScreen extends Composite {
     	String serviceDescription = this.serviceDescriptionTextBox.getText();
     	final String viewModel = serviceName;
     	String viewDdl = viewEditorPanel.getViewDdl();
-    	boolean isVisible = serviceVisibleRadios.isVisibleSelected();
-    	List<String> rqdImportVdbNames = viewEditorPanel.getSrcVdbNames();
+    	boolean isVisible = serviceVisibleCheckBox.getValue();
+    	List<String> rqdImportVdbNames = viewEditorPanel.getViewSourceVdbNames();
     	
     	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
     	viewModelRequest.setName(serviceName);
