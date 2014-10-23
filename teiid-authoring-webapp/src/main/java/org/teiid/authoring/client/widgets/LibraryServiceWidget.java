@@ -16,6 +16,7 @@ import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
+import org.teiid.authoring.client.resources.AppResource;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.share.Constants;
 import org.uberfire.client.mvp.PlaceManager;
@@ -26,6 +27,7 @@ import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 
@@ -51,6 +53,12 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 
 	@Inject @Bound @DataField("label-servicewidget-description") Label description;
 
+	@Inject @DataField("image-servicewidget-status")
+	protected Image viewServiceStatusImage;
+	
+	@Inject @DataField("label-servicewidget-visibility")
+	protected Label viewServiceVisibilityLabel;
+	
 	@Inject @DataField("btn-servicewidget-view")
 	protected Button viewServiceButton;
 
@@ -94,6 +102,15 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
         		}
         	}
         });
+    	this.viewServiceStatusImage.setResource(AppResource.INSTANCE.images().okIcon16x16Image());
+//    	ServiceRow row = getModel();
+//    	if(row.isVisible()) {
+//    		this.viewServiceVisibilityLabel.removeStyleName("glyphicon-eye-close");
+//    		this.viewServiceVisibilityLabel.addStyleName("glyphicon glyphicon-eye-open");
+//    	} else {
+//    		this.viewServiceVisibilityLabel.removeStyleName("glyphicon-eye-open");
+//    		this.viewServiceVisibilityLabel.addStyleName("glyphicon glyphicon-eye-close");
+//    	}
     }
     
     /**

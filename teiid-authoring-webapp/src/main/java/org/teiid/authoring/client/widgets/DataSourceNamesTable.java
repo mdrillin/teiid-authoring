@@ -81,7 +81,7 @@ public class DataSourceNamesTable extends Composite {
     	return table.getRowData();
     }
     
-    public void setSelectionModel( final SelectionModel selectionModel ) {
+    public void setSelectionModel( final SelectionModel<String> selectionModel ) {
         table.setSelectionModel( selectionModel );
     }
     

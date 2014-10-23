@@ -73,7 +73,7 @@ public class TablesProcNamesTable extends Composite {
     	table.setRowData(rows);
     }
     
-    public void setSelectionModel( final SelectionModel selectionModel ) {
+    public void setSelectionModel( final SelectionModel<String> selectionModel ) {
         table.setSelectionModel( selectionModel );
     }
     

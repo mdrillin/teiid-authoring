@@ -31,7 +31,9 @@ public class JdbcSourceHelper {
 	private static final String JDBC_CONTEXT1 = "java:/"; //$NON-NLS-1$
 	private static final String JDBC_CONTEXT2 = "java:/datasources/"; //$NON-NLS-1$
 	private static final String JDBC_CONTEXT3 = "java:jboss/datasources/"; //$NON-NLS-1$
-	private static List<String> JDBC_CONTEXTS = new ArrayList<String>() { {
+	private static List<String> JDBC_CONTEXTS = new ArrayList<String>() { 
+		private static final long serialVersionUID = 1L;
+	{
 		add(JDBC_CONTEXT1);
 		add(JDBC_CONTEXT2);
 		add(JDBC_CONTEXT3);

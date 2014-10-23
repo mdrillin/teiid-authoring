@@ -26,7 +26,6 @@ import org.teiid.authoring.share.beans.NotificationBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 
 import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FormPanel.SubmitCompleteEvent;
 import com.google.gwt.user.client.ui.FormPanel.SubmitCompleteHandler;

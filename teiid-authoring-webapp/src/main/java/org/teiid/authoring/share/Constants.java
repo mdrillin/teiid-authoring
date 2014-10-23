@@ -15,7 +15,6 @@
  */
 package org.teiid.authoring.share;
 
-import org.teiid.authoring.client.utils.DdlHelper;
 
 
 /**

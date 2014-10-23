@@ -84,7 +84,7 @@ public class DataSourceListPanel extends Composite {
     	listWidget.setSelection(dsName);
     }
     
-    public void setSelectionModel( final SelectionModel selectionModel ) {
+    public void setSelectionModel( final SelectionModel<DataSourcePageRow> selectionModel ) {
     	listWidget.setSelectionModel( selectionModel );
     }
 

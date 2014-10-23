@@ -95,7 +95,7 @@ public class DataSourceTranslatorConnectionTable extends Composite {
     	table.setRowData(rows);
     }
     
-    public void setSelectionModel( final SelectionModel selectionModel ) {
+    public void setSelectionModel( final SelectionModel<DataSourceTranslatorConnectionPageRow> selectionModel ) {
         table.setSelectionModel( selectionModel );
     }
     

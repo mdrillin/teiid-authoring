@@ -144,7 +144,7 @@ public class ColumnNamesTable extends Composite {
     	return table.getRowData();
     }
     
-    public void setSelectionModel( final SelectionModel selectionModel ) {
+	public void setSelectionModel( final SelectionModel<CheckableNameTypeRow> selectionModel ) {
         table.setSelectionModel( selectionModel );
     }
     

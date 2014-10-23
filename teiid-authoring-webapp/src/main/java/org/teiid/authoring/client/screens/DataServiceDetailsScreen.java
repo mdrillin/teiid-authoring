@@ -65,8 +65,8 @@ public class DataServiceDetailsScreen extends Composite {
 	private String serviceName;
 	private String serviceSampleSQL;
 	private String pgTitle;
-	private String serviceInternal;
-	private String serviceExternal;
+//	private String serviceInternal;
+//	private String serviceExternal;
 	
     @Inject
     private PlaceManager placeManager;
@@ -128,8 +128,8 @@ public class DataServiceDetailsScreen extends Composite {
     @PostConstruct
     protected void postConstruct() {
     	pgTitle = i18n.format("servicedetails.page-title");
-    	serviceInternal = i18n.format("servicedetails.page-title-internal");
-    	serviceExternal = i18n.format("servicedetails.page-title-external");
+//    	serviceInternal = i18n.format("servicedetails.page-title-internal");
+//    	serviceExternal = i18n.format("servicedetails.page-title-external");
     }
     
     @OnStartup
@@ -152,11 +152,13 @@ public class DataServiceDetailsScreen extends Composite {
             		if(vdbModel.getName().equals(serviceName)) {
             			StringBuilder titleBuilder = new StringBuilder();
             			titleBuilder.append(pgTitle+serviceName);
-            			if(vdbModel.isVisible()) {
-            				titleBuilder.append(Constants.SPACE+serviceExternal);
-            			} else {
-            				titleBuilder.append(Constants.SPACE+serviceInternal);
-            			}
+            			
+            			// Potentially add icon to designate visibility
+//            			if(vdbModel.isVisible()) {
+//            				titleBuilder.append(Constants.SPACE+serviceExternal);
+//            			} else {
+//            				titleBuilder.append(Constants.SPACE+serviceInternal);
+//            			}
              			
     	                pageTitleLabel.setText(titleBuilder.toString());
             			

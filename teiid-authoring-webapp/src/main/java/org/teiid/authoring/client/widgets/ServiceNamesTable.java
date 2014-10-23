@@ -141,7 +141,7 @@ public class ServiceNamesTable extends Composite {
     	table.setRowData(rows);
     }
     
-    public void setSelectionModel( final SelectionModel selectionModel ) {
+    public void setSelectionModel( final SelectionModel<ServiceRow> selectionModel ) {
         table.setSelectionModel( selectionModel );
     }
     

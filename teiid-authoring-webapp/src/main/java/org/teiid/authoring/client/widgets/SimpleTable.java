@@ -54,7 +54,7 @@ public class SimpleTable<T>
 
     interface Binder
             extends
-            UiBinder<Widget, SimpleTable> {
+            UiBinder<Widget, SimpleTable<?>> {
 
     }
 

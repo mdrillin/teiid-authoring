@@ -88,7 +88,7 @@ public class DataSourceListWidget extends Composite {
     }
     
     public void setSelection(String dsName) {
-    	SelectionModel selModel = dsList.getSelectionModel();
+    	SelectionModel<? super DataSourcePageRow> selModel = dsList.getSelectionModel();
     	for(DataSourcePageRow dSource : getData()) {
     		if(dSource.getName().equals(dsName)) {
     			selModel.setSelected(dSource, true);
@@ -97,7 +97,7 @@ public class DataSourceListWidget extends Composite {
     	}
     }
     
-    public void setSelectionModel( final SelectionModel selectionModel ) {
+    public void setSelectionModel( final SelectionModel<DataSourcePageRow> selectionModel ) {
     	dsList.setSelectionModel( selectionModel );
     }
     
