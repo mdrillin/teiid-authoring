@@ -134,5 +134,95 @@ public class DdlHelper {
 		}
 		return sb.toString();
 	}
+	
+	/**
+	 * Get the procedure for exposing a view as REST
+	 * @param xmlTagGroup the outer tag for element grouping
+	 * @param xmlTagIndiv the individual element tag
+	 * @param colNames the list of columns
+	 * @param srcView the view source
+	 * @return the REST procedure
+	 */
+	public static String getRestProcedureDdl(String procName, String xmlTagGroup, String xmlTagIndiv, List<String> colNames, String srcView, String resturi) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("\n\nSET NAMESPACE 'http://teiid.org/rest' AS REST;\n");
+		sb.append("CREATE VIRTUAL PROCEDURE ");
+		sb.append(procName);
+		sb.append(" () RETURNS (result XML) ");
+		sb.append(" OPTIONS (\"REST:METHOD\" 'GET', \"REST:URI\" '"+resturi+"') AS \n");
+		sb.append("  BEGIN \n");
+		sb.append("  SELECT XMLELEMENT(NAME ");
+		sb.append(xmlTagGroup);
+		sb.append(", XMLAGG(XMLELEMENT(NAME ");
+		sb.append(xmlTagIndiv);
+		sb.append(", XMLFOREST(");
+		sb.append(getColumnsString(colNames));
+		sb.append(")))) AS result \n");
+		sb.append("  FROM ");
+		sb.append(srcView);
+		sb.append("; \n");
+		sb.append("  END;");
 
+		return sb.toString();
+	}
+	
+	/**
+	 * Get stringified column name list, separated by commas
+	 * @param colList
+	 * @return column string
+	 */
+	private static String getColumnsString(List<String> colList) {
+		StringBuilder sb = new StringBuilder();
+
+		for(String colName : colList) {
+			if(!sb.toString().isEmpty()) {
+				sb.append(",");
+			}
+			sb.append(colName);
+		}
+		return sb.toString();
+	}
+	
+    /**
+     * Construct a REST procedure DDL using the view DDL
+     * @param procName a name for the procedure
+     * @param viewDdl the View DDL to build procedure from
+     * @param xmlTagGroup the xml tag for the group of elements
+     * @param xmlTagIndiv the xml tag for an individual element
+     * @param srcViewName the name of the source view
+     * @param restUri the rest endpoint uriProperty
+     * @return
+     */
+    public static String getRestProcDdlFromViewDdl(String procName, String viewDdl, String xmlTagGroup, String xmlTagIndiv, String srcViewName, String resturi) {
+    	List<String> viewCols = getColNamesFromViewDdl(viewDdl);
+    	return getRestProcedureDdl(procName, xmlTagGroup, xmlTagIndiv, viewCols, srcViewName, resturi);
+    }
+    
+    /**
+     * Parse the list of column names from the View DDL
+     *   Example View DDL: CREATE VIEW SvcView (RowId integer PRIMARY KEY, Id string,Name string,Type string)	
+     * @param viewDdl the view DDL
+     * @return
+     */
+    private static List<String> getColNamesFromViewDdl(String viewDdl) {
+    	List<String> colNames = new ArrayList<String>();
+    	
+    	int openParensIndx = viewDdl.indexOf('(');
+    	int closeParensIndx = viewDdl.indexOf(')');
+    	// String containing all column info - RowId integer PRIMARY KEY, Id string,Name string,Type string
+    	String allColString = viewDdl.substring(openParensIndx+1,closeParensIndx);
+    	
+    	// Get individual column strings.
+    	String[] fullColStrs = allColString.split(",");
+    	for(int i=0; i<fullColStrs.length; i++) {
+    		String fullColStr = fullColStrs[i];
+    		// Split column string at spaces
+    		String[] colParts = fullColStr.trim().split(" ");
+    		// First part is the name
+    		colNames.add(colParts[0].trim());
+    	}
+    	
+    	return colNames;
+    }
+	
 }

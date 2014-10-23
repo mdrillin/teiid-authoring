@@ -170,10 +170,6 @@ public class DataServiceDetailsScreen extends Composite {
             			restLinkTextBox.setText(getRestLink(serverHostName,serviceVdb,1,serviceName));
             			odataLinkTextBox.setText(getODataLink(serverHostName,serviceVdb,1,serviceName));
             			
-            			// Rest controls disabled.  May remove completely
-            			restLinkTextBox.setEnabled(false);
-            			openRestButton.setEnabled(false);
-            			
             			serviceSampleSQL = Constants.SELECT_STAR_FROM+Constants.SPACE + 
             					           serviceName+Constants.DOT+Constants.SERVICE_VIEW_NAME+
             					           Constants.SPACE+Constants.LIMIT_10;
@@ -223,7 +219,7 @@ public class DataServiceDetailsScreen extends Composite {
     	sb.append(vdbName.toLowerCase()+"_"+vdbVersion+'/');
     	sb.append(modelName.toLowerCase()+'/');
     	// This is the uri property for the generated rest procedure
-    	sb.append("procUriProperty");
+    	sb.append(Constants.REST_URI_PROPERTY);
     	return sb.toString();
     }
     

@@ -15,6 +15,8 @@
  */
 package org.teiid.authoring.share;
 
+import org.teiid.authoring.client.utils.DdlHelper;
+
 
 /**
  * Application constants
@@ -43,7 +45,12 @@ public class Constants {
 	public static final String DATA_SOURCE_NEW_NAME = "MyNewSource";
 	public static final String TEST_CONNECTION_FAILED = "Could not connect - please check source properties and server log, then enter desired properties";
     public static final String TEST_CONNECTION_ERROR_LOADING_SOURCES = "Error - could not load the available sources";
-    
+
+    public static final String REST_PROCNAME = "RestProc";
+    public static final String REST_XML_GROUPTAG = "Elems";
+    public static final String REST_XML_ELEMENTTAG = "Elem";
+    public static final String REST_URI_PROPERTY = "rest";
+
 	public static final String DS_TYPE_FILE = "file";
 	public static final String DS_TYPE_GOOGLE = "google";
 	public static final String DS_TYPE_H2 = "h2";

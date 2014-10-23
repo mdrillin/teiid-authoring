@@ -58,6 +58,12 @@ public class VdbHelper {
 		vdb.setName(vdbName);
 		vdb.setDescription("VDB for: "+vdbName+", Version: "+vdbVersion);
 		vdb.setVersion(vdbVersion);
+		
+		// Adds REST auto generate propery
+		Properties props = new Properties();
+		props.put("{http://teiid.org/rest}auto-generate", "true");
+		vdb.setProperties(props);
+		
 		return vdb;
 	}
 

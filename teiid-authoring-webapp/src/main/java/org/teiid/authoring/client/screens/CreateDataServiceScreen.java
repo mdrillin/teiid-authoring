@@ -34,6 +34,7 @@ import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
+import org.teiid.authoring.client.utils.DdlHelper;
 import org.teiid.authoring.client.widgets.ViewEditorPanel;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.NotificationBean;
@@ -87,8 +88,6 @@ public class CreateDataServiceScreen extends Composite {
     @Inject @DataField("textarea-create-service-description")
     protected TextArea serviceDescriptionTextBox;
     
-//    @Inject @DataField("radios-create-service-visibility")
-//    protected VisibilityRadios serviceVisibleRadios;
     @Inject @DataField("checkbox-create-service-visibility")
     protected CheckBox serviceVisibleCheckbox;
     
@@ -205,14 +204,23 @@ public class CreateDataServiceScreen extends Composite {
             	
     	String serviceDescription = this.serviceDescriptionTextBox.getText();
     	final String viewModel = serviceName;
+    	// DDL for the View
     	String viewDdl = viewEditorPanel.getViewDdl();
+
+    	// DDL for the rest procedure
+    	String restProcDdl = DdlHelper.getRestProcDdlFromViewDdl(Constants.REST_PROCNAME,viewDdl,Constants.REST_XML_GROUPTAG,Constants.REST_XML_ELEMENTTAG,
+    			                                                 Constants.SERVICE_VIEW_NAME,Constants.REST_URI_PROPERTY);
+    	
+    	// Combined DDL is the combined view and procedure
+    	String modelDDL = viewDdl + restProcDdl;
+    	
     	boolean isVisible = serviceVisibleCheckbox.getValue();
     	List<String> rqdImportVdbNames = viewEditorPanel.getViewSourceVdbNames();
     	
     	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
     	viewModelRequest.setName(serviceName);
     	viewModelRequest.setDescription(serviceDescription);
-    	viewModelRequest.setDdl(viewDdl);
+    	viewModelRequest.setDdl(modelDDL);
     	viewModelRequest.setVisible(isVisible);
     	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
     	    	
@@ -237,7 +245,7 @@ public class CreateDataServiceScreen extends Composite {
             }
         });           	
     }
-    
+        
     /**
      * Do a clean-up of any temporary VDBs that may have not been undeployed
      */

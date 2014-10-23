@@ -36,6 +36,7 @@ import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
+import org.teiid.authoring.client.utils.DdlHelper;
 import org.teiid.authoring.client.widgets.ViewEditorPanel;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.NotificationBean;
@@ -201,7 +202,9 @@ public class EditDataServiceScreen extends Composite {
             			serviceVisibleCheckBox.setValue(isVisible);
             			
             			String ddl = vdbModel.getDdl();
-            			viewEditorPanel.setViewDdl(ddl);
+            			// Remove the REST procedure from the model DDL.  It will be re-generated when the service is saved.
+            			String editorDdl = removeRestProcDdl(ddl);
+            			viewEditorPanel.setViewDdl(editorDdl);
             		}
             	}
     			List<String> importVdbs = vdbDetailsBean.getImportedVdbNames();
@@ -227,6 +230,15 @@ public class EditDataServiceScreen extends Composite {
     }
     
     /**
+     * Take the entire view model DDL (including REST proc) and remove the REST portion
+     * @param viewDdl the entire view DDL
+     * @return the ddl without REST procedure
+     */
+    private String removeRestProcDdl(String viewDdl) {
+    	int restStartIndx = viewDdl.indexOf("SET NAMESPACE");
+    	return (restStartIndx!=-1) ? viewDdl.substring(0,restStartIndx) : viewDdl;
+    }
+    /**
      * Event handler that fires when the user clicks the SaveChanges button.
      * @param event
      */
@@ -237,16 +249,24 @@ public class EditDataServiceScreen extends Composite {
                 i18n.format("editdataservice.saving-service-title"), //$NON-NLS-1$
                 i18n.format("editdataservice.saving-service-msg", serviceName)); //$NON-NLS-1$
             	
-    	String serviceDescription = this.serviceDescriptionTextBox.getText();
     	final String viewModel = serviceName;
-    	String viewDdl = viewEditorPanel.getViewDdl();
+    	String serviceDescription = this.serviceDescriptionTextBox.getText();
     	boolean isVisible = serviceVisibleCheckBox.getValue();
     	List<String> rqdImportVdbNames = viewEditorPanel.getViewSourceVdbNames();
     	
+    	// DDL for the View
+    	String viewDdl = viewEditorPanel.getViewDdl();
+
+    	// DDL for the rest procedure
+    	String restProcDdl = DdlHelper.getRestProcDdlFromViewDdl(Constants.REST_PROCNAME,viewDdl,Constants.REST_XML_GROUPTAG,Constants.REST_XML_ELEMENTTAG,
+    			                                                 Constants.SERVICE_VIEW_NAME,Constants.REST_URI_PROPERTY);
+    	// Model DDL is the combination of View and Rest proc
+    	String modelDdl = viewDdl + restProcDdl;
+
     	ViewModelRequestBean viewModelRequest = new ViewModelRequestBean();
     	viewModelRequest.setName(serviceName);
     	viewModelRequest.setDescription(serviceDescription);
-    	viewModelRequest.setDdl(viewDdl);
+    	viewModelRequest.setDdl(modelDdl);
     	viewModelRequest.setVisible(isVisible);
     	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
     	    	
