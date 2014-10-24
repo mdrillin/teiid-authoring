@@ -188,7 +188,7 @@ public class EditDataServiceScreen extends Composite {
      * @param serviceName the name of the service
      */
     protected void doGetDataServiceDetails(final String serviceName) {
-    	final String serviceVdb = Constants.SERVICE_VDB_PREFIX+serviceName;
+    	final String serviceVdb = serviceName;
     	teiidService.getVdbDetails(serviceVdb, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {
@@ -270,8 +270,13 @@ public class EditDataServiceScreen extends Composite {
     	viewModelRequest.setVisible(isVisible);
     	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
     	    	
-    	final String svcVdbName = Constants.SERVICE_VDB_PREFIX+serviceName;
-    	teiidService.deployNewVDB(svcVdbName, 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+    	// VDB properties
+    	Map<String,String> vdbPropMap = new HashMap<String,String>();
+    	vdbPropMap.put(Constants.VDB_PROP_KEY_REST_AUTOGEN, "true");
+    	vdbPropMap.put(Constants.VDB_PROP_KEY_DATASERVICE_VIEWNAME, Constants.SERVICE_VIEW_NAME);
+    	    	
+    	final String svcVdbName = serviceName;
+    	teiidService.deployNewVDB(svcVdbName, 1, vdbPropMap, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
@@ -280,7 +285,7 @@ public class EditDataServiceScreen extends Composite {
 
                 // Delete the original named VDB if there was a rename
                 if(!serviceName.equals(serviceOriginalName)) {
-                	deleteVdb(Constants.SERVICE_VDB_PREFIX+serviceOriginalName);
+                	deleteVdb(serviceOriginalName);
                 }
                 
                 // Cleanup test VDBs

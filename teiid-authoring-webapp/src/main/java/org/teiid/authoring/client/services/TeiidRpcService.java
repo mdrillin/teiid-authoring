@@ -186,21 +186,21 @@ public class TeiidRpcService {
         }
     }
     
-    public void deployNewVDB(final String vdbName, final int vdbVersion, final ViewModelRequestBean viewModelRequest, final IRpcServiceInvocationHandler<VdbDetailsBean> handler) {
+    public void deployNewVDB(final String vdbName, final int vdbVersion, final Map<String,String> vdbPropMap, final ViewModelRequestBean viewModelRequest, final IRpcServiceInvocationHandler<VdbDetailsBean> handler) {
         RemoteCallback<VdbDetailsBean> successCallback = new DelegatingRemoteCallback<VdbDetailsBean>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
-        	remoteTeiidService.call(successCallback, errorCallback).deployNewVDB(vdbName, vdbVersion,viewModelRequest);
+        	remoteTeiidService.call(successCallback, errorCallback).deployNewVDB(vdbName, vdbVersion, vdbPropMap, viewModelRequest);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }
     }
     
-    public void getDynamicVdbsWithPrefix(String vdbPrefix, final IRpcServiceInvocationHandler<List<VdbDetailsBean>> handler) {
+    public void getDataServiceVdbs(final IRpcServiceInvocationHandler<List<VdbDetailsBean>> handler) {
         RemoteCallback<List<VdbDetailsBean>> successCallback = new DelegatingRemoteCallback<List<VdbDetailsBean>>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
-        	remoteTeiidService.call(successCallback, errorCallback).getDynamicVdbsWithPrefix(vdbPrefix);
+        	remoteTeiidService.call(successCallback, errorCallback).getDataServiceVdbs( );
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }

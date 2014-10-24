@@ -223,9 +223,14 @@ public class CreateDataServiceScreen extends Composite {
     	viewModelRequest.setDdl(modelDDL);
     	viewModelRequest.setVisible(isVisible);
     	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
+    	
+    	// VDB properties
+    	Map<String,String> vdbPropMap = new HashMap<String,String>();
+    	vdbPropMap.put(Constants.VDB_PROP_KEY_REST_AUTOGEN, "true");
+    	vdbPropMap.put(Constants.VDB_PROP_KEY_DATASERVICE_VIEWNAME, Constants.SERVICE_VIEW_NAME);
     	    	
-    	final String svcVdbName = Constants.SERVICE_VDB_PREFIX+serviceName;
-    	teiidService.deployNewVDB(svcVdbName, 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+    	final String svcVdbName = serviceName;
+    	teiidService.deployNewVDB(svcVdbName, 1, vdbPropMap, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
                 notificationService.completeProgressNotification(notificationBean.getUuid(),

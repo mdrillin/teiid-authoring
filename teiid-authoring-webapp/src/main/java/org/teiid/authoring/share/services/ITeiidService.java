@@ -67,9 +67,9 @@ public interface ITeiidService {
 
     public VdbDetailsBean getVdbDetails(String vdbName) throws DataVirtUiException;
     
-    public VdbDetailsBean deployNewVDB(final String vdbName, final int vdbVersion, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException;
+    public VdbDetailsBean deployNewVDB(final String vdbName, final int vdbVersion, final Map<String,String> vdbPropMap, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException;
 
-    public List<VdbDetailsBean> getDynamicVdbsWithPrefix(String vdbPrefix) throws DataVirtUiException;
+    public List<VdbDetailsBean> getDataServiceVdbs( ) throws DataVirtUiException;
     
     public void deleteDynamicVdbsWithPrefix(String vdbPrefix) throws DataVirtUiException;
     

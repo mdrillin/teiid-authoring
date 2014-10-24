@@ -145,14 +145,24 @@ public class TeiidService implements ITeiidService {
      */
     public List<DataSourcePageRow> getDataSources( final String filters, final String srcVdbPrefix ) {
 
-    	// Get list of all Server Sources (except preview vdb and test VDB sources)
+		// Names of the existing DataService VDBs
+		List<String> serviceVdbNames = null;
+		try {
+			serviceVdbNames = getDataServiceVdbNames();
+		} catch (DataVirtUiException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+    	// Get list of all Server Sources (exclude sources that are (1)preview vdbs, (2)test VDBs and (3)service VDBs)
     	List<String> filteredDsList = new ArrayList<String>();
 		try {
 			List<String> allDSList = getDataSourceNames();
 			for(String sourceName : allDSList) {
 				if(!StringUtils.isEmpty(sourceName) && 
 				   !sourceName.startsWith(Constants.PREVIEW_VDB_PREFIX) &&
-				   !sourceName.startsWith(Constants.SERVICE_TEST_VDB_PREFIX) ) {
+				   !sourceName.startsWith(Constants.SERVICE_TEST_VDB_PREFIX) &&
+				   !serviceVdbNames.contains(sourceName)) {
 					filteredDsList.add(sourceName);
 				}
 			}
@@ -707,7 +717,7 @@ public class TeiidService implements ITeiidService {
         	String deploymentName = sourceVDBName + Constants.DYNAMIC_VDB_SUFFIX;
 
         	// Create a new Source VDB to deploy
-        	sourceVdb = vdbHelper.createVdb(sourceVDBName,1);
+        	sourceVdb = vdbHelper.createVdb(sourceVDBName,1,new Properties());
 
         	// Create source model - same name as dataSource.  Use model name for source mapping - will be unique
         	ModelMetaData model = vdbHelper.createSourceModel(modelName, modelName, jndiName, translator);
@@ -827,7 +837,7 @@ public class TeiidService implements ITeiidService {
     	vdbNames.add(vdbName);
     	deleteVdbs(vdbNames);
     	
-    	return getDynamicVdbsWithPrefix(Constants.SERVICE_VDB_PREFIX);
+    	return getDataServiceVdbs( );
     }
     
     @Override
@@ -851,13 +861,16 @@ public class TeiidService implements ITeiidService {
     /*
      * Deploy a VDB with the requested View Model.
      * @param vdbName name of the VDB
-     * @param viewModelName the name of the viewModel to add
-     * @param ddlString the DDL string to use for the view model
+     * @param vdbVersion the VDB version
+     * @param vdbPropMap the VDB property map
+     * @param viewModelRequestBean the view model details
      * @return the VdbDetails
      */
-    public VdbDetailsBean deployNewVDB(final String vdbName, final int vdbVersion, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException {
+    public VdbDetailsBean deployNewVDB(final String vdbName, final int vdbVersion, final Map<String,String> vdbPropMap, final ViewModelRequestBean viewModelRequest) throws DataVirtUiException {
     	// Create a new VDB
-    	VDBMetaData theVDB = vdbHelper.createVdb(vdbName, vdbVersion);
+    	Properties vdbProperties = new Properties();
+    	vdbProperties.putAll(vdbPropMap);    	
+    	VDBMetaData theVDB = vdbHelper.createVdb(vdbName, vdbVersion, vdbProperties);
   	
     	// Add the requested viewModel to the VDB
     	VDBMetaData newVdb = vdbHelper.addViewModel(theVDB, viewModelRequest.getName(), viewModelRequest.getDescription(), viewModelRequest.getDdl(), viewModelRequest.isVisible());
@@ -1051,17 +1064,11 @@ public class TeiidService implements ITeiidService {
 		}
     }
     
-    public List<VdbDetailsBean> getDynamicVdbsWithPrefix(String vdbPrefix) throws DataVirtUiException {
+    public List<VdbDetailsBean> getDataServiceVdbs( ) throws DataVirtUiException {
     	// Collect all of the Service VDB names
-    	List<String> svcVdbNames = new ArrayList<String>();
-    	Collection<String> allVdbNames = null;
+    	List<String> svcVdbNames = null;
     	try {
-    		allVdbNames = clientAccessor.getClient().getVdbNames(true,false,false);
-    		for(String vdbName : allVdbNames) {
-    			if(vdbName!=null && vdbName.startsWith(vdbPrefix)) {
-    				svcVdbNames.add(vdbName);
-    			}
-    		}
+    		svcVdbNames = clientAccessor.getClient().getDataServiceVdbNames();
     	} catch (AdminApiClientException e) {
     		throw new DataVirtUiException(e);
     	}
@@ -1077,20 +1084,17 @@ public class TeiidService implements ITeiidService {
     	return svcVdbs;
     }
     
-    private List<String> getDynamicVdbNamesWithPrefix(String vdbPrefix) throws DataVirtUiException {
+    private List<String> getDataServiceVdbNames( ) throws DataVirtUiException {
     	// Collect all of the Service VDB names
-    	List<String> svcVdbNames = new ArrayList<String>();
-    	Collection<String> allVdbNames = null;
+    	List<String> svcVdbNames = null;
     	try {
-    		allVdbNames = clientAccessor.getClient().getVdbNames(true,false,false);
-    		for(String vdbName : allVdbNames) {
-    			if(vdbName!=null && vdbName.startsWith(vdbPrefix)) {
-    				svcVdbNames.add(vdbName);
-    			}
-    		}
+    		svcVdbNames = clientAccessor.getClient().getDataServiceVdbNames();
     	} catch (AdminApiClientException e) {
     		throw new DataVirtUiException(e);
     	}
+    	
+    	// Alphabetic sort
+    	Collections.sort(svcVdbNames);
     	
     	return svcVdbNames;
     }
@@ -1105,7 +1109,12 @@ public class TeiidService implements ITeiidService {
     	}
     	
     	// Get current service vdb names
-    	List<String> currentVdbNames = getDynamicVdbNamesWithPrefix(Constants.SERVICE_VDB_PREFIX);
+    	List<String> currentVdbNames = new ArrayList<String>();
+    	try {
+    		currentVdbNames = clientAccessor.getClient().getDataServiceVdbNames();
+    	} catch (AdminApiClientException e) {
+    		throw new DataVirtUiException(e);
+    	}
     	
     	// Get a unique name and suffix for the copy
     	String baseSuffix = "_copy";
@@ -1131,7 +1140,7 @@ public class TeiidService implements ITeiidService {
 			throw new DataVirtUiException(e);
 		}
 		
-    	return getDynamicVdbsWithPrefix(Constants.SERVICE_VDB_PREFIX);
+    	return getDataServiceVdbs( );
     }
     
     @Override

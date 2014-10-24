@@ -30,7 +30,6 @@ public class Constants {
 	public static final int QUERY_RESULTS_TABLE_PAGE_SIZE = 15;
 	public static final int QUERY_COLUMNS_TABLE_PAGE_SIZE = 6;
 	
-	public static final String SERVICE_VDB_PREFIX = "SvcVdb_";
 	public static final String SERVICE_TEST_VDB_PREFIX = "SvcTestVdb_";
 	public static final String SERVICE_SOURCE_VDB_PREFIX = "SvcSourceVdb_";
 	public static final String PREVIEW_VDB_PREFIX = "PREVIEW_";
@@ -50,7 +49,10 @@ public class Constants {
     public static final String REST_XML_ELEMENTTAG = "Elem";
     public static final String REST_URI_PROPERTY = "rest";
 
-	public static final String DS_TYPE_FILE = "file";
+    public static final String VDB_PROP_KEY_REST_AUTOGEN = "{http://teiid.org/rest}auto-generate";
+    public static final String VDB_PROP_KEY_DATASERVICE_VIEWNAME = "data-service-view";
+    
+    public static final String DS_TYPE_FILE = "file";
 	public static final String DS_TYPE_GOOGLE = "google";
 	public static final String DS_TYPE_H2 = "h2";
 	public static final String DS_TYPE_INFINISPAN = "infinispan";

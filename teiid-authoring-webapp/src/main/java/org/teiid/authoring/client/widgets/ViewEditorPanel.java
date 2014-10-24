@@ -551,8 +551,12 @@ public class ViewEditorPanel extends Composite {
     	viewModelRequest.setVisible(true);
     	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
     	    	
+    	// VDB properties
+    	Map<String,String> vdbPropMap = new HashMap<String,String>();
+    	vdbPropMap.put(Constants.VDB_PROP_KEY_REST_AUTOGEN, "true");
+    	    	
     	final String testVDBName = Constants.SERVICE_TEST_VDB_PREFIX+serviceName;
-    	teiidService.deployNewVDB(testVDBName, 1, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
+    	teiidService.deployNewVDB(testVDBName, 1, vdbPropMap, viewModelRequest, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {            	
                 notificationService.completeProgressNotification(notificationBean.getUuid(),

@@ -355,11 +355,11 @@ public class ManageSourcesScreen extends Composite {
     	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
     		@Override
     		public void onReturn(List<DataSourcePageRow> dsInfos) {
-    			// Filter out the sources starting with SERVICE_SOURCE_VDB_PREFIX and SERVICES_VDB 
+    			// Filter out the sources starting with SERVICE_SOURCE_VDB_PREFIX and SERVICES_VDBs
     			List<DataSourcePageRow> tableRowList = new ArrayList<DataSourcePageRow>();
     			for(DataSourcePageRow row : dsInfos) {
     				String name = row.getName();
-    				if(!name.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX) && !name.startsWith(Constants.SERVICE_VDB_PREFIX)) {
+    				if(!name.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX)) {
     					tableRowList.add(row);
     				}
     			}

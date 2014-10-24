@@ -143,7 +143,7 @@ public class DataServiceDetailsScreen extends Composite {
      * @param serviceName the name of the service
      */
     protected void doGetDataServiceDetails(final String serviceName) {
-    	final String serviceVdb = Constants.SERVICE_VDB_PREFIX+serviceName;
+    	final String serviceVdb = serviceName;
         teiidService.getVdbDetails(serviceVdb, new IRpcServiceInvocationHandler<VdbDetailsBean>() {
             @Override
             public void onReturn(VdbDetailsBean vdbDetailsBean) {

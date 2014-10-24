@@ -482,6 +482,37 @@ public class AdminApiClient {
 	}
 	
     /*
+     * Get the current List of DataService Vdb names
+     * @return the list of DataService Vdb names
+     */
+	public List<String> getDataServiceVdbNames( ) throws AdminApiClientException {
+		if(this.admin==null) return Collections.emptyList();
+
+		// Get list of VDB Names
+		Collection<? extends VDB> vdbs = null;
+		try {
+			vdbs = this.admin.getVDBs();
+		} catch (AdminException e) {
+			throw new AdminApiClientException(e.getMessage());
+		}
+
+		if(vdbs!=null) {
+			// Get VDB names
+			List<String> vdbNames = new ArrayList<String>();
+			for(VDB vdb : vdbs) {
+				String serviceViewName = vdb.getPropertyValue(Constants.VDB_PROP_KEY_DATASERVICE_VIEWNAME);
+				if(!StringUtils.isEmpty(serviceViewName)) {
+					String vdbName = ((VDBMetaData)vdb).getName();
+					vdbNames.add(vdbName);
+				}
+			}
+			return vdbNames;
+		} else {
+			return Collections.emptyList();
+		}
+	}
+	
+    /*
      * Get the current Collection of Vdb names
      * @return the collection of Vdb names
      */

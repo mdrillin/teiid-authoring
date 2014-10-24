@@ -53,16 +53,13 @@ public class VdbHelper {
 	 * @param vdbVersion the vdb version
 	 * @return the VDBMetadata
 	 */
-	public VDBMetaData createVdb(String vdbName, int vdbVersion) {
+	public VDBMetaData createVdb(String vdbName, int vdbVersion, Properties vdbProperties) {
 		VDBMetaData vdb = new VDBMetaData();
+
 		vdb.setName(vdbName);
 		vdb.setDescription("VDB for: "+vdbName+", Version: "+vdbVersion);
 		vdb.setVersion(vdbVersion);
-		
-		// Adds REST auto generate propery
-		Properties props = new Properties();
-		props.put("{http://teiid.org/rest}auto-generate", "true");
-		vdb.setProperties(props);
+		vdb.setProperties(vdbProperties);
 		
 		return vdb;
 	}
@@ -370,13 +367,10 @@ public class VdbHelper {
 		clearModelMessages(currentViewModels);
 
 		// Create a new vdb
-		VDBMetaData newVdb = createVdb(vdbName,vdbVersion);
+		VDBMetaData newVdb = createVdb(vdbName,vdbVersion,currentProperties);
 
 		// Add the existing ViewModels
 		newVdb.setModels(currentViewModels);
-
-		// Transfer the existing properties
-		newVdb.setProperties(currentProperties);
 
 		// Add new import to current imports (if not already present)
 		for(int i=0; i<importVdbNames.size(); i++) {
@@ -414,7 +408,7 @@ public class VdbHelper {
 		clearModelMessages(currentViewModels);
 
 		// Create a new vdb
-		VDBMetaData newVdb = createVdb(vdbName,vdbVersion);
+		VDBMetaData newVdb = createVdb(vdbName,vdbVersion,currentProperties);
 
 	    // Create View Model and add to current view models
 	    ModelMetaData modelMetaData = createViewModel(viewModelName,description,ddlString,isVisible);
@@ -422,9 +416,6 @@ public class VdbHelper {
 	    
 	    // Set ViewModels on new VDB
 	    newVdb.setModels(currentViewModels);
-
-		// Transfer the existing properties
-		newVdb.setProperties(currentProperties);
 
 		// Add new import to current imports
 		newVdb.getVDBImports().addAll(currentVdbImports);
@@ -451,13 +442,10 @@ public class VdbHelper {
 		clearModelMessages(currentViewModels);
 
 		// Create a new vdb
-		VDBMetaData newVdb = createVdb(vdbName,vdbVersion);
+		VDBMetaData newVdb = createVdb(vdbName,vdbVersion,currentProperties);
 
 		// Add the existing ViewModels
 		newVdb.setModels(currentViewModels);
-
-		// Transfer the existing properties
-		newVdb.setProperties(currentProperties);
 
 		// Create import list for new model
 		List<VDBImportMetadata> newImports = new ArrayList<VDBImportMetadata>();
@@ -514,7 +502,7 @@ public class VdbHelper {
 		clearModelMessages(currentViewModels);
 
 		// Create a new vdb
-		VDBMetaData newVdb = createVdb(vdbName,vdbVersion);
+		VDBMetaData newVdb = createVdb(vdbName,vdbVersion,currentProperties);
 
 		// Determine list of view models
 		List<ModelMetaData> newViewModels = new ArrayList<ModelMetaData>();
@@ -526,9 +514,6 @@ public class VdbHelper {
 			}
 		}
 		newVdb.setModels(newViewModels);
-
-		// Transfer the existing properties
-		newVdb.setProperties(currentProperties);
 
 		// Create import list for new model
 		List<VDBImportMetadata> newImports = new ArrayList<VDBImportMetadata>();
@@ -563,7 +548,7 @@ public class VdbHelper {
 		clearModelMessages(currentViewModels);
 
 		// Create a new vdb
-		VDBMetaData newVdb = createVdb(vdbName,vdbVersion);
+		VDBMetaData newVdb = createVdb(vdbName,vdbVersion,currentProperties);
 
 		// The new View Model list is all current models, plus clones
 		List<ModelMetaData> newViewModels = new ArrayList<ModelMetaData>();
@@ -584,9 +569,6 @@ public class VdbHelper {
 		}
 
 		newVdb.setModels(newViewModels);
-
-		// Transfer the existing properties
-		newVdb.setProperties(currentProperties);
 
 		// The imports are unchanged
 		List<VDBImportMetadata> newImports = new ArrayList<VDBImportMetadata>();
@@ -621,7 +603,7 @@ public class VdbHelper {
 		clearModelMessages(currentViewModels);
 
 		// Create a new vdb
-		VDBMetaData newVdb = createVdb(vdbName,vdbVersion);
+		VDBMetaData newVdb = createVdb(vdbName,vdbVersion,currentProperties);
 
 		// The new View Model list is all current models, plus clones
 		List<ModelMetaData> newViewModels = new ArrayList<ModelMetaData>();
@@ -646,9 +628,6 @@ public class VdbHelper {
 		}
 
 		newVdb.setModels(newViewModels);
-
-		// Transfer the existing properties
-		newVdb.setProperties(currentProperties);
 
 		// The imports are unchanged
 		List<VDBImportMetadata> newImports = new ArrayList<VDBImportMetadata>();

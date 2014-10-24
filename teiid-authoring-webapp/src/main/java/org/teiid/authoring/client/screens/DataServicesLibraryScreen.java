@@ -175,7 +175,7 @@ public class DataServicesLibraryScreen extends Composite {
      * Get the public services for the supplied VDB
      */
     protected void doGetServices( ) {
-    	teiidService.getDynamicVdbsWithPrefix(Constants.SERVICE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<VdbDetailsBean>>() {
+    	teiidService.getDataServiceVdbs(new IRpcServiceInvocationHandler<List<VdbDetailsBean>>() {
     		@Override
     		public void onReturn(List<VdbDetailsBean> serviceVdbs) {
                 // Convert VDBDetails to rows for the display
@@ -199,7 +199,7 @@ public class DataServicesLibraryScreen extends Composite {
                 i18n.format("dslibrary.service-deleting"), //$NON-NLS-1$
                 i18n.format("dslibrary.service-deleting-msg", serviceName)); //$NON-NLS-1$
         
-        String vdbSrcName = Constants.SERVICE_VDB_PREFIX + serviceName;
+        String vdbSrcName = serviceName;
     	teiidService.deleteDataSourceAndVdb(vdbSrcName, vdbSrcName, new IRpcServiceInvocationHandler<List<VdbDetailsBean>>() {
     		@Override
     		public void onReturn(List<VdbDetailsBean> serviceVdbs) {
@@ -230,7 +230,7 @@ public class DataServicesLibraryScreen extends Composite {
                 i18n.format("dslibrary.service-cloning"), //$NON-NLS-1$
                 i18n.format("dslibrary.service-cloning-msg", serviceName)); //$NON-NLS-1$
         
-        String vdbName = Constants.SERVICE_VDB_PREFIX + serviceName;
+        String vdbName = serviceName;
         teiidService.cloneDynamicVdbAddSource(vdbName, 1, new IRpcServiceInvocationHandler<List<VdbDetailsBean>>() {
     		@Override
     		public void onReturn(List<VdbDetailsBean> serviceVdbs) {
@@ -286,7 +286,7 @@ public class DataServicesLibraryScreen extends Composite {
     }
     
     protected void doSaveServiceToFile(String serviceName) {
-        String contentUrl = getWebContext() + "/services/dataVirtDownload?vdbname="+Constants.SERVICE_VDB_PREFIX+serviceName; //$NON-NLS-1$
+        String contentUrl = getWebContext() + "/services/dataVirtDownload?vdbname="+serviceName; //$NON-NLS-1$
        	Window.Location.assign(contentUrl);
     }
      	
