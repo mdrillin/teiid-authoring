@@ -5,6 +5,7 @@ public class UiEvent {
 	private UiEventType type;
 	private String dataSourceName;
 	private String dataServiceName;
+	private String eventSource;
 	
 	public UiEvent(UiEventType type) {
 		this.type = type;
@@ -28,5 +29,13 @@ public class UiEvent {
 
 	public void setDataServiceName(String dataServiceName) {
 		this.dataServiceName = dataServiceName;
+	}
+
+	public String getEventSource() {
+		return eventSource;
+	}
+
+	public void setEventSource(String eventSource) {
+		this.eventSource = eventSource;
 	}
 }

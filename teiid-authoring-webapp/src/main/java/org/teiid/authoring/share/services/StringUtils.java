@@ -1,8 +1,39 @@
 package org.teiid.authoring.share.services;
 
+import org.teiid.authoring.share.Constants;
+
 
 public final class StringUtils {
 
+	public static String checkValidServiceName(String serviceName) {
+		String statusMsg = Constants.OK;
+				
+		// Check that service name is not empty
+        if(isEmpty(serviceName)) {
+        	return "The service name cannot be empty";
+        }
+        
+        // Must start with a letter
+        char c = serviceName.charAt(0);
+        if(!Character.isLetter(c)) {
+        	return "The first character of the service name must be an alphabetic character";
+        }
+        
+        // Check that remaining chars are 1) letter, 2) digit, or 3) underscore
+        int length = serviceName.length();
+        for (int index = 1; index < length; index++) {
+        	c = serviceName.charAt(index);
+        	if(!Character.isLetter(c) && !Character.isDigit(c) && !(c=='_') ) {
+        		statusMsg = "The service name character '"+ c + "' at position ["+index+"] is invalid";
+        	}
+        	if(!statusMsg.equals(Constants.OK)) {
+        		break;
+        	}
+        }
+        
+        return statusMsg;
+	}
+	
 	/**
 	 * <p>
 	 * Returns whether the specified text is either empty or null.

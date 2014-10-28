@@ -33,7 +33,6 @@ import org.teiid.authoring.share.beans.QueryTableProcBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.services.StringUtils;
-import org.uberfire.client.mvp.PlaceManager;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
@@ -63,9 +62,8 @@ public class ViewEditorPanel extends Composite {
 	private String statusTestView = null;
 	private String queryResultDefaultMsg = null;
 	private String currentStatus = null;
+	private String owner;
 	
-    @Inject
-    private PlaceManager placeManager;
     @Inject
     private ClientMessages i18n;
     @Inject
@@ -293,6 +291,14 @@ public class ViewEditorPanel extends Composite {
     public void setServiceName(String svcName) {
     	this.serviceName = svcName;  
     	updateStatus();
+    }
+
+    public void setOwner(String owner) {
+    	this.owner = owner;
+    }
+    
+    public String getOwner() {
+    	return this.owner;
     }
     
     protected void doGetQueryableSources( ) {
@@ -532,7 +538,7 @@ public class ViewEditorPanel extends Composite {
      */
     @EventHandler("btn-vieweditor-manage-sources")
     public void onManageSourcesButtonClick(ClickEvent event) {
-    	placeManager.goTo("ManageSourcesScreen");
+    	fireGoToManageSources();
     }
     
     private void doTestView() {
@@ -597,6 +603,15 @@ public class ViewEditorPanel extends Composite {
      */
     public void fireStateChanged( ) {
     	stateChangedEvent.fire(new UiEvent(UiEventType.VIEW_EDITOR_CHANGED));
+    }
+    
+    /**
+     * Fire go to manage soruces
+     */
+    public void fireGoToManageSources( ) {
+    	UiEvent event = new UiEvent(UiEventType.VIEW_EDITOR_GOTO_MANAGE_SOURCES);
+    	event.setEventSource(getOwner());
+    	stateChangedEvent.fire(event);
     }
     
 	private void updateStatus( ) {

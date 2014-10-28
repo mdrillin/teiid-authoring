@@ -29,9 +29,13 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
+import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
+import org.teiid.authoring.client.services.ApplicationStateKeys;
+import org.teiid.authoring.client.services.ApplicationStateService;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.TeiidRpcService;
@@ -75,6 +79,7 @@ public class EditDataServiceScreen extends Composite {
 	private String statusEnterName;
 	private String statusClickSave;
 	private String serviceOriginalName;
+	private Collection<String> existingVdbNames;
 	
     @Inject
     private PlaceManager placeManager;
@@ -82,6 +87,8 @@ public class EditDataServiceScreen extends Composite {
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;
+    @Inject
+    private ApplicationStateService stateService;
     
     @Inject
     protected TeiidRpcService teiidService;
@@ -109,6 +116,10 @@ public class EditDataServiceScreen extends Composite {
     @Inject @DataField("btn-edit-service-cancel")
     protected Button cancelButton;
     
+    @Inject 
+    private ConfirmationContentPanel confirmationContent;
+	private ConfirmationDialog confirmationDialog;
+    
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
@@ -130,16 +141,26 @@ public class EditDataServiceScreen extends Composite {
 		
 		viewEditorPanel.setTitle(i18n.format("editdataservice.vieweditor-title"));
 		viewEditorPanel.setDescription(i18n.format("editdataservice.vieweditor-description"));
+		viewEditorPanel.setOwner("EditDataServiceScreen");
 		serviceVisibleCheckBox.setText(i18n.format("editdataservice.checkbox-service-visible"));
     }
     
     @OnStartup
     public void onStartup( final PlaceRequest place ) {
-    	String serviceName = place.getParameter(Constants.SERVICE_NAME_KEY, "[unknown]");
-    	serviceNameTextBox.setText(serviceName);
-    	serviceOriginalName = serviceName;
+    	String fromScreen = place.getParameter(Constants.FROM_SCREEN,"[unknown]");
+    	if(fromScreen!=null && fromScreen.equals("ManageSourcesScreen")) {
+    		restoreServiceState();
+    		updateStatus();
+    	} else {
+        	String serviceName = place.getParameter(Constants.SERVICE_NAME_KEY, "[unknown]");
+        	serviceNameTextBox.setText(serviceName);
+        	serviceOriginalName = serviceName;
+        	
+        	viewEditorPanel.setServiceName(serviceName);
+        	// Get details for this service
+        	doGetDataServiceDetails(serviceName);
+    	}
     	
-    	viewEditorPanel.setServiceName(serviceName);
     	serviceNameTextBox.addKeyUpHandler(new KeyUpHandler() {
             @Override
             public void onKeyUp(KeyUpEvent event) {
@@ -149,7 +170,8 @@ public class EditDataServiceScreen extends Composite {
             }
         });
     	    	
-    	doGetDataServiceDetails(serviceName);
+    	// Populates list of existing vdb names
+    	doGetAllVdbNames();
     }
     
     /**
@@ -164,6 +186,26 @@ public class EditDataServiceScreen extends Composite {
     	if(StringUtils.isEmpty(serviceName)) {
     		statusLabel.setText(statusEnterName);
     		isOK = false;
+    	}
+    	
+    	// Check for valid service name
+    	if(isOK) {
+    		String nameStatus = StringUtils.checkValidServiceName(serviceName);
+    		if(!nameStatus.equals(Constants.OK)) {
+    			statusLabel.setText(nameStatus);
+    			isOK = false;
+    		}
+    	}
+    	
+    	// Ensure that service name is not already being used
+    	if(isOK) {
+    		if(!serviceName.equals(this.serviceOriginalName)) {
+    			String nameStatus = checkServiceNameInUse(serviceName);
+    			if(!nameStatus.equals(Constants.OK)) {
+    				statusLabel.setText(nameStatus);
+    				isOK = false;
+    			}
+    		}
     	}
     	
 		// Check for missing view DDL - if serviceName passed
@@ -303,6 +345,31 @@ public class EditDataServiceScreen extends Composite {
         });           	
     }
     
+    private String checkServiceNameInUse(String serviceName) {
+    	String statusMsg = Constants.OK;
+    	
+    	if(this.existingVdbNames!=null && this.existingVdbNames.contains(serviceName)) {
+    		statusMsg = i18n.format("editdataservice.service-name-exists-msg",serviceName); //$NON-NLS-1$
+    	}
+    	return statusMsg;
+    }
+    
+    /**
+     * Populate list of all current VDB names
+     */
+    protected void doGetAllVdbNames( ) {
+    	teiidService.getAllVdbNames(new IRpcServiceInvocationHandler<Collection<String>>() {
+    		@Override
+    		public void onReturn(Collection<String> vdbNames) {
+    			existingVdbNames=vdbNames;
+    		}
+    		@Override
+    		public void onError(Throwable error) {
+                notificationService.sendErrorNotification(i18n.format("editdataservice.getvdbnames-error"), error); //$NON-NLS-1$
+    		}
+    	});
+    }
+    
     /**
      * Do a clean-up of any temporary VDBs that may have not been undeployed
      */
@@ -339,16 +406,88 @@ public class EditDataServiceScreen extends Composite {
     	// change received from viewEditor
     	if(dEvent.getType() == UiEventType.VIEW_EDITOR_CHANGED) {
     		updateStatus();
+    	} else if(dEvent.getType() == UiEventType.VIEW_EDITOR_GOTO_MANAGE_SOURCES) {
+    		String eventSource = dEvent.getEventSource();
+    		if(eventSource.equals("EditDataServiceScreen")) {
+    			// Save in-progress changes
+    			saveServiceState();
+    			
+    			// transition to ManageSourcesScreen
+    			Map<String,String> parameters = new HashMap<String,String>();
+    			parameters.put(Constants.FROM_SCREEN, "EditDataServiceScreen");
+    	    	placeManager.goTo(new DefaultPlaceRequest("ManageSourcesScreen",parameters));
+    		}
+    	} else if(dEvent.getType() == UiEventType.EDIT_SERVICE_ABORT_OK) {
+        	confirmationDialog.hide();
+        	placeManager.goTo("DataServicesLibraryScreen");
+    	} else if(dEvent.getType() == UiEventType.EDIT_SERVICE_ABORT_CANCEL) {
+        	confirmationDialog.hide();
     	}
     }
     
+    /**
+     * Save in-progress Service state
+     */
+    private void saveServiceState() {
+    	String svcName = serviceNameTextBox.getText();
+    	String svcDescription = serviceDescriptionTextBox.getText();
+    	boolean isVisible = serviceVisibleCheckBox.getValue();
+    	String viewDdl = viewEditorPanel.getViewDdl();
+    	List<String> viewSources = viewEditorPanel.getViewSources();
+    	stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_ORIGINAL_NAME, serviceOriginalName);
+		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_NAME, svcName);
+		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_DESC, svcDescription);
+		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VISIBILITY, isVisible);
+		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_DDL, viewDdl);
+		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_SRCS, viewSources);
+    }
+    
+    /**
+     * Restore in-progress Service state
+     */
+    private void restoreServiceState() {
+    	serviceOriginalName = (String)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_ORIGINAL_NAME);
+    	String svcName = (String)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_NAME);
+    	String svcDesc = (String)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_DESC);
+    	Boolean svcVisibility = (Boolean)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_VISIBILITY);
+    	String svcViewDdl = (String)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_DDL);
+    	@SuppressWarnings("unchecked")
+		List<String> svcViewSrcs = (List<String>)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_SRCS);
+    	
+    	serviceNameTextBox.setText(svcName);
+    	serviceDescriptionTextBox.setText(svcDesc);
+    	serviceVisibleCheckBox.setValue(svcVisibility);
+    	viewEditorPanel.setViewDdl(svcViewDdl);
+    	viewEditorPanel.setViewSources(svcViewSrcs);
+    	viewEditorPanel.setServiceName(svcName);
+    }
+
     /**
      * Event handler that fires when the user clicks the Cancel button.
      * @param event
      */
     @EventHandler("btn-edit-service-cancel")
     public void onCancelButtonClick(ClickEvent event) {
-    	placeManager.goTo("DataServicesLibraryScreen");
+    	// user must confirm if there are pending changes
+    	if(saveServiceButton.isEnabled()) {
+    		showConfirmAbortDialog();
+    	// no pending changes
+    	} else {
+        	placeManager.goTo("DataServicesLibraryScreen");
+    	}
+    }
+    
+    /**
+     * Shows the confirmation dialog for cancel of edit operation
+     */
+    private void showConfirmAbortDialog() {
+    	String dTitle = i18n.format("editdataservice.confirm-abort-edit-dialog-title");
+    	String dMsg = i18n.format("editdataservice.confirm-abort-edit-dialog-message");
+    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
+    	confirmationDialog.setContentTitle(dTitle);
+    	confirmationDialog.setContentMessage(dMsg);
+    	confirmationDialog.setOkCancelEventTypes(UiEventType.EDIT_SERVICE_ABORT_OK, UiEventType.EDIT_SERVICE_ABORT_CANCEL);
+    	confirmationDialog.show();
     }
         
 }

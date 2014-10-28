@@ -50,6 +50,9 @@ import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
+import org.uberfire.lifecycle.OnStartup;
+import org.uberfire.mvp.PlaceRequest;
+import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
@@ -75,6 +78,7 @@ public class ManageSourcesScreen extends Composite {
 	private List<DataSourcePageRow> currentDataSourceList = new ArrayList<DataSourcePageRow>();
 	private boolean propPanelVisible = false;
 	private ConfirmationDialog confirmationDialog;
+	private String requestingScreen;
 
     @Inject
     protected ClientMessages i18n;
@@ -93,8 +97,8 @@ public class ManageSourcesScreen extends Composite {
     @Inject
     protected QueryRpcService queryService;
     
-    @Inject @DataField("anchor-goto-create-service")
-    protected Anchor goToCreateServiceAnchor;
+    @Inject @DataField("anchor-goback")
+    protected Anchor goBackAnchor;
     
     @Inject @DataField("dslist-deckpanel")
     protected DeckPanel dsListDeckPanel;
@@ -154,7 +158,14 @@ public class ManageSourcesScreen extends Composite {
     			}
     		}
     	});
-    	
+    }
+    
+    @OnStartup
+    public void onStartup( final PlaceRequest place ) {
+    	String fromScreen = place.getParameter(Constants.FROM_SCREEN,"[unknown]");
+    	if(fromScreen!=null && !fromScreen.equals("[unknown]")) {
+    		setRequestingScreen(fromScreen);
+    	}
     }
     
     private void showPropertiesPanel(String dsName) {
@@ -435,13 +446,23 @@ public class ManageSourcesScreen extends Composite {
     	return resultBean;
     }
     
+    public void setRequestingScreen(String screen) {
+    	this.requestingScreen = screen;
+    }
+    
     /**
      * Event handler that fires when the user clicks the GoTo Library anchor.
      * @param event
      */
-    @EventHandler("anchor-goto-create-service")
-    public void onGotoCreateServiceAnchorClick(ClickEvent event) {
-    	placeManager.goTo("CreateDataServiceScreen");
+    @EventHandler("anchor-goback")
+    public void onGoBackAnchorClick(ClickEvent event) {
+    	Map<String,String> parameters = new HashMap<String,String>();
+    	parameters.put(Constants.FROM_SCREEN, "ManageSourcesScreen");
+    	if(this.requestingScreen!=null && this.requestingScreen.equals("EditDataServiceScreen")) {
+        	placeManager.goTo(new DefaultPlaceRequest("EditDataServiceScreen",parameters));
+    	} else {
+        	placeManager.goTo(new DefaultPlaceRequest("CreateDataServiceScreen",parameters));
+    	}
     }
     
 }

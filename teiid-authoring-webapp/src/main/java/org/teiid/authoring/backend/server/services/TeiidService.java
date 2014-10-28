@@ -1064,6 +1064,18 @@ public class TeiidService implements ITeiidService {
 		}
     }
     
+    public Collection<String> getAllVdbNames( ) throws DataVirtUiException {
+    	// Collect all of the Service VDB names
+    	Collection<String> vdbNames = null;
+    	try {
+    		vdbNames = clientAccessor.getClient().getVdbNames(true, true, false);
+    	} catch (AdminApiClientException e) {
+    		throw new DataVirtUiException(e);
+    	}
+    	
+    	return vdbNames;
+    }
+    
     public List<VdbDetailsBean> getDataServiceVdbs( ) throws DataVirtUiException {
     	// Collect all of the Service VDB names
     	List<String> svcVdbNames = null;

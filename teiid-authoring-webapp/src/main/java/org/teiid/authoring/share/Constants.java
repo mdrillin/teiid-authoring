@@ -30,6 +30,8 @@ public class Constants {
 	public static final int QUERY_RESULTS_TABLE_PAGE_SIZE = 15;
 	public static final int QUERY_COLUMNS_TABLE_PAGE_SIZE = 6;
 	
+	public static final String FROM_SCREEN = "from-screen";
+	
 	public static final String SERVICE_TEST_VDB_PREFIX = "SvcTestVdb_";
 	public static final String SERVICE_SOURCE_VDB_PREFIX = "SvcSourceVdb_";
 	public static final String PREVIEW_VDB_PREFIX = "PREVIEW_";

@@ -15,6 +15,7 @@
  */
 package org.teiid.authoring.client.screens;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,8 @@ import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
+import org.teiid.authoring.client.services.ApplicationStateKeys;
+import org.teiid.authoring.client.services.ApplicationStateService;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.TeiidRpcService;
@@ -45,6 +48,8 @@ import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
+import org.uberfire.lifecycle.OnStartup;
+import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -69,6 +74,7 @@ public class CreateDataServiceScreen extends Composite {
 
 	private String statusEnterName = null;
 	private String statusClickCreate = null;
+	private Collection<String> existingVdbNames;
 	
     @Inject
     private PlaceManager placeManager;
@@ -76,6 +82,8 @@ public class CreateDataServiceScreen extends Composite {
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;
+    @Inject
+    private ApplicationStateService stateService;
     
     @Inject
     protected TeiidRpcService teiidService;
@@ -124,9 +132,23 @@ public class CreateDataServiceScreen extends Composite {
 		
 		viewEditorPanel.setTitle(i18n.format("createdataservice.vieweditor-title"));
 		viewEditorPanel.setDescription(i18n.format("createdataservice.vieweditor-description"));
+		viewEditorPanel.setOwner("CreateDataServiceScreen");
 		
 		serviceVisibleCheckbox.setText(i18n.format("createdataservice.checkbox-service-visible"));
     	serviceVisibleCheckbox.setValue(true);
+    }
+    
+    @OnStartup
+    public void onStartup( final PlaceRequest place ) {
+    	String fromScreen = place.getParameter(Constants.FROM_SCREEN,"[unknown]");
+    	if(fromScreen!=null && fromScreen.equals("ManageSourcesScreen")) {
+    		restoreServiceState();
+    		updateStatus();
+    	} else {
+        	serviceNameTextBox.setText(Constants.BLANK);
+        	
+        	viewEditorPanel.setServiceName(Constants.BLANK);
+    	}
     	
     	serviceNameTextBox.addKeyUpHandler(new KeyUpHandler() {
             @Override
@@ -137,9 +159,8 @@ public class CreateDataServiceScreen extends Composite {
             }
         });
     	    	
-    	// Set the initial status
-    	updateStatus();
-    	
+    	// Populates list of existing vdb names
+    	doGetAllVdbNames();
     }
     
     /**
@@ -154,6 +175,24 @@ public class CreateDataServiceScreen extends Composite {
     	if(StringUtils.isEmpty(serviceName)) {
     		statusLabel.setText(statusEnterName);
     		isOK = false;
+    	}
+    	
+    	// Check for valid service name
+    	if(isOK) {
+    		String nameStatus = StringUtils.checkValidServiceName(serviceName);
+    		if(!nameStatus.equals(Constants.OK)) {
+    			statusLabel.setText(nameStatus);
+    			isOK = false;
+    		}
+    	}
+    	
+    	// Ensure that service name is not already being used
+    	if(isOK) {
+    		String nameStatus = checkServiceNameInUse(serviceName);
+    		if(!nameStatus.equals(Constants.OK)) {
+    			statusLabel.setText(nameStatus);
+    			isOK = false;
+    		}
     	}
     	
 		// Check for missing view DDL - if serviceName passed
@@ -181,7 +220,53 @@ public class CreateDataServiceScreen extends Composite {
     	// change received from viewEditor
     	if(dEvent.getType() == UiEventType.VIEW_EDITOR_CHANGED) {
     		updateStatus();
+    	} else if(dEvent.getType() == UiEventType.VIEW_EDITOR_GOTO_MANAGE_SOURCES) {
+    		String eventSource = dEvent.getEventSource();
+    		if(eventSource.equals("CreateDataServiceScreen")) {
+    			// Save in-progress changes
+    			saveServiceState();
+    			
+    			// transition to ManageSourcesScreen
+    			Map<String,String> parameters = new HashMap<String,String>();
+    			parameters.put(Constants.FROM_SCREEN, "CreateDataServiceScreen");
+    	    	placeManager.goTo(new DefaultPlaceRequest("ManageSourcesScreen",parameters));
+    		}
     	}
+    }
+        
+    /**
+     * Save in-progress Service state
+     */
+    private void saveServiceState() {
+    	String svcName = serviceNameTextBox.getText();
+    	String svcDescription = serviceDescriptionTextBox.getText();
+    	boolean isVisible = serviceVisibleCheckbox.getValue();
+    	String viewDdl = viewEditorPanel.getViewDdl();
+    	List<String> viewSources = viewEditorPanel.getViewSources();
+		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_NAME, svcName);
+		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_DESC, svcDescription);
+		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VISIBILITY, isVisible);
+		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_DDL, viewDdl);
+		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_SRCS, viewSources);
+    }
+    
+    /**
+     * Restore in-progress Service state
+     */
+    private void restoreServiceState() {
+    	String svcName = (String)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_NAME);
+    	String svcDesc = (String)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_DESC);
+    	Boolean svcVisibility = (Boolean)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_VISIBILITY);
+    	String svcViewDdl = (String)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_DDL);
+    	@SuppressWarnings("unchecked")
+		List<String> svcViewSrcs = (List<String>)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_SRCS);
+    	
+    	serviceNameTextBox.setText(svcName);
+    	serviceDescriptionTextBox.setText(svcDesc);
+    	serviceVisibleCheckbox.setValue(svcVisibility);
+    	viewEditorPanel.setViewDdl(svcViewDdl);
+    	viewEditorPanel.setViewSources(svcViewSrcs);
+    	viewEditorPanel.setServiceName(svcName);
     }
 
     /**
@@ -250,7 +335,32 @@ public class CreateDataServiceScreen extends Composite {
             }
         });           	
     }
-        
+       
+    private String checkServiceNameInUse(String serviceName) {
+    	String statusMsg = Constants.OK;
+    	
+    	if(this.existingVdbNames!=null && this.existingVdbNames.contains(serviceName)) {
+    		statusMsg = i18n.format("createdataservice.service-name-exists-msg",serviceName); //$NON-NLS-1$
+    	}
+    	return statusMsg;
+    }
+    
+    /**
+     * Populate list of all current VDB names
+     */
+    protected void doGetAllVdbNames( ) {
+    	teiidService.getAllVdbNames(new IRpcServiceInvocationHandler<Collection<String>>() {
+    		@Override
+    		public void onReturn(Collection<String> vdbNames) {
+    			existingVdbNames=vdbNames;
+    		}
+    		@Override
+    		public void onError(Throwable error) {
+                notificationService.sendErrorNotification(i18n.format("createdataservice.getvdbnames-error"), error); //$NON-NLS-1$
+    		}
+    	});
+    }
+    
     /**
      * Do a clean-up of any temporary VDBs that may have not been undeployed
      */
