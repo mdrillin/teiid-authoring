@@ -132,7 +132,7 @@ public class CreateDataServiceScreen extends Composite {
 		
 		viewEditorPanel.setTitle(i18n.format("createdataservice.vieweditor-title"));
 		viewEditorPanel.setDescription(i18n.format("createdataservice.vieweditor-description"));
-		viewEditorPanel.setOwner("CreateDataServiceScreen");
+		viewEditorPanel.setOwner(Constants.CREATE_DATA_SERVICE_SCREEN);
 		
 		serviceVisibleCheckbox.setText(i18n.format("createdataservice.checkbox-service-visible"));
     	serviceVisibleCheckbox.setValue(true);
@@ -140,8 +140,8 @@ public class CreateDataServiceScreen extends Composite {
     
     @OnStartup
     public void onStartup( final PlaceRequest place ) {
-    	String fromScreen = place.getParameter(Constants.FROM_SCREEN,"[unknown]");
-    	if(fromScreen!=null && fromScreen.equals("ManageSourcesScreen")) {
+    	String fromScreen = place.getParameter(Constants.FROM_SCREEN,Constants.UNKNOWN);
+    	if(fromScreen!=null && fromScreen.equals(Constants.MANAGE_SOURCES_SCREEN)) {
     		restoreServiceState();
     		updateStatus();
     	} else {
@@ -222,14 +222,14 @@ public class CreateDataServiceScreen extends Composite {
     		updateStatus();
     	} else if(dEvent.getType() == UiEventType.VIEW_EDITOR_GOTO_MANAGE_SOURCES) {
     		String eventSource = dEvent.getEventSource();
-    		if(eventSource.equals("CreateDataServiceScreen")) {
+    		if(eventSource.equals(Constants.CREATE_DATA_SERVICE_SCREEN)) {
     			// Save in-progress changes
     			saveServiceState();
     			
     			// transition to ManageSourcesScreen
     			Map<String,String> parameters = new HashMap<String,String>();
-    			parameters.put(Constants.FROM_SCREEN, "CreateDataServiceScreen");
-    	    	placeManager.goTo(new DefaultPlaceRequest("ManageSourcesScreen",parameters));
+    			parameters.put(Constants.FROM_SCREEN, Constants.CREATE_DATA_SERVICE_SCREEN);
+    	    	placeManager.goTo(new DefaultPlaceRequest(Constants.MANAGE_SOURCES_SCREEN,parameters));
     		}
     	}
     }
@@ -326,7 +326,7 @@ public class CreateDataServiceScreen extends Composite {
             	
             	Map<String,String> parameters = new HashMap<String,String>();
             	parameters.put(Constants.SERVICE_NAME_KEY, viewModel);
-            	placeManager.goTo(new DefaultPlaceRequest("DataServiceDetailsScreen",parameters));
+            	placeManager.goTo(new DefaultPlaceRequest(Constants.DATA_SERVICE_DETAILS_SCREEN,parameters));
             }
             @Override
             public void onError(Throwable error) {
@@ -381,7 +381,7 @@ public class CreateDataServiceScreen extends Composite {
      */
     @EventHandler("btn-create-service-cancel")
     public void onCancelButtonClick(ClickEvent event) {
-    	placeManager.goTo("DataServicesLibraryScreen");
+    	placeManager.goTo(Constants.DATA_SERVICES_LIBRARY_SCREEN);
     }
         
 }

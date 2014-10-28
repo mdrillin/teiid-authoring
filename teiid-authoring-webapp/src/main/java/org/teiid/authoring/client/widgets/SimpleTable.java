@@ -250,49 +250,6 @@ public class SimpleTable<T>
         dataGrid.addColumn( column, caption);
     }
 
-//    public void addColumn( final Column<T, ?> column,
-//                           final String caption,
-//                           final boolean visible ) {
-//        final ResizableMovableHeader header = new ResizableMovableHeader<T>( caption,
-//                                                             dataGrid,
-//                                                             columnPicker,
-//                                                             column ) {
-//            @Override
-//            protected int getTableBodyHeight() {
-//                return dataGrid.getOffsetHeight();
-//            }
-//        };
-//        header.addColumnChangedHandler(new ColumnChangedHandler() {
-//          @Override
-//          public void afterColumnChanged() {
-//            if(gridPreferencesStore != null && preferencesService != null){
-//              List<GridColumnPreference> columnsState = columnPicker.getColumnsState();
-//              gridPreferencesStore.resetGridColumnPreferences();
-//              for(GridColumnPreference gcp : columnsState){
-//                gridPreferencesStore.addGridColumnPreference(gcp);
-//              }
-//
-//              preferencesService.call(new RemoteCallback<Void>() {
-//
-//                @Override
-//                public void callback(Void response) {
-//
-//                }
-//              }).saveGridPreferences(gridPreferencesStore);
-//            }
-//          }
-//
-//          @Override
-//          public void beforeColumnChanged() {
-//            
-//          }
-//        });
-//        column.setDataStoreName( caption );
-//        columnPicker.addColumn( column,
-//                                header,
-//                                visible );
-//    }
-
     public void setColumnWidth( final Column<T, ?> column,
                                 final double width,
                                 final Style.Unit unit ) {

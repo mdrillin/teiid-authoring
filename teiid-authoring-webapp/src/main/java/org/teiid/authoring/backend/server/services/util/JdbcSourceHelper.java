@@ -72,7 +72,7 @@ public class JdbcSourceHelper {
     	Iterator<String> nameIter = dsNames.iterator();
     	while(nameIter.hasNext()) {
     		String dsName = nameIter.next();
-    		if(dsName!=null && !dsName.startsWith("java:/"+Constants.PREVIEW_VDB_PREFIX)) {
+    		if(dsName!=null && !dsName.startsWith(Constants.JNDI_PREFIX+Constants.PREVIEW_VDB_PREFIX)) {
     			DataSource ds = mDatasources.get(dsName);
     			if(!teiidOnly) {
     				resultList.add(dsName);

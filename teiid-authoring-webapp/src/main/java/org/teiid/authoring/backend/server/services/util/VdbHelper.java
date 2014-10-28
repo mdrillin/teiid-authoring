@@ -29,6 +29,10 @@ public class VdbHelper {
 	// Static Variables
 
 	private static VdbHelper instance = new VdbHelper();
+	
+	private static final String DDL = "DDL";
+	private static final String DYNAMIC = "dynamic";
+	private static final String ARCHIVE = "archive";
 
 	// ============================================
 	// Static Methods
@@ -125,7 +129,7 @@ public class VdbHelper {
 		modelMetaData.setName(modelName);
 		modelMetaData.setDescription(description);
 		modelMetaData.setModelType(Model.Type.VIRTUAL);
-		modelMetaData.setSchemaSourceType("DDL");
+		modelMetaData.setSchemaSourceType(DDL);
 		modelMetaData.setSchemaText(ddl);
 		modelMetaData.setVisible(isVisible);
 		return modelMetaData;
@@ -150,9 +154,9 @@ public class VdbHelper {
 			// VDB Type
 			// ------------
 			if(vdb.isXmlDeployment()) {
-				vdbDetailsBean.setType("dynamic");
+				vdbDetailsBean.setType(DYNAMIC);
 			} else {
-				vdbDetailsBean.setType("archive");				
+				vdbDetailsBean.setType(ARCHIVE);				
 			}
 
 			List<VDBImportMetadata> vdbImports = vdb.getVDBImports();
@@ -617,7 +621,7 @@ public class VdbHelper {
 			String theModelName = model.getName();
 			if(theModelName.equals(viewModelName)) {
 				// Create View Model and add to current view models
-				String newViewName = generateUniqueName(theModelName,existingViewNames);
+				String newViewName = generateUniqueName(theModelName,existingViewNames,"_copy");
 				String description = model.getDescription();
 				boolean isVisible = model.isVisible();
 				String ddlString = modelMeta.getSchemaText();
@@ -639,7 +643,7 @@ public class VdbHelper {
 		return newVdb;
 	}
 
-	private String generateUniqueName(String origName, List<String> existingNames) {
+	private String generateUniqueName(String origName, List<String> existingNames, String suffix) {
 		// If the name is already unique, return it.
 		if(!existingNames.contains(origName)) {
 			return origName;
@@ -650,9 +654,9 @@ public class VdbHelper {
 		int i = 1;
 		while(!success) {
 			if(i==1) {
-			    newName = origName + "_copy";
+			    newName = origName + suffix;
 			} else {
-				newName = origName + "_copy" + i;
+				newName = origName + suffix + i;
 			}
 			if(!existingNames.contains(newName)) {
 				success=true;

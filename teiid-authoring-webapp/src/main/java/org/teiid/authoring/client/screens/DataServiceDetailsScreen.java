@@ -134,7 +134,7 @@ public class DataServiceDetailsScreen extends Composite {
     
     @OnStartup
     public void onStartup( final PlaceRequest place ) {
-    	serviceName = place.getParameter(Constants.SERVICE_NAME_KEY, "[unknown]");
+    	serviceName = place.getParameter(Constants.SERVICE_NAME_KEY, Constants.UNKNOWN);
     	doGetDataServiceDetails(serviceName);    	
     }
     
@@ -251,7 +251,7 @@ public class DataServiceDetailsScreen extends Composite {
     	Map<String,String> parameters = new HashMap<String,String>();
     	parameters.put(Constants.SERVICE_NAME_KEY, serviceName);
     	
-    	placeManager.goTo(new DefaultPlaceRequest("EditDataServiceScreen",parameters));
+    	placeManager.goTo(new DefaultPlaceRequest(Constants.EDIT_DATA_SERVICE_SCREEN,parameters));
     }
     
     /**
@@ -260,7 +260,7 @@ public class DataServiceDetailsScreen extends Composite {
      */
     @EventHandler("anchor-goto-library")
     public void onGotoLibraryAnchorClick(ClickEvent event) {
-    	placeManager.goTo("DataServicesLibraryScreen");
+    	placeManager.goTo(Constants.DATA_SERVICES_LIBRARY_SCREEN);
     }
     
     /**

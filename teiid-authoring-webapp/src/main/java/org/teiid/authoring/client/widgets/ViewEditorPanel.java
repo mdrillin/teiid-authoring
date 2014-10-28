@@ -569,8 +569,10 @@ public class ViewEditorPanel extends Composite {
                         i18n.format("vieweditor-panel.testing-service-complete"), //$NON-NLS-1$
                         i18n.format("vieweditor-panel.testing-service-complete-msg")); //$NON-NLS-1$
 
-                String testVdbJndi = "java:/"+testVDBName;
-    			String serviceSampleSQL = "SELECT * FROM "+serviceName+"."+Constants.SERVICE_VIEW_NAME+" LIMIT 10";
+                String testVdbJndi = Constants.JNDI_PREFIX+testVDBName;
+    			String serviceSampleSQL = Constants.SELECT_STAR_FROM+Constants.SPACE + 
+    			           serviceName+Constants.DOT+Constants.SERVICE_VIEW_NAME+
+    			           Constants.SPACE+Constants.LIMIT_10;
     	    	queryResultsPanel.showResultsTable(testVdbJndi, serviceSampleSQL);
     	    	
                 haveSuccessfullyTested = true;

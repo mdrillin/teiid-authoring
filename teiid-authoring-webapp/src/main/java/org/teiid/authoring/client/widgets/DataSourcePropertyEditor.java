@@ -29,7 +29,6 @@ import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.services.StringUtils;
 
-import com.github.gwtbootstrap.client.ui.base.TextBox;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -39,6 +38,8 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.PasswordTextBox;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 /**
@@ -46,6 +47,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  */
 public class DataSourcePropertyEditor extends Composite {
 
+	private static final String PASSWORD_KEY = "password"; //$NON-NLS-1$
 	private static final String NAME_WIDTH = "220px";
 	private static final String VALUE_WIDTH = "600px";
 	
@@ -84,7 +86,14 @@ public class DataSourcePropertyEditor extends Composite {
     		nameLabel.setText(prop.getDisplayName()+" --");
     		nameValuePanel.add(nameLabel);
     		
-    		TextBox valueTextBox = new TextBox();
+
+            TextBox valueTextBox = null;
+            String propName = prop.getName();
+            if( propName!=null && propName.equalsIgnoreCase(PASSWORD_KEY) ) {
+            	valueTextBox = new PasswordTextBox();
+            } else {
+            	valueTextBox = new TextBox();
+            }
     		valueTextBox.setWidth(VALUE_WIDTH);
     		valueTextBox.setText(prop.getValue());
     		valueTextBox.addKeyUpHandler(new KeyUpHandler() {

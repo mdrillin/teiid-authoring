@@ -162,8 +162,8 @@ public class ManageSourcesScreen extends Composite {
     
     @OnStartup
     public void onStartup( final PlaceRequest place ) {
-    	String fromScreen = place.getParameter(Constants.FROM_SCREEN,"[unknown]");
-    	if(fromScreen!=null && !fromScreen.equals("[unknown]")) {
+    	String fromScreen = place.getParameter(Constants.FROM_SCREEN,Constants.UNKNOWN);
+    	if(fromScreen!=null && !fromScreen.equals(Constants.UNKNOWN)) {
     		setRequestingScreen(fromScreen);
     	}
     }
@@ -457,11 +457,11 @@ public class ManageSourcesScreen extends Composite {
     @EventHandler("anchor-goback")
     public void onGoBackAnchorClick(ClickEvent event) {
     	Map<String,String> parameters = new HashMap<String,String>();
-    	parameters.put(Constants.FROM_SCREEN, "ManageSourcesScreen");
-    	if(this.requestingScreen!=null && this.requestingScreen.equals("EditDataServiceScreen")) {
-        	placeManager.goTo(new DefaultPlaceRequest("EditDataServiceScreen",parameters));
+    	parameters.put(Constants.FROM_SCREEN, Constants.MANAGE_SOURCES_SCREEN);
+    	if(this.requestingScreen!=null && this.requestingScreen.equals(Constants.EDIT_DATA_SERVICE_SCREEN)) {
+        	placeManager.goTo(new DefaultPlaceRequest(Constants.EDIT_DATA_SERVICE_SCREEN,parameters));
     	} else {
-        	placeManager.goTo(new DefaultPlaceRequest("CreateDataServiceScreen",parameters));
+        	placeManager.goTo(new DefaultPlaceRequest(Constants.CREATE_DATA_SERVICE_SCREEN,parameters));
     	}
     }
     

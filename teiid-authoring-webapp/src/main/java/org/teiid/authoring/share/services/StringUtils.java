@@ -4,19 +4,19 @@ import org.teiid.authoring.share.Constants;
 
 
 public final class StringUtils {
-
+	
 	public static String checkValidServiceName(String serviceName) {
 		String statusMsg = Constants.OK;
 				
 		// Check that service name is not empty
         if(isEmpty(serviceName)) {
-        	return "The service name cannot be empty";
+        	return Constants.SERVICE_NAME_CANNOT_BE_EMPTY_MSG;
         }
         
         // Must start with a letter
         char c = serviceName.charAt(0);
         if(!Character.isLetter(c)) {
-        	return "The first character of the service name must be an alphabetic character";
+        	return Constants.SERVICE_NAME_FIRST_CHAR_MUST_BE_ALPHA_MSG;
         }
         
         // Check that remaining chars are 1) letter, 2) digit, or 3) underscore

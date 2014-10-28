@@ -639,7 +639,7 @@ public class TeiidService implements ITeiidService {
     	// Get JNDI for the specified DataSource name.  if null choose a default
     	String jndiName = getSourceJndiName(bean.getName());
     	if(StringUtils.isEmpty(jndiName)) {
-    		jndiName = "java:/"+bean.getName();
+    		jndiName = Constants.JNDI_PREFIX+bean.getName();
     	}
     	
     	// Delete Source VDB if it already exists
@@ -662,7 +662,7 @@ public class TeiidService implements ITeiidService {
     	// Get JNDI for the specified DataSource name.  if null choose a default
     	String jndiName = getSourceJndiName(bean.getName());
     	if(StringUtils.isEmpty(jndiName)) {
-    		jndiName = "java:/"+bean.getName();
+    		jndiName = Constants.JNDI_PREFIX+bean.getName();
     	}
     	
     	// Delete VDB if it already exists
@@ -794,8 +794,8 @@ public class TeiidService implements ITeiidService {
     private void createVdbDataSource(String vdbName) throws DataVirtUiException {
     	Properties vdbProps = new Properties();
     	vdbProps.put("connection-url","jdbc:teiid:"+vdbName+";useJDBC4ColumnNameAndLabelSemantics=false");
-    	vdbProps.put("user-name","user");
-    	vdbProps.put("password","user");
+    	vdbProps.put("user-name",Constants.WEBUI_USER);
+    	vdbProps.put("password",Constants.WEBUI_PASS);
 
     	// Create the datasource (deletes first, if it already exists)
     	addDataSource(vdbName, "teiid-local", vdbProps );

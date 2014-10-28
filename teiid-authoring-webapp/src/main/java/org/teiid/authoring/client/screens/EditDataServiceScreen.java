@@ -141,18 +141,18 @@ public class EditDataServiceScreen extends Composite {
 		
 		viewEditorPanel.setTitle(i18n.format("editdataservice.vieweditor-title"));
 		viewEditorPanel.setDescription(i18n.format("editdataservice.vieweditor-description"));
-		viewEditorPanel.setOwner("EditDataServiceScreen");
+		viewEditorPanel.setOwner(Constants.EDIT_DATA_SERVICE_SCREEN);
 		serviceVisibleCheckBox.setText(i18n.format("editdataservice.checkbox-service-visible"));
     }
     
     @OnStartup
     public void onStartup( final PlaceRequest place ) {
-    	String fromScreen = place.getParameter(Constants.FROM_SCREEN,"[unknown]");
-    	if(fromScreen!=null && fromScreen.equals("ManageSourcesScreen")) {
+    	String fromScreen = place.getParameter(Constants.FROM_SCREEN,Constants.UNKNOWN);
+    	if(fromScreen!=null && fromScreen.equals(Constants.MANAGE_SOURCES_SCREEN)) {
     		restoreServiceState();
     		updateStatus();
     	} else {
-        	String serviceName = place.getParameter(Constants.SERVICE_NAME_KEY, "[unknown]");
+        	String serviceName = place.getParameter(Constants.SERVICE_NAME_KEY, Constants.UNKNOWN);
         	serviceNameTextBox.setText(serviceName);
         	serviceOriginalName = serviceName;
         	
@@ -335,7 +335,7 @@ public class EditDataServiceScreen extends Composite {
             	
             	Map<String,String> parameters = new HashMap<String,String>();
             	parameters.put(Constants.SERVICE_NAME_KEY, viewModel);
-            	placeManager.goTo(new DefaultPlaceRequest("DataServiceDetailsScreen",parameters));
+            	placeManager.goTo(new DefaultPlaceRequest(Constants.DATA_SERVICE_DETAILS_SCREEN,parameters));
             }
             @Override
             public void onError(Throwable error) {
@@ -408,18 +408,18 @@ public class EditDataServiceScreen extends Composite {
     		updateStatus();
     	} else if(dEvent.getType() == UiEventType.VIEW_EDITOR_GOTO_MANAGE_SOURCES) {
     		String eventSource = dEvent.getEventSource();
-    		if(eventSource.equals("EditDataServiceScreen")) {
+    		if(eventSource.equals(Constants.EDIT_DATA_SERVICE_SCREEN)) {
     			// Save in-progress changes
     			saveServiceState();
     			
     			// transition to ManageSourcesScreen
     			Map<String,String> parameters = new HashMap<String,String>();
-    			parameters.put(Constants.FROM_SCREEN, "EditDataServiceScreen");
-    	    	placeManager.goTo(new DefaultPlaceRequest("ManageSourcesScreen",parameters));
+    			parameters.put(Constants.FROM_SCREEN, Constants.EDIT_DATA_SERVICE_SCREEN);
+    	    	placeManager.goTo(new DefaultPlaceRequest(Constants.MANAGE_SOURCES_SCREEN,parameters));
     		}
     	} else if(dEvent.getType() == UiEventType.EDIT_SERVICE_ABORT_OK) {
         	confirmationDialog.hide();
-        	placeManager.goTo("DataServicesLibraryScreen");
+        	placeManager.goTo(Constants.DATA_SERVICES_LIBRARY_SCREEN);
     	} else if(dEvent.getType() == UiEventType.EDIT_SERVICE_ABORT_CANCEL) {
         	confirmationDialog.hide();
     	}
@@ -473,7 +473,7 @@ public class EditDataServiceScreen extends Composite {
     		showConfirmAbortDialog();
     	// no pending changes
     	} else {
-        	placeManager.goTo("DataServicesLibraryScreen");
+        	placeManager.goTo(Constants.DATA_SERVICES_LIBRARY_SCREEN);
     	}
     }
     

@@ -168,7 +168,7 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 		Map<String,String> parameters = new HashMap<String,String>();
 		parameters.put(Constants.SERVICE_NAME_KEY, svcName);
 
-		placeManager.goTo(new DefaultPlaceRequest("DataServiceDetailsScreen",parameters));
+		placeManager.goTo(new DefaultPlaceRequest(Constants.DATA_SERVICE_DETAILS_SCREEN,parameters));
 	}
     
 	/**
@@ -182,7 +182,7 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
     	// re-init list selection
     	populateMoreActionsListBox();
     	
-		placeManager.goTo(new DefaultPlaceRequest("DataServicesLibraryScreen",parameters));
+		placeManager.goTo(new DefaultPlaceRequest(Constants.DATA_SERVICES_LIBRARY_SCREEN,parameters));
     }
     
 	/**
@@ -193,7 +193,7 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 		Map<String,String> parameters = new HashMap<String,String>();
 		parameters.put(Constants.SERVICE_NAME_KEY, svcName);
 
-		placeManager.goTo(new DefaultPlaceRequest("EditDataServiceScreen",parameters));
+		placeManager.goTo(new DefaultPlaceRequest(Constants.EDIT_DATA_SERVICE_SCREEN,parameters));
 	}
 	
 	/**
@@ -204,7 +204,7 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 		Map<String,String> parameters = new HashMap<String,String>();
 		parameters.put(Constants.DELETE_SERVICE_KEY, svcName);
 		
-		placeManager.goTo(new DefaultPlaceRequest("DataServicesLibraryScreen",parameters));
+		placeManager.goTo(new DefaultPlaceRequest(Constants.DATA_SERVICES_LIBRARY_SCREEN,parameters));
     }
     
     protected void doSaveToFile( ) {

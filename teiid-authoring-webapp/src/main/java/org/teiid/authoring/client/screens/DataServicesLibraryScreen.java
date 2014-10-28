@@ -182,7 +182,7 @@ public class DataServicesLibraryScreen extends Composite {
     			List<ServiceRow> serviceTableRows = getServiceRows(serviceVdbs);
 
     			if(serviceTableRows.isEmpty()) {
-    				placeManager.goTo("DataServicesEmptyLibraryScreen");
+    				placeManager.goTo(Constants.DATA_SERVICES_EMPTY_LIBRARY_SCREEN);
     			} else {
     		     	populateGrid(serviceTableRows);
     			}
@@ -211,7 +211,7 @@ public class DataServicesLibraryScreen extends Composite {
     			List<ServiceRow> serviceTableRows = getServiceRows(serviceVdbs);
 
     			if(serviceTableRows.isEmpty()) {
-    				placeManager.goTo("DataServicesEmptyLibraryScreen");
+    				placeManager.goTo(Constants.DATA_SERVICES_EMPTY_LIBRARY_SCREEN);
     			} else {
     		     	populateGrid(serviceTableRows);
     			}
@@ -242,7 +242,7 @@ public class DataServicesLibraryScreen extends Composite {
     			List<ServiceRow> serviceTableRows = getServiceRows(serviceVdbs);
 
     			if(serviceTableRows.isEmpty()) {
-    				placeManager.goTo("DataServicesEmptyLibraryScreen");
+    				placeManager.goTo(Constants.DATA_SERVICES_EMPTY_LIBRARY_SCREEN);
     			} else {
     		     	populateGrid(serviceTableRows);
     			}
@@ -325,7 +325,7 @@ public class DataServicesLibraryScreen extends Composite {
      * Create Service - transitions to the Create Services page
      */
     protected void doCreateService() {
-    	placeManager.goTo("CreateDataServiceScreen");
+    	placeManager.goTo(Constants.CREATE_DATA_SERVICE_SCREEN);
     }
     
 }

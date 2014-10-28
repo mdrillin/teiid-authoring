@@ -23,6 +23,17 @@ package org.teiid.authoring.share;
  */
 public class Constants {
 
+	public static final String WEBUI_USER = "webui";
+	public static final String WEBUI_PASS = "webui";
+	
+	public static final String CREATE_DATA_SERVICE_SCREEN = "CreateDataServiceScreen";
+	public static final String EDIT_DATA_SERVICE_SCREEN = "EditDataServiceScreen";
+	public static final String DATA_SERVICE_DETAILS_SCREEN = "DataServiceDetailsScreen";
+	public static final String DATA_SERVICES_LIBRARY_SCREEN = "DataServicesLibraryScreen";
+	public static final String DATA_SERVICES_EMPTY_LIBRARY_SCREEN = "DataServicesEmptyLibraryScreen";
+	public static final String MANAGE_SOURCES_SCREEN = "ManageSourcesScreen";
+	public static final String UNKNOWN = "[unknown]";
+	
 	public static final int DATASOURCES_TABLE_PAGE_SIZE = 15;
 	public static final int DATASOURCE_TYPES_TABLE_PAGE_SIZE = 15;
 	public static final int VDBS_TABLE_PAGE_SIZE = 15;
@@ -46,7 +57,10 @@ public class Constants {
 	public static final String TEST_CONNECTION_FAILED = "Could not connect - please check source properties and server log, then enter desired properties";
     public static final String TEST_CONNECTION_ERROR_LOADING_SOURCES = "Error - could not load the available sources";
 
-    public static final String REST_PROCNAME = "RestProc";
+	public static final String SERVICE_NAME_CANNOT_BE_EMPTY_MSG = "The service name cannot be empty";
+	public static final String SERVICE_NAME_FIRST_CHAR_MUST_BE_ALPHA_MSG = "The first character of the service name must be an alphabetic character";
+
+	public static final String REST_PROCNAME = "RestProc";
     public static final String REST_XML_GROUPTAG = "Elems";
     public static final String REST_XML_ELEMENTTAG = "Elem";
     public static final String REST_URI_PROPERTY = "rest";

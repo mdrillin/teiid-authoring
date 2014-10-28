@@ -98,7 +98,7 @@ public class DataServicesEmptyLibraryScreen extends Composite {
      * Create Service - transitions to the Create Services page
      */
     protected void doCreateService() {
-    	placeManager.goTo("CreateDataServiceScreen");
+    	placeManager.goTo(Constants.CREATE_DATA_SERVICE_SCREEN);
     }
     
 }

@@ -2,6 +2,7 @@ package org.teiid.authoring.client.perspectives;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import org.teiid.authoring.share.Constants;
 import org.uberfire.client.annotations.Perspective;
 import org.uberfire.client.annotations.WorkbenchPerspective;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
@@ -22,7 +23,7 @@ public class MainPerspective {
         PerspectiveDefinition perspective = new PerspectiveDefinitionImpl( PanelType.ROOT_STATIC );
         perspective.setTransient(true);
         perspective.setName("MainPerspective");
-        perspective.getRoot().addPart(new PartDefinitionImpl(new DefaultPlaceRequest("DataServicesLibraryScreen")));
+        perspective.getRoot().addPart(new PartDefinitionImpl(new DefaultPlaceRequest(Constants.DATA_SERVICES_LIBRARY_SCREEN)));
 
         return perspective;
     }
