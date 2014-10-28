@@ -401,7 +401,7 @@ public class ViewEditorPanel extends Composite {
     }
     
     /**
-     * Event handler that fires when the user clicks the create markup button.
+     * Event handler that fires when the user clicks the create view defn button.
      * @param event
      */
     @EventHandler("btn-vieweditor-createDdl")
@@ -420,7 +420,7 @@ public class ViewEditorPanel extends Composite {
      	String viewDdl = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, colTypes);
     	// Nothing in viewDDL area - safe to replace.
     	if(StringUtils.isEmpty(viewDdlTextArea.getText())) {
-    		replaceViewMarkup(viewDdl,selectedSourceNames);
+    		replaceViewDefn(viewDdl,selectedSourceNames);
     		viewSourcePanel.setData(selectedSourceNames,dsNamesTable.getData());
         // has View DDL - prompt before replace.
     	} else {
@@ -432,7 +432,7 @@ public class ViewEditorPanel extends Composite {
     }
     
     /**
-     * Event handler that fires when the user clicks the Add to markup button.
+     * Event handler that fires when the user clicks the Add to view defn button.
      * @param event
      */
     @EventHandler("btn-vieweditor-addToDdl")
@@ -468,7 +468,7 @@ public class ViewEditorPanel extends Composite {
     	}
     	// Nothing in viewDDL area - safe to replace.
     	if(StringUtils.isEmpty(viewDdlTextArea.getText())) {
-    		replaceViewMarkup(ddlTemplate,Collections.<String>emptyList());
+    		replaceViewDefn(ddlTemplate,Collections.<String>emptyList());
         // has View DDL - prompt before replace.
     	} else {
     		workingDdl = ddlTemplate;
@@ -478,7 +478,7 @@ public class ViewEditorPanel extends Composite {
     }
     
     /**
-     * Shows the confirmation dialog for overwrite of view markup
+     * Shows the confirmation dialog for overwrite of view defn
      */
     private void showConfirmOverwriteDialog() {
     	String dTitle = i18n.format("ds-properties-panel.confirm-overwrite-dialog-title");
@@ -486,7 +486,7 @@ public class ViewEditorPanel extends Composite {
     	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
     	confirmationDialog.setContentTitle(dTitle);
     	confirmationDialog.setContentMessage(dMsg);
-    	confirmationDialog.setOkCancelEventTypes(UiEventType.VIEW_MARKUP_REPLACE_OK, UiEventType.VIEW_MARKUP_REPLACE_CANCEL);
+    	confirmationDialog.setOkCancelEventTypes(UiEventType.VIEW_DEFN_REPLACE_OK, UiEventType.VIEW_DEFN_REPLACE_CANCEL);
     	confirmationDialog.show();
     }
     
@@ -496,11 +496,11 @@ public class ViewEditorPanel extends Composite {
      */
     public void onDialogEvent(@Observes UiEvent dEvent) {
     	// User has OK'd source rename
-    	if(dEvent.getType() == UiEventType.VIEW_MARKUP_REPLACE_OK) {
+    	if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_OK) {
     		confirmationDialog.hide();
-    		replaceViewMarkup(workingDdl,workingViewSrcNames);
+    		replaceViewDefn(workingDdl,workingViewSrcNames);
     	// User has OK'd source redeploy
-    	} else if(dEvent.getType() == UiEventType.VIEW_MARKUP_REPLACE_CANCEL) {
+    	} else if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_CANCEL) {
     		confirmationDialog.hide();
     	} else if(dEvent.getType() == UiEventType.VIEW_SOURCES_CHANGED) {
     		updateStatus();
@@ -508,11 +508,11 @@ public class ViewEditorPanel extends Composite {
     }
     
     /**
-     * Replace the ViewMarkup TextArea with the supplied DDL
+     * Replace the ViewDefn TextArea with the supplied DDL
      * @param ddl the ddl
      * @param viewSrcNames the viewSrcNames needed for this view
      */
-    private void replaceViewMarkup(String ddl,List<String> viewSrcNames) {
+    private void replaceViewDefn(String ddl,List<String> viewSrcNames) {
     	viewDdlTextArea.setText(ddl);  
     	if(viewSrcNames!=null) {
     		viewSourcePanel.setData(viewSrcNames,dsNamesTable.getData());
