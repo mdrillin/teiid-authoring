@@ -166,11 +166,16 @@ public class DataServiceDetailsScreen extends Composite {
             			pageDescription.setText(description);
             			
             			String serverHostName = vdbDetailsBean.getServerHost();
+            			boolean isOpenShift = false;
+            			if(serverHostName.startsWith(Constants.OPENSHIFT_HOST_PREFIX)) {
+            				serverHostName = serverHostName.substring(Constants.OPENSHIFT_HOST_PREFIX.length());
+            				isOpenShift=true;
+            			}
             			           			
             			jdbcSnippetArea.setText(getJDBCConnectionString(serverHostName, serviceVdb));
             			
-            			restLinkTextBox.setText(getRestLink(serverHostName,serviceVdb,1,serviceName));
-            			odataLinkTextBox.setText(getODataLink(serverHostName,serviceVdb,1,serviceName));
+            			restLinkTextBox.setText(getRestLink(serverHostName,isOpenShift,serviceVdb,1,serviceName));
+            			odataLinkTextBox.setText(getODataLink(serverHostName,isOpenShift,serviceVdb,1,serviceName));
             			
             			serviceSampleSQL = Constants.SELECT_STAR_FROM+Constants.SPACE + 
             					           serviceName+Constants.DOT+Constants.SERVICE_VIEW_NAME+
@@ -215,19 +220,26 @@ public class DataServiceDetailsScreen extends Composite {
     	return sb.toString();
     }
     
-    private String getRestLink(String serverHostName, String vdbName,int vdbVersion,String modelName) {
+    private String getRestLink(String serverHostName,boolean isOpenShift,String vdbName,int vdbVersion,String modelName) {
         StringBuilder sb = new StringBuilder();
-    	sb.append("http://"+serverHostName+":8080/");
-    	sb.append(vdbName.toLowerCase()+"_"+vdbVersion+'/');
+    	sb.append("http://"+serverHostName);
+    	if(!isOpenShift) {
+    		sb.append(":8080");
+    	}
+    	sb.append("/"+vdbName.toLowerCase()+"_"+vdbVersion+'/');
     	sb.append(modelName.toLowerCase()+'/');
     	// This is the uri property for the generated rest procedure
     	sb.append(Constants.REST_URI_PROPERTY);
     	return sb.toString();
     }
     
-    private String getODataLink(String serverHostName, String vdbName,int vdbVersion,String modelName) {
+    private String getODataLink(String serverHostName,boolean isOpenShift,String vdbName,int vdbVersion,String modelName) {
         StringBuilder sb = new StringBuilder();
-    	sb.append("http://"+serverHostName+":8080/odata/");
+    	sb.append("http://"+serverHostName);
+    	if(!isOpenShift) {
+    		sb.append(":8080");
+    	}
+    	sb.append("/odata/");
     	sb.append(vdbName.toLowerCase()+"."+vdbVersion+'/');
     	sb.append(modelName+'.');
     	sb.append(Constants.SERVICE_VIEW_NAME);

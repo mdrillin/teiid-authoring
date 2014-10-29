@@ -80,6 +80,8 @@ public class Constants {
 	public static final String DS_TYPE_TEIID_LOCAL = "teiid-local";
 	public static final String DS_TYPE_WEBSERVICE = "webservice";
 	
+	public static final String OPENSHIFT_HOST_PREFIX = "[OPENSHIFT]";
+	
 	public static final String OK = "OK";
 	public static final String QUESTION_MARK = "?";
 	public static final String DOT = ".";

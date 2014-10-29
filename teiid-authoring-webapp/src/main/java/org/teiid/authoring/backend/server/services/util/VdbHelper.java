@@ -18,6 +18,7 @@ import org.teiid.adminapi.impl.VDBMetadataParser;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbModelBean;
+import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
 
 /**
@@ -391,15 +392,19 @@ public class VdbHelper {
 	/**
 	 * Adds the ViewModel to supplied VDB deployment. The new VDB is returned.
 	 * @param vdb the VDB
-	 * @param viewModelName the name of the View Model
-	 * @param ddlString the view DDL
-	 * @param isVisible 'true' if the model is to be visible, 'false' if not.
+	 * @param viewModelRequest details of the requested viewModel to create
 	 * @return the new VDB
 	 */
-	public VDBMetaData addViewModel(VDBMetaData vdb, String viewModelName, String description, String ddlString, boolean isVisible) {
+	public VDBMetaData addViewModel(VDBMetaData vdb, ViewModelRequestBean viewModelRequest) {
+		//public VDBMetaData addViewModel(VDBMetaData vdb, String viewModelName, String description, String ddlString, boolean isVisible) {
 		String vdbName = vdb.getName();
 		int vdbVersion = vdb.getVersion();
 		
+		String viewModelName = viewModelRequest.getName();
+		String description = viewModelRequest.getDescription();
+		String ddlString = viewModelRequest.getDdl();
+		boolean isVisible = viewModelRequest.isVisible();
+				
 		// Get current vdb imports
 		List<VDBImportMetadata> currentVdbImports = getVdbImports(vdb);
 		List<ModelMetaData> currentViewModels = getVdbViewModels(vdb);

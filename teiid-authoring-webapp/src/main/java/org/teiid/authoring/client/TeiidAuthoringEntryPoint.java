@@ -68,6 +68,7 @@ public class TeiidAuthoringEntryPoint {
 
     @PostConstruct
     public void startApp() {
+    	//StyleInjector.inject(AppResource.INSTANCE.css().rcueCss().getText());
         hideLoadingPopup();
     }
 

@@ -32,6 +32,7 @@ import org.teiid.authoring.client.animations.FadeOutAnimation;
 import org.teiid.authoring.client.animations.MoveAnimation;
 import org.teiid.authoring.client.events.MouseInEvent;
 import org.teiid.authoring.client.events.MouseOutEvent;
+import org.teiid.authoring.client.resources.AppResource;
 import org.teiid.authoring.client.services.notification.Notification;
 import org.teiid.authoring.client.services.notification.NotificationConstants;
 import org.teiid.authoring.client.services.notification.NotificationWidget;
@@ -74,6 +75,7 @@ public class NotificationService {
      * Constructor.
      */
     public NotificationService() {
+    	AppResource.INSTANCE.css().teiidAuthoringStyle().ensureInjected();
     }
 
     /**

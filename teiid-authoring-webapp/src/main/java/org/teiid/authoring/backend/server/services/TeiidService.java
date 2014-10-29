@@ -873,7 +873,7 @@ public class TeiidService implements ITeiidService {
     	VDBMetaData theVDB = vdbHelper.createVdb(vdbName, vdbVersion, vdbProperties);
   	
     	// Add the requested viewModel to the VDB
-    	VDBMetaData newVdb = vdbHelper.addViewModel(theVDB, viewModelRequest.getName(), viewModelRequest.getDescription(), viewModelRequest.getDdl(), viewModelRequest.isVisible());
+    	VDBMetaData newVdb = vdbHelper.addViewModel(theVDB, viewModelRequest);
 
     	// Add the required source import VDBs to the VDB
     	List<String> rqdImportVdbNames = viewModelRequest.getRequiredImportVdbNames();
@@ -1185,6 +1185,9 @@ public class TeiidService implements ITeiidService {
     	}
     	
     	VdbDetailsBean vdbDetailsBean = vdbHelper.getVdbDetails(vdb);
+    	String serverHost = getServerHost();
+    	vdbDetailsBean.setServerHost(serverHost);
+    	
     	int totalModels = vdbDetailsBean.getTotalModels();
     	
         // Start and End Index for this page
@@ -1230,11 +1233,20 @@ public class TeiidService implements ITeiidService {
     private String getServerHost() {
     	String serverHost = LOCALHOST;
     	
-   		String serverIP = System.getProperty("jboss.bind.address");
-    	// If the server bind address is set, override the default 'localhost'
-    	if(!StringUtils.isEmpty(serverIP)) {
-    		serverHost = serverIP;
+    	// If OPENSHIFT_APP_DNS is set, use it.  Otherwise get the jboss bind address
+    	String sHost = System.getenv("OPENSHIFT_APP_DNS");
+    	if(!StringUtils.isEmpty(sHost)) {
+    		sHost = Constants.OPENSHIFT_HOST_PREFIX+sHost;  // prepend to designate its openshift DNS name
     	}
+    	if(StringUtils.isEmpty(sHost)) {
+    		sHost = System.getProperty("jboss.bind.address");
+    	}
+    	
+    	// If the server bind address is set, override the default 'localhost'
+    	if(!StringUtils.isEmpty(sHost)) {
+    		serverHost = sHost;
+    	}
+
     	return serverHost;
     }
 
