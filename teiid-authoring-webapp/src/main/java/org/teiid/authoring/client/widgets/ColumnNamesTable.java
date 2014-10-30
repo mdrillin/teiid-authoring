@@ -19,10 +19,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.InputElement;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
@@ -41,6 +46,7 @@ public class ColumnNamesTable extends Composite {
     protected Label label = new Label();
 
     private SimpleTable<CheckableNameTypeRow> table;
+    private CheckboxHeader cbHeader;
 
     public ColumnNamesTable() {
         initWidget( panel );
@@ -67,9 +73,35 @@ public class ColumnNamesTable extends Composite {
     	checkboxColumn.setFieldUpdater(new FieldUpdater<CheckableNameTypeRow, Boolean>() {
     	    public void update(int index, CheckableNameTypeRow object, Boolean value) {
     	    	object.setChecked(value);
+    	    	
+    	    	boolean allRowsSame = true;
+            	List<CheckableNameTypeRow> tableRows = table.getRowData();
+            	boolean firstState = false;
+            	for(int i=0; i<tableRows.size(); i++) {
+            		CheckableNameTypeRow row = tableRows.get(i);
+            		if(i==0) {
+            			firstState = row.isChecked();
+            		} else {
+            			boolean thisState = row.isChecked();
+            			if(thisState!=firstState) {
+            				allRowsSame = false;
+            				break;
+            			}
+            		}
+            	}
+            	if(allRowsSame) {
+            		cbHeader.setValue(firstState);
+            	} else {
+            		cbHeader.setValue(false);
+            	}
+        		table.redrawHeaders();
     	    }
     	});
-    	table.addColumn(checkboxColumn, "");
+
+    	// Checkbox Header
+        cbHeader = createCBHeader(false);
+
+        table.addColumn(checkboxColumn, cbHeader);
     	table.setColumnWidth(checkboxColumn, 40, Unit.PX);
     		        
         // --------------
@@ -89,6 +121,20 @@ public class ColumnNamesTable extends Composite {
         VerticalPanel verticalPanel = new VerticalPanel();
         verticalPanel.add(table);
         return verticalPanel;
+    }
+    
+    private CheckboxHeader createCBHeader(boolean isChecked) {
+    	CheckboxHeader cbHeader = new CheckboxHeader(new CheckboxCell(),false) {
+    		@Override
+    		protected void headerUpdated(boolean checkState){
+    			List<CheckableNameTypeRow> tableRows = table.getRowData();
+    			for(CheckableNameTypeRow aRow : tableRows) {
+    				aRow.setChecked(checkState);
+    			}
+    			table.redraw();
+    		}
+    	};
+    	return cbHeader;
     }
     
     public void clear() {
@@ -137,7 +183,12 @@ public class ColumnNamesTable extends Composite {
     }
     
     public void setData(List<CheckableNameTypeRow> rows) {
+    	// Resets table rows
     	table.setRowData(rows);
+    	
+    	// Header checkbox initially unchecked
+    	cbHeader.setValue(false);
+    	table.redrawHeaders();
     }
     
     public List<CheckableNameTypeRow> getData() {
@@ -147,5 +198,36 @@ public class ColumnNamesTable extends Composite {
 	public void setSelectionModel( final SelectionModel<CheckableNameTypeRow> selectionModel ) {
         table.setSelectionModel( selectionModel );
     }
-    
+	
+	/**
+	 * Checkbox Header
+	 */
+	private class CheckboxHeader extends Header<Boolean> {
+		Boolean checkedState = false;
+		
+	    public CheckboxHeader(CheckboxCell cell, boolean isChecked) {
+	        super(cell);
+	        checkedState = isChecked;
+	    }
+	    
+	    public void setValue(boolean isChecked) {
+	    	checkedState = isChecked;
+	    }
+	    
+	    @Override
+	    public Boolean getValue() {
+	    	return checkedState;
+	    }
+	 
+	    @Override
+	    public void onBrowserEvent(Context context, Element elem, NativeEvent event) {
+	        InputElement input = elem.getFirstChild().cast();
+	        checkedState = input.isChecked();
+	        headerUpdated(checkedState);
+	    }
+	    
+	    protected void headerUpdated(boolean isChecked) {
+	    	// override this method in defining class
+	    }
+	}
 }

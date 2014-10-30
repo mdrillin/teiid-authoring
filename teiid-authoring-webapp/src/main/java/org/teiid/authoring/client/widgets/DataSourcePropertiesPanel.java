@@ -599,6 +599,10 @@ public class DataSourcePropertiesPanel extends Composite {
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("ds-properties-panel.creating-datasource-title"), //$NON-NLS-1$
                 i18n.format("ds-properties-panel.creating-datasource-msg")); //$NON-NLS-1$
+        // fire event to show removed source in progress
+        if(!dsNamesToDelete.isEmpty()) {
+            fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,dsNamesToDelete.get(0),null);
+        }
         teiidService.deleteDataSources(dsNamesToDelete, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {

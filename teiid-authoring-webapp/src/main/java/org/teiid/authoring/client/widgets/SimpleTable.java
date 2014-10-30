@@ -32,6 +32,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
+import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.RowStyles;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;
@@ -119,6 +120,10 @@ public class SimpleTable<T>
 
     public void redraw() {
         dataGrid.redraw();
+    }
+    
+    public void redrawHeaders() {
+    	dataGrid.redrawHeaders();
     }
 
     public void refresh() {
@@ -248,6 +253,10 @@ public class SimpleTable<T>
     public void addColumn( final Column<T, ?> column,
                            final String caption ) {
         dataGrid.addColumn( column, caption);
+    }
+    
+    public void addColumn(Column<T, ?> col, Header<?> header) {
+    	dataGrid.addColumn(col,header);
     }
 
     public void setColumnWidth( final Column<T, ?> column,
