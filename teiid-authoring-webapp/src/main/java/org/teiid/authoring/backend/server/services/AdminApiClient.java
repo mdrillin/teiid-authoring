@@ -1,11 +1,11 @@
 /*
- * Copyright 2012 JBoss Inc
+ * Copyright 2014 JBoss Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -99,6 +99,7 @@ public class AdminApiClient {
         this.validating = validating;
         if (this.validating) {
 			try {
+				// Currently the user/password can be anything - does not authenticate...
 	        	this.admin = getAdminApi(this.serverHost,9999,"admin","admin");
 			} catch (Exception e) {
 				throw new AdminApiClientException(e.getMessage());
@@ -120,7 +121,6 @@ public class AdminApiClient {
             try {
                     //admin = AdminFactory.getInstance().createAdmin(serverHost, serverPort, userName, password.toCharArray());
                     admin = AdminFactory.getInstance().createAdmin(ModelControllerClient.Factory.create(serverHost, serverPort));
-                    
             } catch (Exception e) {
                     throw new Exception(e.getMessage());
             }

@@ -253,7 +253,8 @@
         <configuration>
           <deploy>${project.build.directory}/gwt-symbols-deploy</deploy>
           <localWorkers>4</localWorkers>
-          <module>org.teiid.FastCompiledTeiidAuthoringWebApp</module>
+          <!--  <module>org.teiid.FastCompiledTeiidAuthoringWebApp</module> -->
+          <module>org.teiid.TeiidAuthoringWebApp</module>
           <logLevel>INFO</logLevel>
           <strict>true</strict>
           <compileSourcesArtifacts>
