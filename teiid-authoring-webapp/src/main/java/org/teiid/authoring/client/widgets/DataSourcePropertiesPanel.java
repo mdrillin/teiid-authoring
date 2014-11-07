@@ -152,7 +152,7 @@ public class DataSourcePropertiesPanel extends Composite {
 		statusClickSave = i18n.format("ds-properties-panel.status-click-save");
 		statusEnterProps = i18n.format("ds-properties-panel.status-enter-props");
 		
-    	doPopulateSourceTypesPanel();
+    	doPopulateSourceTypesPanel(null);
     	
     	doPopulateTranslatorListBox();
     	
@@ -275,7 +275,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	} else if(dEvent.getType() == UiEventType.SOURCE_CHANGETYPE_OK) {
     		confirmationDialog.hide();
     		onChangeTypeConfirmed();
-    		unToggleOtherThanSelected();
+    		setSelectedDataSourceType(this.selectedSourceType);
     	// User has cancelled source rename
     	} else if(dEvent.getType() == UiEventType.SOURCE_RENAME_CANCEL) {
     		confirmationDialog.hide();
@@ -285,7 +285,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	// User has cancelled source type change
     	} else if(dEvent.getType() == UiEventType.SOURCE_CHANGETYPE_CANCEL) {
     		confirmationDialog.hide();
-    		unToggleOtherThanSelected();
+    		setSelectedDataSourceType(this.selectedSourceType);
     	} 
     }
     
@@ -334,7 +334,7 @@ public class DataSourcePropertiesPanel extends Composite {
     /**
      * Populate the Data Source Types Panel
      */
-    protected void doPopulateSourceTypesPanel() {
+    protected void doPopulateSourceTypesPanel(final String selectedType) {
     	teiidService.getDataSourceTypes(new IRpcServiceInvocationHandler<List<String>>() {
             @Override
             public void onReturn(List<String> dsTypes) {
@@ -384,9 +384,8 @@ public class DataSourcePropertiesPanel extends Composite {
             	            @Override
             	            public void onImportComplete() {
             	                if (isAttached()) {
-            	                	doPopulateSourceTypesPanel();
+            	                	doPopulateSourceTypesPanel(selectedSourceType);
             	                }
-            	                setSelectedDataSourceType(selectedSourceType);
             	            }
             	        });
             	    	uploadDialog = new UploadDialog(uploadContent, "title" );
@@ -397,6 +396,8 @@ public class DataSourcePropertiesPanel extends Composite {
             	DOM.setStyleAttribute(addTypeButton.getElement(), "margin", "5px");
             	DOM.setStyleAttribute(addTypeButton.getElement(), "padding", "0px");
             	dTypesButtonPanel.add(addTypeButton);
+            	
+            	if(selectedType!=null) setSelectedDataSourceType(selectedType);
             }
             @Override
             public void onError(Throwable error) {
@@ -419,14 +420,14 @@ public class DataSourcePropertiesPanel extends Composite {
      * @param dsType the data source type
      */
     public void setSelectedDataSourceType(String dsType) {
-    	// Only need to change if dsType is different than current selection
-    	if(dsType!=null && !dsType.equals(this.selectedSourceType)) {
-    		// First de-select the current selection
+    	if(dsType!=null) {
+    		// First de-select all to clear current toggle
     		for(ToggleButton tButton : dsTypeButtons) {
-    			if(tButton.getElement().getId().equals(this.selectedSourceType)) {
-    				tButton.setValue(false);
-    			}
+   				tButton.setValue(false);
     		}
+    		// Also make sure addType button is unToggled
+    		addTypeButton.setValue(false);
+    		
     		// Set new button toggle state down
     		for(ToggleButton tButton : dsTypeButtons) {
     			if(tButton.getElement().getId().equals(dsType)) {
@@ -436,20 +437,7 @@ public class DataSourcePropertiesPanel extends Composite {
     		}
     	}
     }
-    
-    /**
-     * Deselects all type buttons other than the current selection
-     */
-    public void unToggleOtherThanSelected( ) {
-    	// Set new button toggle state down
-    	for(ToggleButton tButton : dsTypeButtons) {
-    		if(!tButton.getElement().getId().equals(selectedSourceType)) {
-    			tButton.setValue(false);
-    		}
-    	}
-    	addTypeButton.setValue(false);
-    }
-    
+        
     /**
      * Populate the Data Source Type ListBox
      */
