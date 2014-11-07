@@ -41,6 +41,8 @@ import org.teiid.authoring.share.exceptions.DataVirtUiException;
 public class DataVirtDownloadServlet extends HttpServlet {
 
 	private static final long serialVersionUID = DataVirtDownloadServlet.class.hashCode();
+	private static final String DV600_JDBC_JAR = "teiid-8.4.1-redhat-7-jdbc.jar";
+	private static final String DV610_JDBC_JAR = "teiid-8.7.1.redhat-4-jdbc.jar";
 
     @Inject
     protected TeiidService teiidService;
@@ -105,7 +107,15 @@ public class DataVirtDownloadServlet extends HttpServlet {
     	String homeDir = System.getProperty("jboss.home.dir");
     	
         try {
-        	File jarFile = new File(homeDir+"/dataVirtualization/jdbc/teiid-8.4.1-redhat-7-jdbc.jar");
+        	String jdbcJarName = DV600_JDBC_JAR;
+        	String jdbcJarFileName = homeDir+"/dataVirtualization/jdbc/"+DV600_JDBC_JAR;
+        	// Assume DV600 jarFile name.  If it doesnt exist, then go with DV610
+        	File jarFile = new File(jdbcJarFileName);
+        	if(!jarFile.exists()) {
+            	jdbcJarName = DV610_JDBC_JAR;
+            	jdbcJarFileName = homeDir+"/dataVirtualization/jdbc/"+DV610_JDBC_JAR;
+            	jarFile = new File(jdbcJarFileName);
+        	}
 
         	try {
         		fileInputStream = new FileInputStream(jarFile);    	
@@ -114,7 +124,7 @@ public class DataVirtDownloadServlet extends HttpServlet {
         	}
             
             // Set the content-disposition
-            String disposition = String.format("attachment; filename=\"%1$s\"", "teiid-8.4.1-jdbc.jar"); //$NON-NLS-1$
+            String disposition = String.format("attachment; filename=\"%1$s\"", jdbcJarName); //$NON-NLS-1$
             httpResponse.setHeader("Content-Disposition", disposition); //$NON-NLS-1$
 
             // Set the content-type

@@ -68,6 +68,7 @@ public class Constants {
     public static final String VDB_PROP_KEY_REST_AUTOGEN = "{http://teiid.org/rest}auto-generate";
     public static final String VDB_PROP_KEY_DATASERVICE_VIEWNAME = "data-service-view";
     
+    public static final String DS_TYPE_ACCUMULO = "accumulo";
     public static final String DS_TYPE_FILE = "file";
 	public static final String DS_TYPE_GOOGLE = "google";
 	public static final String DS_TYPE_H2 = "h2";

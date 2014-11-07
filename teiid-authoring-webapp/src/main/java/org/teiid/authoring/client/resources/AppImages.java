@@ -53,44 +53,80 @@ public interface AppImages extends ClientBundle {
     @Source("images/Ok_32x32.png")
     ImageResource okIcon32x32Image();
     
-    @Source("images/dstype_blankbox.png")
-    ImageResource dsType_blankbox_Image();
+    @Source("images/dstype_blankbox_up.png")
+    ImageResource dsType_blankbox_UpImage();
+    @Source("images/dstype_blankbox_down.png")
+    ImageResource dsType_blankbox_DownImage();
 
-    @Source("images/dstype_google.png")
-    ImageResource dsType_google_Image();
+    @Source("images/dstype_google_up.png")
+    ImageResource dsType_google_UpImage();
+    @Source("images/dstype_google_down.png")
+    ImageResource dsType_google_DownImage();
 
-    @Source("images/dstype_h2.png")
-    ImageResource dsType_h2_Image();
+    @Source("images/dstype_h2_up.png")
+    ImageResource dsType_h2_UpImage();
+    @Source("images/dstype_h2_down.png")
+    ImageResource dsType_h2_DownImage();
 
-    @Source("images/dstype_infinispan.png")
-    ImageResource dsType_infinispan_Image();
+    @Source("images/dstype_infinispan_up.png")
+    ImageResource dsType_infinispan_UpImage();
+    @Source("images/dstype_infinispan_down.png")
+    ImageResource dsType_infinispan_DownImage();
 
-    @Source("images/dstype_modeshape.png")
-    ImageResource dsType_modeshape_Image();
+    @Source("images/dstype_modeshape_up.png")
+    ImageResource dsType_modeshape_UpImage();
+    @Source("images/dstype_modeshape_down.png")
+    ImageResource dsType_modeshape_DownImage();
 
-    @Source("images/dstype_mongodb.png")
-    ImageResource dsType_mongodb_Image();
+    @Source("images/dstype_mongodb_up.png")
+    ImageResource dsType_mongodb_UpImage();
+    @Source("images/dstype_mongodb_down.png")
+    ImageResource dsType_mongodb_DownImage();
 
-    @Source("images/dstype_mysql.png")
-    ImageResource dsType_mysql_Image();
+    @Source("images/dstype_mysql_up.png")
+    ImageResource dsType_mysql_UpImage();
+    @Source("images/dstype_mysql_down.png")
+    ImageResource dsType_mysql_DownImage();
 
-    @Source("images/dstype_postgres.png")
-    ImageResource dsType_postgres_Image();
+    @Source("images/dstype_postgres_up.png")
+    ImageResource dsType_postgres_UpImage();
+    @Source("images/dstype_postgres_down.png")
+    ImageResource dsType_postgres_DownImage();
 
-    @Source("images/dstype_salesforce.png")
-    ImageResource dsType_salesforce_Image();
+    @Source("images/dstype_salesforce_up.png")
+    ImageResource dsType_salesforce_UpImage();
+    @Source("images/dstype_salesforce_down.png")
+    ImageResource dsType_salesforce_DownImage();
 
-    @Source("images/dstype_teiid.png")
-    ImageResource dsType_teiid_Image();
+    @Source("images/dstype_teiid_up.png")
+    ImageResource dsType_teiid_UpImage();
+    @Source("images/dstype_teiid_down.png")
+    ImageResource dsType_teiid_DownImage();
+
+    @Source("images/dstype_teiid_local_up.png")
+    ImageResource dsType_teiid_local_UpImage();
+    @Source("images/dstype_teiid_local_down.png")
+    ImageResource dsType_teiid_local_DownImage();
     
-    @Source("images/dstype_ldap.png")
-    ImageResource dsType_ldap_Image();
+    @Source("images/dstype_ldap_up.png")
+    ImageResource dsType_ldap_UpImage();
+    @Source("images/dstype_ldap_down.png")
+    ImageResource dsType_ldap_DownImage();
     
-    @Source("images/dstype_file.png")
-    ImageResource dsType_file_Image();
+    @Source("images/dstype_file_up.png")
+    ImageResource dsType_file_UpImage();
+    @Source("images/dstype_file_down.png")
+    ImageResource dsType_file_DownImage();
     
-    @Source("images/dstype_webservice.png")
-    ImageResource dsType_webservice_Image();
+    @Source("images/dstype_webservice_up.png")
+    ImageResource dsType_webservice_UpImage();
+    @Source("images/dstype_webservice_down.png")
+    ImageResource dsType_webservice_DownImage();
+    
+    @Source("images/dstype_accumulo_up.png")
+    ImageResource dsType_accumulo_UpImage();
+    @Source("images/dstype_accumulo_down.png")
+    ImageResource dsType_accumulo_DownImage();
 
     @Source("images/dstype_addtype.png")
     ImageResource dsType_addtype_Image();

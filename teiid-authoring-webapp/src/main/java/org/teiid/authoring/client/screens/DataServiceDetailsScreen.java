@@ -130,6 +130,8 @@ public class DataServiceDetailsScreen extends Composite {
     	pgTitle = i18n.format("servicedetails.page-title");
 //    	serviceInternal = i18n.format("servicedetails.page-title-internal");
 //    	serviceExternal = i18n.format("servicedetails.page-title-external");
+
+    	downloadClientJarAnchor.setText("teiid-jdbc.jar");
     }
     
     @OnStartup

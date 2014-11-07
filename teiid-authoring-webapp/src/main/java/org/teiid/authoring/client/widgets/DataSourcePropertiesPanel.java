@@ -55,15 +55,12 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
-import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
@@ -104,7 +101,9 @@ public class DataSourcePropertiesPanel extends Composite {
     private String selectedSourceType;
     // List of Data Source type Toggle Buttons
     private List<ToggleButton> dsTypeButtons = new ArrayList<ToggleButton>();
-
+    // Button for adding new type
+    private ToggleButton addTypeButton;
+    
     // Keeps track of original type, name and translator, before any edits are made
     private String originalType;
     private String originalName;
@@ -276,6 +275,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	} else if(dEvent.getType() == UiEventType.SOURCE_CHANGETYPE_OK) {
     		confirmationDialog.hide();
     		onChangeTypeConfirmed();
+    		unToggleOtherThanSelected();
     	// User has cancelled source rename
     	} else if(dEvent.getType() == UiEventType.SOURCE_RENAME_CANCEL) {
     		confirmationDialog.hide();
@@ -285,6 +285,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	// User has cancelled source type change
     	} else if(dEvent.getType() == UiEventType.SOURCE_CHANGETYPE_CANCEL) {
     		confirmationDialog.hide();
+    		unToggleOtherThanSelected();
     	} 
     }
     
@@ -341,14 +342,18 @@ public class DataSourcePropertiesPanel extends Composite {
             	dsTypeButtons.clear();
             	// Generates toggle buttons for each type
                 for(String dType : dsTypes) {
-                	ImageResource img = ImageHelper.getInstance().getDataSourceImageForType(dType);
-                	Image buttonImage = new Image(img);
+//                	ImageResource upImage = ImageHelper.getInstance().getDataSourceImageForType(dType,false);
+//                	ImageResource downImage = ImageHelper.getInstance().getDataSourceImageForType(dType,true);
+//                	Image buttonUpImage = new Image(upImage);
+//                	Image buttonDownImage = new Image(downImage);
                 	ToggleButton button;
                 	if(!ImageHelper.getInstance().hasKnownImage(dType)) {
                     	button = new ToggleButton(dType,dType);
                 		button.setStylePrimaryName("customToggle");
                 	} else {
-                    	button = new ToggleButton(buttonImage);
+//                    	button = new ToggleButton(buttonUpImage,buttonDownImage);
+                    	button = new ToggleButton(dType,dType);
+                		button.setStylePrimaryName("customToggle");
                 	}
                 	button.getElement().setId(dType);
                 	button.addClickHandler(new ClickHandler() {
@@ -368,16 +373,20 @@ public class DataSourcePropertiesPanel extends Composite {
                 }
                 
                 // Add button for AddType
-                ImageResource addTypeImg = AppResource.INSTANCE.images().dsType_addtype_Image();
-                PushButton addTypeButton = new PushButton(new Image(addTypeImg));
+//                ImageResource addTypeImg = AppResource.INSTANCE.images().dsType_addtype_Image();
+//                PushButton addTypeButton = new PushButton(new Image(addTypeImg));
+            	addTypeButton = new ToggleButton("Add Type...","Add Type...");
+            	addTypeButton.setStylePrimaryName("customToggle");
                 addTypeButton.addClickHandler(new ClickHandler() {
             		public void onClick(ClickEvent event) {
+            			addTypeButton.setValue(false);
             			uploadContent.setCompletionHandler(new IImportCompletionHandler() {
             	            @Override
             	            public void onImportComplete() {
             	                if (isAttached()) {
             	                	doPopulateSourceTypesPanel();
             	                }
+            	                setSelectedDataSourceType(selectedSourceType);
             	            }
             	        });
             	    	uploadDialog = new UploadDialog(uploadContent, "title" );
@@ -426,6 +435,19 @@ public class DataSourcePropertiesPanel extends Composite {
     			}
     		}
     	}
+    }
+    
+    /**
+     * Deselects all type buttons other than the current selection
+     */
+    public void unToggleOtherThanSelected( ) {
+    	// Set new button toggle state down
+    	for(ToggleButton tButton : dsTypeButtons) {
+    		if(!tButton.getElement().getId().equals(selectedSourceType)) {
+    			tButton.setValue(false);
+    		}
+    	}
+    	addTypeButton.setValue(false);
     }
     
     /**
