@@ -5,11 +5,11 @@
     border-width: 2px;
     font-size: 120%; 
     font-weight: bold;
-    width:172px;
-    height:52px;
+    width:180px;
+    height:56px;
     text-align:center;
     line-height:50px;
-    padding:0;
+    padding: 2px 3px 0px 3px;
 }
 .customToggle-up, .customToggle-up-hovering
 {
@@ -17,5 +17,5 @@
 }
 .customToggle-down, .customToggle-down-hovering
 {
-    background-color:#BBBBBB;
+    background-color:#AAAAAA;
 }

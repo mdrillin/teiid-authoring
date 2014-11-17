@@ -20,6 +20,7 @@ import java.util.Collection;
 
 public class TranslatorHelper {
 
+	public static final String TEIID_ACCUMULO_DRIVER = "accumulo"; //$NON-NLS-1$
 	public static final String TEIID_FILE_DRIVER = "file"; //$NON-NLS-1$
 	public static final String TEIID_GOOGLE_DRIVER = "google"; //$NON-NLS-1$
 	public static final String TEIID_INFINISPAN_DRIVER = "infinispan"; //$NON-NLS-1$
@@ -27,6 +28,7 @@ public class TranslatorHelper {
 	public static final String TEIID_MONGODB_DRIVER = "mongodb"; //$NON-NLS-1$
 	public static final String TEIID_SALESORCE_DRIVER = "salesforce"; //$NON-NLS-1$
 	public static final String TEIID_WEBSERVICE_DRIVER = "webservice"; //$NON-NLS-1$
+	public static final String TEIID_ACCUMULO_DRIVER_DISPLAYNAME = "Accumulo"; //$NON-NLS-1$
 	public static final String TEIID_FILE_DRIVER_DISPLAYNAME = "FlatFile"; //$NON-NLS-1$
 	public static final String TEIID_GOOGLE_DRIVER_DISPLAYNAME = "Google"; //$NON-NLS-1$
 	public static final String TEIID_INFINISPAN_DRIVER_DISPLAYNAME = "Infinispan"; //$NON-NLS-1$
@@ -35,6 +37,7 @@ public class TranslatorHelper {
 	public static final String TEIID_SALESORCE_DRIVER_DISPLAYNAME = "Salesforce"; //$NON-NLS-1$
 	public static final String TEIID_WEBSERVICE_DRIVER_DISPLAYNAME = "WebService"; //$NON-NLS-1$
 
+	public static final String TEIID_ACCUMULO_CLASS = "org.teiid.resource.adapter.accumulo.AccumuloManagedConnectionFactory"; //$NON-NLS-1$
 	public static final String TEIID_FILE_CLASS = "org.teiid.resource.adapter.file.FileManagedConnectionFactory"; //$NON-NLS-1$
 	public static final String TEIID_GOOGLE_CLASS = "org.teiid.resource.adapter.google.GoogleManagedConnectionFactory"; //$NON-NLS-1$
 	public static final String TEIID_INFINISPAN_CLASS = "org.teiid.resource.adapter.infinispan.InfinispanManagedConnectionFactory"; //$NON-NLS-1$
@@ -43,6 +46,7 @@ public class TranslatorHelper {
 	public static final String TEIID_SALESORCE_CLASS = "org.teiid.resource.adapter.salesforce.SalesForceManagedConnectionFactory"; //$NON-NLS-1$
 	public static final String TEIID_WEBSERVICE_CLASS = "org.teiid.resource.adapter.ws.WSManagedConnectionFactory"; //$NON-NLS-1$
 
+	public static final String ACCUMULO = "accumulo"; //$NON-NLS-1$
 	public static final String ACCESS = "access"; //$NON-NLS-1$
 	public static final String DB2 = "db2"; //$NON-NLS-1$
 	public static final String DERBY = "derby"; //$NON-NLS-1$
@@ -130,6 +134,10 @@ public class TranslatorHelper {
 		if(driverName.equals(TEIID_WEBSERVICE_DRIVER) && translatorNames.contains(WS)) {
 			return WS;
 		}
+		
+		if(driverName.equals(TEIID_ACCUMULO_DRIVER) && translatorNames.contains(ACCUMULO)) {
+			return ACCUMULO;
+		}
 
 		if(driverName.startsWith("derby")) { //$NON-NLS-1$
 			return DERBY;
@@ -204,6 +212,8 @@ public class TranslatorHelper {
 				driverName = TranslatorHelper.TEIID_SALESORCE_DRIVER;
 			} else if(driverClassName.equalsIgnoreCase(TranslatorHelper.TEIID_WEBSERVICE_CLASS)) {
 				driverName = TranslatorHelper.TEIID_WEBSERVICE_DRIVER;
+			} else if(driverClassName.equalsIgnoreCase(TranslatorHelper.TEIID_ACCUMULO_CLASS)) {
+				driverName = TranslatorHelper.TEIID_ACCUMULO_DRIVER;
 			}
 		}
 		return driverName;

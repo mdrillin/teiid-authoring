@@ -55,10 +55,12 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
@@ -342,17 +344,17 @@ public class DataSourcePropertiesPanel extends Composite {
             	dsTypeButtons.clear();
             	// Generates toggle buttons for each type
                 for(String dType : dsTypes) {
-//                	ImageResource upImage = ImageHelper.getInstance().getDataSourceImageForType(dType,false);
-//                	ImageResource downImage = ImageHelper.getInstance().getDataSourceImageForType(dType,true);
-//                	Image buttonUpImage = new Image(upImage);
-//                	Image buttonDownImage = new Image(downImage);
+                	ImageResource img = ImageHelper.getInstance().getDataSourceImageForType(dType);
+                	Image buttonImage = null;
+                	if(img!=null) {
+                		buttonImage = new Image(img);
+                	}
                 	ToggleButton button;
                 	if(!ImageHelper.getInstance().hasKnownImage(dType)) {
                     	button = new ToggleButton(dType,dType);
                 		button.setStylePrimaryName("customToggle");
                 	} else {
-//                    	button = new ToggleButton(buttonUpImage,buttonDownImage);
-                    	button = new ToggleButton(dType,dType);
+                    	button = new ToggleButton(buttonImage);
                 		button.setStylePrimaryName("customToggle");
                 	}
                 	button.getElement().setId(dType);
@@ -373,9 +375,8 @@ public class DataSourcePropertiesPanel extends Composite {
                 }
                 
                 // Add button for AddType
-//                ImageResource addTypeImg = AppResource.INSTANCE.images().dsType_addtype_Image();
-//                PushButton addTypeButton = new PushButton(new Image(addTypeImg));
-            	addTypeButton = new ToggleButton("Add Type...","Add Type...");
+                ImageResource addTypeImg = AppResource.INSTANCE.images().dsType_addtype_Image();
+                final ToggleButton addTypeButton = new ToggleButton(new Image(addTypeImg));
             	addTypeButton.setStylePrimaryName("customToggle");
                 addTypeButton.addClickHandler(new ClickHandler() {
             		public void onClick(ClickEvent event) {
@@ -426,11 +427,14 @@ public class DataSourcePropertiesPanel extends Composite {
    				tButton.setValue(false);
     		}
     		// Also make sure addType button is unToggled
-    		addTypeButton.setValue(false);
+    		if(this.addTypeButton!=null) {
+    			this.addTypeButton.setValue(false);
+    		}
     		
     		// Set new button toggle state down
     		for(ToggleButton tButton : dsTypeButtons) {
-    			if(tButton.getElement().getId().equals(dsType)) {
+    			String buttonId = tButton.getElement().getId();
+    			if(buttonId.equals(dsType)) {
     				tButton.setValue(true);
     				this.selectedSourceType = dsType;
     			}
@@ -724,7 +728,8 @@ public class DataSourcePropertiesPanel extends Composite {
             	}
 
             	currentPropList.clear();
-            	currentPropList.addAll(dsDetailsBean.getProperties());
+            	List<DataSourcePropertyBean> props = dsDetailsBean.getProperties();
+            	currentPropList.addAll(props);
             	populateCorePropertiesTable();
             	populateAdvancedPropertiesTable();
             	

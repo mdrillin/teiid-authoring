@@ -447,7 +447,7 @@ public class TeiidService implements ITeiidService {
     	
 		// Get the Managed connection factory class for rars
 		String rarConnFactoryValue = null;
-		if(isRarDriver(typeName)) {
+		if(isResourceAdapter(typeName)) {
 			rarConnFactoryValue = getManagedConnectionFactoryClassDefault(propDefnList);
 		}
     	
@@ -508,17 +508,17 @@ public class TeiidService implements ITeiidService {
     } 
     
     /**
-     * Determine if this is a 'rar' type driver that is deployed with Teiid
+     * Determine if this is a resource adapter that is deployed with Teiid
      * @param driverName the name of the driver
      * @return 'true' if the driver is a rar driver, 'false' if not.
      */
-    private boolean isRarDriver(String driverName) {
+    private boolean isResourceAdapter(String driverName) {
     	boolean isRarDriver = false;
     	if(!StringUtils.isEmpty(driverName)) {
     		if( driverName.equals(TranslatorHelper.TEIID_FILE_DRIVER) || driverName.equals(TranslatorHelper.TEIID_GOOGLE_DRIVER)
     				|| driverName.equals(TranslatorHelper.TEIID_INFINISPAN_DRIVER) || driverName.equals(TranslatorHelper.TEIID_LDAP_DRIVER)
     				|| driverName.equals(TranslatorHelper.TEIID_MONGODB_DRIVER) || driverName.equals(TranslatorHelper.TEIID_SALESORCE_DRIVER)
-    				|| driverName.equals(TranslatorHelper.TEIID_WEBSERVICE_DRIVER)) {
+    				|| driverName.equals(TranslatorHelper.TEIID_WEBSERVICE_DRIVER) || driverName.equals(TranslatorHelper.TEIID_ACCUMULO_DRIVER)) {
     			isRarDriver = true;
     		}
     	}

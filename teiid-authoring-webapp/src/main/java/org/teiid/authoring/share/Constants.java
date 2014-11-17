@@ -81,6 +81,9 @@ public class Constants {
 	public static final String DS_TYPE_TEIID_LOCAL = "teiid-local";
 	public static final String DS_TYPE_WEBSERVICE = "webservice";
 	
+	public static final String MYSQL_FRAGMENT = "mysql";
+	public static final String POSTGRES_FRAGMENT = "postgres";
+	
 	public static final String OPENSHIFT_HOST_PREFIX = "[OPENSHIFT]";
 	
 	public static final String OK = "OK";

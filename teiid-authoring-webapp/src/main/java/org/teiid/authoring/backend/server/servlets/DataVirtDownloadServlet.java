@@ -32,6 +32,7 @@ import org.apache.commons.io.IOUtils;
 import org.teiid.authoring.backend.server.services.TeiidService;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
+import org.teiid.authoring.share.services.StringUtils;
 
 /**
  * A standard servlet that makes it easy to download VDB content.
@@ -108,12 +109,18 @@ public class DataVirtDownloadServlet extends HttpServlet {
     	
         try {
         	String jdbcJarName = DV600_JDBC_JAR;
-        	String jdbcJarFileName = homeDir+"/dataVirtualization/jdbc/"+DV600_JDBC_JAR;
+        	String jarDir = null;
+        	if(isOpenShift()) {
+        		jarDir = homeDir+"/versions/6.1.0/standalone/configuration/";
+        	} else {
+        		jarDir = homeDir+"/dataVirtualization/jdbc/";
+        	}
+        	String jdbcJarFileName = jarDir+DV600_JDBC_JAR;
         	// Assume DV600 jarFile name.  If it doesnt exist, then go with DV610
         	File jarFile = new File(jdbcJarFileName);
         	if(!jarFile.exists()) {
             	jdbcJarName = DV610_JDBC_JAR;
-            	jdbcJarFileName = homeDir+"/dataVirtualization/jdbc/"+DV610_JDBC_JAR;
+            	jdbcJarFileName = jarDir+DV610_JDBC_JAR;
             	jarFile = new File(jdbcJarFileName);
         	}
 
@@ -141,6 +148,19 @@ public class DataVirtDownloadServlet extends HttpServlet {
         } finally {
             IOUtils.closeQuietly(fileInputStream);
         }
+    }
+    
+    /**
+     * Determine if running on an OpenShift instance.
+     * @return 'true' if on OpenShift, 'false' if not.
+     */
+    private boolean isOpenShift() {
+    	boolean isOpenShift = false;
+    	String openShiftIP = System.getenv("OPENSHIFT_DV_IP");
+    	if(!StringUtils.isEmpty(openShiftIP)) {
+    		isOpenShift = true;
+    	}
+    	return isOpenShift;
     }
 
 }

@@ -53,120 +53,84 @@ public interface AppImages extends ClientBundle {
     @Source("images/Ok_32x32.png")
     ImageResource okIcon32x32Image();
     
-    @Source("images/dstype_blankbox_up.png")
-    ImageResource dsType_blankbox_UpImage();
-    @Source("images/dstype_blankbox_down.png")
-    ImageResource dsType_blankbox_DownImage();
+    @Source("images/Google_dv_logos_170x50.png")
+    ImageResource dsType_google();
 
-    @Source("images/dstype_google_up.png")
-    ImageResource dsType_google_UpImage();
-    @Source("images/dstype_google_down.png")
-    ImageResource dsType_google_DownImage();
+    @Source("images/H2_dv_logos_170x50.png")
+    ImageResource dsType_h2();
 
-    @Source("images/dstype_h2_up.png")
-    ImageResource dsType_h2_UpImage();
-    @Source("images/dstype_h2_down.png")
-    ImageResource dsType_h2_DownImage();
+    @Source("images/Infinispan_dv_logos_170x50.png")
+    ImageResource dsType_infinispan();
 
-    @Source("images/dstype_infinispan_up.png")
-    ImageResource dsType_infinispan_UpImage();
-    @Source("images/dstype_infinispan_down.png")
-    ImageResource dsType_infinispan_DownImage();
+    @Source("images/ModeShape_dv_logos_170x50.png")
+    ImageResource dsType_modeshape();
 
-    @Source("images/dstype_modeshape_up.png")
-    ImageResource dsType_modeshape_UpImage();
-    @Source("images/dstype_modeshape_down.png")
-    ImageResource dsType_modeshape_DownImage();
+    @Source("images/MongoDB_dv_logos_170x50.png")
+    ImageResource dsType_mongodb();
 
-    @Source("images/dstype_mongodb_up.png")
-    ImageResource dsType_mongodb_UpImage();
-    @Source("images/dstype_mongodb_down.png")
-    ImageResource dsType_mongodb_DownImage();
+    @Source("images/MySQL_dv_logos_170x50.png")
+    ImageResource dsType_mysql();
 
-    @Source("images/dstype_mysql_up.png")
-    ImageResource dsType_mysql_UpImage();
-    @Source("images/dstype_mysql_down.png")
-    ImageResource dsType_mysql_DownImage();
+    @Source("images/PostgresSql_dv_logos_170x50.png")
+    ImageResource dsType_postgres();
 
-    @Source("images/dstype_postgres_up.png")
-    ImageResource dsType_postgres_UpImage();
-    @Source("images/dstype_postgres_down.png")
-    ImageResource dsType_postgres_DownImage();
+    @Source("images/Salesforce_dv_logos_170x50.png")
+    ImageResource dsType_salesforce();
 
-    @Source("images/dstype_salesforce_up.png")
-    ImageResource dsType_salesforce_UpImage();
-    @Source("images/dstype_salesforce_down.png")
-    ImageResource dsType_salesforce_DownImage();
+    @Source("images/Teiid_dv_logos_170x50.png")
+    ImageResource dsType_teiid();
 
-    @Source("images/dstype_teiid_up.png")
-    ImageResource dsType_teiid_UpImage();
-    @Source("images/dstype_teiid_down.png")
-    ImageResource dsType_teiid_DownImage();
-
-    @Source("images/dstype_teiid_local_up.png")
-    ImageResource dsType_teiid_local_UpImage();
-    @Source("images/dstype_teiid_local_down.png")
-    ImageResource dsType_teiid_local_DownImage();
+    @Source("images/Teiid_dv_logos_170x50.png")
+    ImageResource dsType_teiid_local();
     
-    @Source("images/dstype_ldap_up.png")
-    ImageResource dsType_ldap_UpImage();
-    @Source("images/dstype_ldap_down.png")
-    ImageResource dsType_ldap_DownImage();
+    @Source("images/LDAP_dv_logos_170x50.png")
+    ImageResource dsType_ldap();
     
-    @Source("images/dstype_file_up.png")
-    ImageResource dsType_file_UpImage();
-    @Source("images/dstype_file_down.png")
-    ImageResource dsType_file_DownImage();
+    @Source("images/FileSystem_dv_logos_170x50.png")
+    ImageResource dsType_file();
     
-    @Source("images/dstype_webservice_up.png")
-    ImageResource dsType_webservice_UpImage();
-    @Source("images/dstype_webservice_down.png")
-    ImageResource dsType_webservice_DownImage();
+    @Source("images/WebService_dv_logos_170x50.png")
+    ImageResource dsType_webservice();
     
-    @Source("images/dstype_accumulo_up.png")
-    ImageResource dsType_accumulo_UpImage();
-    @Source("images/dstype_accumulo_down.png")
-    ImageResource dsType_accumulo_DownImage();
-
-    @Source("images/dstype_addtype.png")
+    @Source("images/addtype_dv_logos_170x50.png")
     ImageResource dsType_addtype_Image();
 
     @Source("images/dstype_blankbox_small.png")
     ImageResource dsType_blankbox_small_Image();
 
-    @Source("images/dstype_google_small.png")
+    @Source("images/Google_dv_logos_70x40.png")
     ImageResource dsType_google_small_Image();
 
-    @Source("images/dstype_h2_small.png")
+    @Source("images/H2_dv_logos_70x40.png")
     ImageResource dsType_h2_small_Image();
 
-    @Source("images/dstype_infinispan_small.png")
+    @Source("images/Infinispan_dv_logos_70x40.png")
     ImageResource dsType_infinispan_small_Image();
 
-    @Source("images/dstype_modeshape_small.png")
+    @Source("images/ModeShape_dv_logos_70x40.png")
     ImageResource dsType_modeshape_small_Image();
 
-    @Source("images/dstype_mongodb_small.png")
+    @Source("images/MongoDB_dv_logos_70x40.png")
     ImageResource dsType_mongodb_small_Image();
 
-    @Source("images/dstype_mysql_small.png")
+    @Source("images/MySQL_dv_logos_70x40.png")
     ImageResource dsType_mysql_small_Image();
 
-    @Source("images/dstype_postgres_small.png")
+    @Source("images/PostgresSql_dv_logos_70x40.png")
     ImageResource dsType_postgres_small_Image();
 
-    @Source("images/dstype_salesforce_small.png")
+    @Source("images/Salesforce_dv_logos_70x40.png")
     ImageResource dsType_salesforce_small_Image();
 
-    @Source("images/dstype_teiid_small.png")
+    @Source("images/Teiid_dv_logos_70x40.png")
     ImageResource dsType_teiid_small_Image();
     
-    @Source("images/dstype_ldap_small.png")
+    @Source("images/LDAP_dv_logos_70x40.png")
     ImageResource dsType_ldap_small_Image();
     
-    @Source("images/dstype_file_small.png")
+    @Source("images/FileSystem_dv_logos_70x40.png")
     ImageResource dsType_file_small_Image();
     
-    @Source("images/dstype_webservice_small.png")
+    @Source("images/WebService_dv_logos_70x40.png")
     ImageResource dsType_webservice_small_Image();
 }

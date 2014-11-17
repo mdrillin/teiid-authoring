@@ -143,16 +143,15 @@ public class DataSourceListWidget extends Composite {
         sb.appendHtmlConstant("<tr><td>");
         sb.appendHtmlConstant(statusImageHtml);
         sb.appendHtmlConstant("</td>");
-
-        sb.appendHtmlConstant("<td>");
+        
+        sb.appendHtmlConstant("<td style=\"width:72px;height:42px;padding: 2px 0px 0px 2px;\">");
         sb.appendHtmlConstant(dTypeImageHtml);
         sb.appendHtmlConstant("</td>");
         
         // Add the name and address.
-        sb.appendHtmlConstant("<td><h4>");
+        sb.appendHtmlConstant("<td style=\"width:3px;\"></td><td><h4>");
         sb.appendEscaped(dsRow.getName());
         sb.appendHtmlConstant("</h4></td></tr></table>");
       }
     }  
-
 }
