@@ -20,7 +20,7 @@ import javax.enterprise.context.ApplicationScoped;
 import org.teiid.authoring.share.Constants;
 import org.uberfire.client.annotations.Perspective;
 import org.uberfire.client.annotations.WorkbenchPerspective;
-import org.uberfire.client.workbench.panels.impl.MultiTabWorkbenchPanelPresenter;
+import org.uberfire.client.workbench.panels.impl.StaticWorkbenchPanelPresenter;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.workbench.model.PerspectiveDefinition;
 import org.uberfire.workbench.model.impl.PartDefinitionImpl;
@@ -35,7 +35,7 @@ public class MainPerspective {
 
     @Perspective
     public PerspectiveDefinition buildPerspective() {
-        PerspectiveDefinition perspective = new PerspectiveDefinitionImpl( MultiTabWorkbenchPanelPresenter.class.getName() );
+        PerspectiveDefinition perspective = new PerspectiveDefinitionImpl( StaticWorkbenchPanelPresenter.class.getName() );
         perspective.setName("MainPerspective");
         perspective.getRoot().addPart(new PartDefinitionImpl(new DefaultPlaceRequest(Constants.DATA_SERVICES_LIBRARY_SCREEN)));
 

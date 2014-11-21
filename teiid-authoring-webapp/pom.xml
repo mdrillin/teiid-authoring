@@ -155,24 +155,6 @@
       <artifactId>errai-security-picketlink</artifactId>
     </dependency>
 
-    <!-- CDI Development Utils -->
-    <!-- This must be placed above com.google.gwt:gwt-dev to override the Jetty
-      that is present there -->
-    <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jetty</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jetty-plus</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jetty-naming</artifactId>
-    </dependency>
-
     <!-- Weld Modules -->
     <dependency>
       <groupId>org.jboss.weld.se</groupId>
@@ -297,7 +279,6 @@
           </compileSourcesArtifacts>
           <runTarget>org.teiid.TeiidAuthoringWebApp/TeiidAuthoring.html</runTarget>
           <extraJvmArgs>-Xmx1024m -XX:MaxPermSize=256m</extraJvmArgs>
-          <server>org.jboss.errai.cdi.server.gwt.JettyLauncher</server>
           <gwtSdkFirstInClasspath>true</gwtSdkFirstInClasspath>
         </configuration>
         <executions>
