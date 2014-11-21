@@ -277,7 +277,7 @@
           <!--compileSourcesArtifact>org.teiid:teiid-client-module</compileSourcesArtifact-->
 
           </compileSourcesArtifacts>
-          <runTarget>org.teiid.TeiidAuthoringWebApp/TeiidAuthoring.html</runTarget>
+          <runTarget>teiidweb.html</runTarget>
           <extraJvmArgs>-Xmx1024m -XX:MaxPermSize=256m</extraJvmArgs>
           <gwtSdkFirstInClasspath>true</gwtSdkFirstInClasspath>
         </configuration>

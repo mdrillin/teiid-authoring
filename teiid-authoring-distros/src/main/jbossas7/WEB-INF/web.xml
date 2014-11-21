@@ -29,7 +29,7 @@
 
   <filter-mapping>
     <filter-name>PicketLink Authentication Filter</filter-name>
-    <url-pattern>/tutorial.html</url-pattern>
+    <url-pattern>/org.teiid.TeiidAuthoringWebApp/TeiidAuthoring.html</url-pattern>
   </filter-mapping>
 
   <filter-mapping>
