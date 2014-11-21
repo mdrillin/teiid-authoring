@@ -15,14 +15,12 @@
  */
 package org.teiid.authoring.client.dialogs;
 
-import org.kie.uberfire.client.common.Popup;
-
-import com.google.gwt.user.client.ui.Widget;
+import org.kie.uberfire.client.common.popups.KieBaseModal;
 
 /**
  * Popup which shows a title and status message
  */
-public class StatusPopup extends Popup {
+public class StatusPopup extends KieBaseModal {
 
 	private StatusPopupPanel contentPanel;
 
@@ -33,16 +31,9 @@ public class StatusPopup extends Popup {
     protected void setup(final StatusPopupPanel contentPanel, final String title) {
     	this.contentPanel = contentPanel;
     	
-        setModal( true );
-        
         setTitle(title);
     }
 
-    @Override
-    public Widget getContent() {
-        return this.contentPanel;
-    }
-    
     public void setContentTitle(String title) {
     	this.contentPanel.setTitle(title);
     }

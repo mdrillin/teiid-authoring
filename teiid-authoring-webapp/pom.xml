@@ -65,6 +65,12 @@
       <artifactId>uberfire-workbench-processors</artifactId>
       <scope>provided</scope>
     </dependency>
+    
+    <dependency>
+      <groupId>org.uberfire</groupId>
+      <artifactId>uberfire-security-client</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- KIE Widgets (PagedTable) -->
     <dependency>
@@ -94,6 +100,11 @@
       <dependency>
         <groupId>org.jboss.as</groupId>
         <artifactId>jboss-as-controller</artifactId>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.owasp.encoder</groupId>
+        <artifactId>encoder</artifactId>
       </dependency>
       
     <!-- Log -->
@@ -137,6 +148,11 @@
     <dependency>
       <groupId>org.jboss.errai</groupId>
       <artifactId>errai-cdi-jetty</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jboss.errai</groupId>
+      <artifactId>errai-security-picketlink</artifactId>
     </dependency>
 
     <!-- CDI Development Utils -->

@@ -5,6 +5,8 @@
   <inherits name="org.uberfire.UberfireClientAll"/>
   <inherits name="org.kie.uberfire.KIEUberfireWidgetsCommons"/>
   <inherits name="org.jboss.errai.ui.UI"/>  
+  
+  <inherits name="org.uberfire.security.UberfireSecurityClient"/>
 
   <source path='authoring/client' />
   <source path='authoring/share' />

@@ -35,7 +35,6 @@
         <configuration>
           <finalName>teiid-authoring-${project.version}</finalName>
           <descriptors>
-            <descriptor>src/main/assembly/assembly-tomcat-7_0.xml</descriptor>
             <descriptor>src/main/assembly/assembly-jboss-as-7_0.xml</descriptor>
           </descriptors>
           <archive>
