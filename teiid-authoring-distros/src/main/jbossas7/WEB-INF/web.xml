@@ -19,7 +19,7 @@
     </init-param>
     <init-param>
       <param-name>host-page</param-name>
-      <param-value>/org.teiid.TeiidAuthoringWebApp/TeiidAuthoring.html</param-value>
+      <param-value>/teiidweb.html</param-value>
     </init-param>
     <init-param>
       <param-name>forceReAuthentication</param-name>
@@ -29,7 +29,7 @@
 
   <filter-mapping>
     <filter-name>PicketLink Authentication Filter</filter-name>
-    <url-pattern>/org.teiid.TeiidAuthoringWebApp/TeiidAuthoring.html</url-pattern>
+    <url-pattern>/teiidweb.html</url-pattern>
   </filter-mapping>
 
   <filter-mapping>
