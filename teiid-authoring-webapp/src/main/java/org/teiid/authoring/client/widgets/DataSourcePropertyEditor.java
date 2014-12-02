@@ -84,6 +84,10 @@ public class DataSourcePropertyEditor extends Composite {
     		nameLabel.setWidth(NAME_WIDTH);
     		nameLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
     		nameLabel.setText(prop.getDisplayName()+" --");
+    		String descrip = prop.getDescription();
+    		if(!StringUtils.isEmpty(descrip)) {
+    			nameLabel.setTitle(descrip);
+    		}
     		nameValuePanel.add(nameLabel);
     		
 
@@ -96,6 +100,9 @@ public class DataSourcePropertyEditor extends Composite {
             }
     		valueTextBox.setWidth(VALUE_WIDTH);
     		valueTextBox.setText(prop.getValue());
+    		if(!StringUtils.isEmpty(descrip)) {
+    			valueTextBox.setTitle(descrip);
+    		}
     		valueTextBox.addKeyUpHandler(new KeyUpHandler() {
     			@Override
     			public void onKeyUp(KeyUpEvent event) {

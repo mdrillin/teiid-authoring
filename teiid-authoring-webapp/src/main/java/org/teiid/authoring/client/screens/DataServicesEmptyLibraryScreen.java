@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.resources.AppResource;
 import org.teiid.authoring.share.Constants;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
@@ -47,6 +48,9 @@ public class DataServicesEmptyLibraryScreen extends Composite {
 
     @Inject
     private PlaceManager placeManager;
+    
+    @Inject
+    private ClientMessages i18n;
     
     @Inject @DataField("btn-create-service")
     protected Button createServiceButton;
@@ -74,6 +78,10 @@ public class DataServicesEmptyLibraryScreen extends Composite {
     @PostConstruct
     protected void postConstruct() {
     	emptyLibImage.setResource(AppResource.INSTANCE.images().emptyLibraryImage());
+    	
+    	// Tooltips
+    	createServiceButton.setTitle(i18n.format("dslibrary-empty.createServiceButton.tooltip"));
+    	createServiceAnchor.setTitle(i18n.format("dslibrary-empty.createServiceAnchor.tooltip"));
     }
     
     /**

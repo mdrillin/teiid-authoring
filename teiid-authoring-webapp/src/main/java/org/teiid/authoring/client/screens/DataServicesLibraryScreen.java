@@ -113,6 +113,8 @@ public class DataServicesLibraryScreen extends Composite {
     protected void postConstruct() {
     	servicesPanel.add(serviceFlowListWidget);
     	createConfirmDeleteDialog();
+    	// Tooltips
+    	createServiceButton.setTitle(i18n.format("dslibrary.createServiceButton.tooltip"));
     }
     
     @OnStartup

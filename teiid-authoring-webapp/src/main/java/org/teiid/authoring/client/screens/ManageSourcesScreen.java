@@ -153,8 +153,10 @@ public class ManageSourcesScreen extends Composite {
     			if(row!=null) {
         			showPropertiesPanel(row.getName());
         			propsPanel.setExternalError(row.getErrorMessage());
+        			dsListPanel.setDeleteButtonEnabled(true);
     			} else {
     				showBlankMessagePanel();
+    				dsListPanel.setDeleteButtonEnabled(false);
     			}
     		}
     	});

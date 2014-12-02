@@ -179,6 +179,12 @@ public class DataSourcePropertiesPanel extends Composite {
         	}
         });
         updateStatus();
+        
+        // Tooltips
+        saveSourceChanges1.setTitle(i18n.format("ds-properties-panel.saveSourceChanges1.tooltip"));
+        saveSourceChanges2.setTitle(i18n.format("ds-properties-panel.saveSourceChanges2.tooltip"));
+        nameTextBox.setTitle(i18n.format("ds-properties-panel.nameTextBox.tooltip"));
+        translatorListBox.setTitle(i18n.format("ds-properties-panel.translatorListBox.tooltip"));
     }
     
     /**
@@ -352,11 +358,10 @@ public class DataSourcePropertiesPanel extends Composite {
                 	ToggleButton button;
                 	if(!ImageHelper.getInstance().hasKnownImage(dType)) {
                     	button = new ToggleButton(dType,dType);
-                		button.setStylePrimaryName("customToggle");
                 	} else {
                     	button = new ToggleButton(buttonImage);
-                		button.setStylePrimaryName("customToggle");
                 	}
+            		button.setStylePrimaryName("customToggle");
                 	button.getElement().setId(dType);
                 	button.addClickHandler(new ClickHandler() {
                 		public void onClick(ClickEvent event) {
@@ -396,6 +401,7 @@ public class DataSourcePropertiesPanel extends Composite {
             	DOM.setStyleAttribute(addTypeButton.getElement(), "cssFloat", "left");
             	DOM.setStyleAttribute(addTypeButton.getElement(), "margin", "5px");
             	DOM.setStyleAttribute(addTypeButton.getElement(), "padding", "0px");
+                addTypeButton.setTitle(i18n.format("ds-properties-panel.addTypeButton.tooltip"));
             	dTypesButtonPanel.add(addTypeButton);
             	
             	if(selectedType!=null) setSelectedDataSourceType(selectedType);

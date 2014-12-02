@@ -31,6 +31,7 @@ import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
+import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.resources.AppResource;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.share.Constants;
@@ -56,6 +57,9 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 	private static final String DELETE_ACTION = "Delete Service";
 	private static final String SAVE_TO_FILE_ACTION = "Save to File";
 	
+    @Inject
+    private ClientMessages i18n;
+
 	@Inject
 	private PlaceManager placeManager;
 
@@ -126,6 +130,10 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 //    		this.viewServiceVisibilityLabel.removeStyleName("glyphicon-eye-open");
 //    		this.viewServiceVisibilityLabel.addStyleName("glyphicon glyphicon-eye-close");
 //    	}
+    	
+    	// Tooltips
+    	viewServiceButton.setTitle(i18n.format("lib-service-widget.viewServiceButton.tooltip"));
+    	moreActionsListBox.setTitle(i18n.format("lib-service-widget.moreActionsListBox.tooltip"));
     }
     
     /**
