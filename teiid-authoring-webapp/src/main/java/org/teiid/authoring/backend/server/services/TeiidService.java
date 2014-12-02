@@ -463,6 +463,9 @@ public class TeiidService implements ITeiidService {
 			// DisplayName
 			String displayName = propDefn.getDisplayName();
 			propBean.setDisplayName(displayName);
+			// Description
+			String description = propDefn.getDescription();
+			propBean.setDescription(description);
 			// isModifiable
 			boolean isModifiable = propDefn.isModifiable();
 			propBean.setModifiable(isModifiable);

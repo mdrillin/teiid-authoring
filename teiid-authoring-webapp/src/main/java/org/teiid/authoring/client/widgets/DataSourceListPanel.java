@@ -17,6 +17,7 @@ package org.teiid.authoring.client.widgets;
 
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
@@ -25,6 +26,7 @@ import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
+import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -38,6 +40,9 @@ import com.google.gwt.view.client.SelectionModel;
 @Templated("./DataSourceListPanel.html")
 public class DataSourceListPanel extends Composite {
 
+    @Inject
+    private ClientMessages i18n;
+
     @Inject @DataField("btn-dslist-panel-add")
     protected Button addButton;
     @Inject @DataField("btn-dslist-panel-delete")
@@ -48,6 +53,17 @@ public class DataSourceListPanel extends Composite {
     @Inject Event<UiEvent> buttonEvent;
     
     public DataSourceListPanel() {
+    }
+    
+    /**
+     * Called after construction.
+     */
+    @PostConstruct
+    protected void postConstruct() {
+    	// Tooltips
+    	addButton.setTitle(i18n.format("dslist-panel.addButton.tooltip"));
+    	deleteButton.setTitle(i18n.format("dslist-panel.deleteButton.tooltip"));
+    	deleteButton.setEnabled(false);
     }
     
     /**
@@ -67,6 +83,10 @@ public class DataSourceListPanel extends Composite {
     public void onDeleteButtonClick(ClickEvent event) {
     	buttonEvent.fire(new UiEvent(UiEventType.DATA_SOURCE_DELETE));
     }
+    
+    public void setDeleteButtonEnabled(boolean enable) {
+    	deleteButton.setEnabled(enable);
+    }
  
     public void setData(List<DataSourcePageRow> rows) {
     	listWidget.setData(rows);
@@ -82,6 +102,7 @@ public class DataSourceListPanel extends Composite {
     
     public void setSelection(String dsName) {
     	listWidget.setSelection(dsName);
+    	deleteButton.setEnabled(true);
     }
     
     public void setSelectionModel( final SelectionModel<DataSourcePageRow> selectionModel ) {

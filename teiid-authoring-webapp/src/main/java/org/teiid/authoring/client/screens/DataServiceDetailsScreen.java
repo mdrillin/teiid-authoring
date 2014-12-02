@@ -132,6 +132,15 @@ public class DataServiceDetailsScreen extends Composite {
 //    	serviceExternal = i18n.format("servicedetails.page-title-external");
 
     	downloadClientJarAnchor.setText("teiid-jdbc.jar");
+    	
+    	// Tooltips
+    	editServiceButton.setTitle(i18n.format("servicedetails.editServiceButton.tooltip"));
+    	downloadClientJarAnchor.setTitle(i18n.format("servicedetails.downloadClientJarAnchor.tooltip"));
+    	jdbcSnippetArea.setTitle(i18n.format("servicedetails.jdbcSnippetArea.tooltip"));
+    	restLinkTextBox.setTitle(i18n.format("servicedetails.restLinkTextBox.tooltip"));
+    	odataLinkTextBox.setTitle(i18n.format("servicedetails.odataLinkTextBox.tooltip"));
+    	openRestButton.setTitle(i18n.format("servicedetails.openRestButton.tooltip"));
+    	openODataButton.setTitle(i18n.format("servicedetails.openODataButton.tooltip"));
     }
     
     @OnStartup

@@ -91,6 +91,11 @@ public class ViewSourcePanel extends Composite {
     	
     	// Initially disabled.  Enables when user makes a selection
     	deleteButton.setEnabled(false);
+    	
+    	// Tooltips
+    	addButton.setTitle(i18n.format("viewsource-panel.addButton.tooltip"));
+    	deleteButton.setTitle(i18n.format("viewsource-panel.deleteButton.tooltip"));
+    	viewSourceNamesTable.setTitle(i18n.format("viewsource-panel.viewSourceNamesTable.tooltip"));
     }
     
     /**

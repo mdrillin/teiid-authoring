@@ -71,6 +71,9 @@ public class QueryResultsPanel extends Composite {
     	contentDeckPanel.add(queryResultsTablePaged);
     	contentDeckPanel.showWidget(0);
     	resultTableVisible=false;
+    	
+    	// Tooltips
+    	queryResultsTablePaged.setTitle(i18n.format("query-resultpanel.result-table.tooltip"));
     }   
 
     /**

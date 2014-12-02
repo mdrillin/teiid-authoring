@@ -35,6 +35,7 @@ public class DataSourcePropertyBean {
     private boolean isModifiable;
     private boolean isRequired;
     private boolean isMasked;
+    private String description;
 
     /**
      * Constructor.
@@ -98,6 +99,13 @@ public class DataSourcePropertyBean {
         return this.isMasked;
     }
 
+    /**
+     * @return the description
+     */
+    public String getDescription() {
+        return this.description;
+    }
+    
     /**
      * Determine if this is a 'core' property.  Core property is assumed to be required or other property like username, password, url, etc.
      * @return 'true' if this is a core property, 'false' if not.
@@ -243,6 +251,13 @@ public class DataSourcePropertyBean {
      */
     public void setMasked(boolean isMasked) {
         this.isMasked = isMasked;
+    }
+    
+    /**
+     * @param description the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

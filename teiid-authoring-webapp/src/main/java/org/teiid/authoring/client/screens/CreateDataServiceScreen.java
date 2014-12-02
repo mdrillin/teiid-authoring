@@ -136,6 +136,12 @@ public class CreateDataServiceScreen extends Composite {
 		
 		serviceVisibleCheckbox.setText(i18n.format("createdataservice.checkbox-service-visible"));
     	serviceVisibleCheckbox.setValue(true);
+    	
+    	// Tooltips
+    	serviceNameTextBox.setTitle(i18n.format("createdataservice.serviceNameTextBox.tooltip"));
+    	serviceDescriptionTextBox.setTitle(i18n.format("createdataservice.serviceDescriptionTextBox.tooltip"));
+    	createServiceButton.setTitle(i18n.format("createdataservice.createServiceButton.tooltip"));
+    	cancelButton.setTitle(i18n.format("createdataservice.cancelButton.tooltip"));
     }
     
     @OnStartup

@@ -247,7 +247,20 @@ public class ViewEditorPanel extends Composite {
         		sampleDdlTextArea.setText(ddlSample);
         	}
         });
-    	
+
+    	// Tooltips
+    	viewDdlTextArea.setTitle(i18n.format("vieweditor-panel.viewDdlTextArea.tooltip"));
+    	createDdlButton.setTitle(i18n.format("vieweditor-panel.createDdlButton.tooltip"));
+    	addToDdlButton.setTitle(i18n.format("vieweditor-panel.addToDdlButton.tooltip"));
+    	sampleDdlTextArea.setTitle(i18n.format("vieweditor-panel.sampleDdlTextArea.tooltip"));
+    	applySampleDdlButton.setTitle(i18n.format("vieweditor-panel.applySampleDdlButton.tooltip"));
+    	ddlTemplatesListBox.setTitle(i18n.format("vieweditor-panel.ddlTemplatesListBox.tooltip"));
+    	dsNamesTable.setTitle(i18n.format("vieweditor-panel.dsNamesTable.tooltip"));
+    	tablesAndProcsTable.setTitle(i18n.format("vieweditor-panel.tablesAndProcsTable.tooltip"));
+    	columnsTable.setTitle(i18n.format("vieweditor-panel.columnsTable.tooltip"));
+    	testViewButton.setTitle(i18n.format("vieweditor-panel.testViewButton.tooltip"));
+    	manageSourceButton.setTitle(i18n.format("vieweditor-panel.manageSourceButton.tooltip"));
+
     	updateStatus();
     }
     

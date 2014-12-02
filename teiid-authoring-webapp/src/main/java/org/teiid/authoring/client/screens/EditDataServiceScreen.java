@@ -143,6 +143,12 @@ public class EditDataServiceScreen extends Composite {
 		viewEditorPanel.setDescription(i18n.format("editdataservice.vieweditor-description"));
 		viewEditorPanel.setOwner(Constants.EDIT_DATA_SERVICE_SCREEN);
 		serviceVisibleCheckBox.setText(i18n.format("editdataservice.checkbox-service-visible"));
+		
+    	// Tooltips
+    	serviceNameTextBox.setTitle(i18n.format("editdataservice.serviceNameTextBox.tooltip"));
+    	serviceDescriptionTextBox.setTitle(i18n.format("editdataservice.serviceDescriptionTextBox.tooltip"));
+    	saveServiceButton.setTitle(i18n.format("editdataservice.saveServiceButton.tooltip"));
+    	cancelButton.setTitle(i18n.format("editdataservice.cancelButton.tooltip"));
     }
     
     @OnStartup
