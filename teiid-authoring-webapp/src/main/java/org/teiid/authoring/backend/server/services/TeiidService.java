@@ -639,11 +639,8 @@ public class TeiidService implements ITeiidService {
 			throw new DataVirtUiException(e.getMessage());
 		}  
     	
-    	// Get JNDI for the specified DataSource name.  if null choose a default
+    	// Get JNDI for the specified DataSource name.
     	String jndiName = getSourceJndiName(bean.getName());
-    	if(StringUtils.isEmpty(jndiName)) {
-    		jndiName = Constants.JNDI_PREFIX+bean.getName();
-    	}
     	
     	// Delete Source VDB if it already exists
     	List<String> vdbsToDelete = new ArrayList<String>(1);
@@ -664,9 +661,6 @@ public class TeiidService implements ITeiidService {
     public void createVdbAndVdbSource(DataSourceWithVdbDetailsBean bean) throws DataVirtUiException {
     	// Get JNDI for the specified DataSource name.  if null choose a default
     	String jndiName = getSourceJndiName(bean.getName());
-    	if(StringUtils.isEmpty(jndiName)) {
-    		jndiName = Constants.JNDI_PREFIX+bean.getName();
-    	}
     	
     	// Delete VDB if it already exists
     	deleteVdb(bean.getSourceVdbName());
@@ -787,7 +781,21 @@ public class TeiidService implements ITeiidService {
 			throw new DataVirtUiException(e.getMessage());
 		}
 
-    	return dsProps.getProperty("jndi-name");
+    	String jndiName = dsProps.getProperty("jndi-name");
+    	
+    	// If jndiName property was not set, assign java:/dsName.  Except for the pre-installed sources,
+    	// which have different context prefixes (?)
+    	if(StringUtils.isEmpty(jndiName)) {
+    		if(dataSourceName.equals("ModeShapeDS")) {
+    			jndiName = Constants.MODESHAPE_JNDI_PREFIX+dataSourceName;
+    		} else if(dataSourceName.equals("DashboardDS") || dataSourceName.equals("ExampleDS")) {
+    			jndiName = Constants.JBOSS_JNDI_PREFIX+dataSourceName;
+    		} else {
+    			jndiName = Constants.JNDI_PREFIX+dataSourceName;
+    		}
+    	}
+    	
+    	return jndiName;
     }
     
     /*

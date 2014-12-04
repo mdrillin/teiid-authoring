@@ -48,6 +48,8 @@ public class Constants {
 	public static final String PREVIEW_VDB_PREFIX = "PREVIEW_";
 	
 	public static final String JNDI_PREFIX = "java:/";
+	public static final String JBOSS_JNDI_PREFIX = "java:jboss/datasources/";
+	public static final String MODESHAPE_JNDI_PREFIX = "java:/datasources/";
 	public static final String SERVICE_NAME_KEY = "service-name";
 	public static final String SERVICE_VIEW_NAME = "SvcView";
 	public static final String CLONE_SERVICE_KEY = "clone-service";
