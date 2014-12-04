@@ -860,6 +860,25 @@ public class TeiidService implements ITeiidService {
 		}
     }
     
+    /**
+     * Delete the dataSources and VDBs.
+     * @param dsNames the source names
+     * @param vdbNames the vdb names
+     * @throws DataVirtUiException
+     */
+    @Override
+    public void deleteDataSourcesAndVdbs(Collection<String> dsNames, Collection<String> vdbNames) throws DataVirtUiException {
+    	// Delete the dataSources
+    	try {
+			clientAccessor.getClient().deleteDataSources(dsNames);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+    	
+    	// Delete the VDBs
+    	deleteVdbs(vdbNames);
+    }
+    
     @Override
     public void deleteTypes(Collection<String> dsTypes) throws DataVirtUiException {
     	try {

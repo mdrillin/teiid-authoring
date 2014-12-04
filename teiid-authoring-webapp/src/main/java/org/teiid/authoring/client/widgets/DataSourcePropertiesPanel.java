@@ -299,11 +299,17 @@ public class DataSourcePropertiesPanel extends Composite {
     
     private void onRenameConfirmed() {
         DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
+        
+        // DataSources to delete - server source and Vdb source.
     	List<String> originalDsNames = new ArrayList<String>();
     	originalDsNames.add(this.originalName);
     	originalDsNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+this.originalName);
     	
-    	doDeleteThenCreateDataSource(originalDsNames,sourceBean);
+    	// Also must delete the Source Vdb
+    	List<String> srcVdbNames = new ArrayList<String>();
+    	srcVdbNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+this.originalName);
+    	
+    	doDeleteThenCreateDataSource(originalDsNames,srcVdbNames,sourceBean);
     }
     
     private void onRedeployConfirmed() {
@@ -630,7 +636,7 @@ public class DataSourcePropertiesPanel extends Composite {
     /**
      * Called when the user confirms the dataSource deletion.
      */
-    private void doDeleteThenCreateDataSource(final List<String> dsNamesToDelete, final DataSourceWithVdbDetailsBean detailsBean) {
+    private void doDeleteThenCreateDataSource(final List<String> dsNamesToDelete, final List<String> srcVdbNames, final DataSourceWithVdbDetailsBean detailsBean) {
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("ds-properties-panel.creating-datasource-title"), //$NON-NLS-1$
                 i18n.format("ds-properties-panel.creating-datasource-msg")); //$NON-NLS-1$
@@ -638,7 +644,7 @@ public class DataSourcePropertiesPanel extends Composite {
         if(!dsNamesToDelete.isEmpty()) {
             fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,dsNamesToDelete.get(0),null);
         }
-        teiidService.deleteDataSources(dsNamesToDelete, new IRpcServiceInvocationHandler<Void>() {
+        teiidService.deleteDataSourcesAndVdbs(dsNamesToDelete, srcVdbNames, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),

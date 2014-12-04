@@ -63,6 +63,8 @@ public interface ITeiidService {
 
     public void deleteDataSources(Collection<String> dsNames) throws DataVirtUiException;
 
+    public void deleteDataSourcesAndVdbs(Collection<String> dsNames, Collection<String> vdbNames) throws DataVirtUiException;
+
     public void deleteTypes(Collection<String> dsTypes) throws DataVirtUiException;
 
     public VdbDetailsBean getVdbDetails(String vdbName) throws DataVirtUiException;
