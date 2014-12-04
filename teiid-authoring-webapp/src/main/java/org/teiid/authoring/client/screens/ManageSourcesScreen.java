@@ -296,7 +296,7 @@ public class ManageSourcesScreen extends Composite {
     	String dsName = row.getName();
 		dsNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
     	dsNames.add(dsName);
-		doDeleteDataSources(dsNames,null);
+		doDeleteDataSourcesAndVdb(dsNames,Constants.SERVICE_SOURCE_VDB_PREFIX+dsName,null);
     }
     
     /**
@@ -334,12 +334,15 @@ public class ManageSourcesScreen extends Composite {
     /**
      * Called when the user confirms the dataSource deletion.
      */
-    private void doDeleteDataSources(final List<String> dsNames, final String selectedDS) {
+    private void doDeleteDataSourcesAndVdb(final List<String> dsNames, final String vdbName, final String selectedDS) {
+    	List<String> vdbNames = new ArrayList<String>(1);
+    	vdbNames.add(vdbName);
+    	
     	dsListDeckPanel.showWidget(0);
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("managesources.deleting-datasource-title"), //$NON-NLS-1$
                 i18n.format("managesources.deleting-datasource-msg", "sourceList")); //$NON-NLS-1$
-        teiidService.deleteDataSources(dsNames, new IRpcServiceInvocationHandler<Void>() {
+        teiidService.deleteDataSourcesAndVdbs(dsNames, vdbNames, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
@@ -423,7 +426,7 @@ public class ManageSourcesScreen extends Composite {
     	DataSourceWithVdbDetailsBean resultBean = new DataSourceWithVdbDetailsBean();
     	resultBean.setName(dsName);
     	resultBean.setSourceVdbName(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
-    	resultBean.setTranslator("jdbc-ansi");
+    	resultBean.setTranslator("h2");
     	resultBean.setType("h2");
     	
     	List<DataSourcePropertyBean> props = new ArrayList<DataSourcePropertyBean>();
