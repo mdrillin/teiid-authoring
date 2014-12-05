@@ -10,7 +10,11 @@
     <version>0.1.0-SNAPSHOT</version>
     <relativePath>../teiid-authoring-deps/pom.xml</relativePath>
   </parent>
-
+  
+  <properties>
+    <errai.jboss.home>/home/mdrilling/apps/DV600-Servers/DV600-GA-Testing/jboss-eap-6.1</errai.jboss.home>
+  </properties>
+  
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -265,6 +269,7 @@
         <artifactId>gwt-maven-plugin</artifactId>
         <configuration>
           <deploy>${project.build.directory}/gwt-symbols-deploy</deploy>
+          <server>org.jboss.errai.cdi.server.gwt.JBossLauncher</server>
           <localWorkers>4</localWorkers>
           <!--  <module>org.teiid.FastCompiledTeiidAuthoringWebApp</module> -->
           <module>org.teiid.TeiidAuthoringWebApp</module>

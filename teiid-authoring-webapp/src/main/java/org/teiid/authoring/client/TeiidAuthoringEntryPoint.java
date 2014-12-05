@@ -15,11 +15,6 @@
  */
 package org.teiid.authoring.client;
 
-import static org.uberfire.workbench.model.menu.MenuFactory.newTopLevelMenu;
-
-import java.util.Collection;
-import java.util.Iterator;
-
 import javax.annotation.PostConstruct;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -30,17 +25,16 @@ import org.jboss.errai.bus.client.api.messaging.Message;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jboss.errai.ioc.client.api.EntryPoint;
-import org.jboss.errai.ioc.client.container.IOCBeanDef;
 import org.jboss.errai.ioc.client.container.SyncBeanManager;
 import org.jboss.errai.security.shared.service.AuthenticationService;
 import org.jboss.errai.ui.shared.api.annotations.Bundle;
+import org.teiid.authoring.share.Constants;
 import org.uberfire.client.mvp.ActivityManager;
-import org.uberfire.client.mvp.PerspectiveActivity;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.client.workbench.events.ApplicationReadyEvent;
 import org.uberfire.client.workbench.widgets.menu.WorkbenchMenuBar;
 import org.uberfire.mvp.Command;
-import org.uberfire.mvp.impl.DefaultPlaceRequest;
+import org.uberfire.workbench.model.menu.MenuFactory;
 import org.uberfire.workbench.model.menu.MenuPosition;
 import org.uberfire.workbench.model.menu.Menus;
 
@@ -83,43 +77,22 @@ public class TeiidAuthoringEntryPoint {
     }
 
     private void setupMenu( @Observes final ApplicationReadyEvent event ) {
-        final PerspectiveActivity defaultPerspective = getDefaultPerspectiveActivity();
-        
-        Menus menus =
-                newTopLevelMenu("Data Library").respondsWith(new Command() {
-                    public void execute() {
-                        if (defaultPerspective != null) {
-                            placeManager.goTo(new DefaultPlaceRequest(defaultPerspective.getIdentifier()));
-                        } else {
-                            Window.alert("Default perspective not found.");
-                        }
-                    }
-                }).endMenu()
-               .newTopLevelMenu("Logout")
-               .position(MenuPosition.RIGHT)
-               .respondsWith(new LogoutCommand())
-               .endMenu()
-              .build();
-
-        menubar.addMenus( menus );
-    }
-
-    private PerspectiveActivity getDefaultPerspectiveActivity() {
-        PerspectiveActivity defaultPerspective = null;
-        final Collection<IOCBeanDef<PerspectiveActivity>> perspectives = manager.lookupBeans( PerspectiveActivity.class );
-        final Iterator<IOCBeanDef<PerspectiveActivity>> perspectivesIterator = perspectives.iterator();
-
-        while ( perspectivesIterator.hasNext() ) {
-            final IOCBeanDef<PerspectiveActivity> perspective = perspectivesIterator.next();
-            final PerspectiveActivity instance = perspective.getInstance();
-            if ( instance.isDefault() ) {
-                defaultPerspective = instance;
-                break;
-            } else {
-                manager.destroyBean( instance );
+      Menus menus =
+        MenuFactory.newTopLevelMenu("Data Library")
+         .position(MenuPosition.LEFT)
+         .respondsWith(new Command() {
+            public void execute() {
+               	placeManager.goTo(Constants.DATA_SERVICES_LIBRARY_SCREEN);
             }
-        }
-        return defaultPerspective;
+         })
+        .endMenu()
+        .newTopLevelMenu("Logout")
+        .position(MenuPosition.RIGHT)
+        .respondsWith(new LogoutCommand())
+        .endMenu()
+      .build();
+
+      menubar.addMenus(menus);
     }
 
     //Fade out the "Loading application" pop-up

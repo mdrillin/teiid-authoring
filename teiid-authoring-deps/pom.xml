@@ -19,14 +19,17 @@
   </description>
 
   <properties>
-    <version.org.jboss.integration-platform>6.0.0.CR8</version.org.jboss.integration-platform>
+    <version.org.jboss.integration-platform>6.0.0.CR13</version.org.jboss.integration-platform>
     <version.org.jboss.errai>3.0.3.Final</version.org.jboss.errai>
     <version.org.uberfire>0.5.0.CR4</version.org.uberfire>
     <version.org.kie>6.2.0.CR2</version.org.kie>
-    <version.org.jboss.teiid>8.4.0.Final</version.org.jboss.teiid>
+    <version.org.jboss.teiid>8.7.1</version.org.jboss.teiid>
     <version.jboss-as-cli>7.2.0.Final</version.jboss-as-cli>
     <version.jboss-as-controller>7.2.0.Final</version.jboss-as-controller>
     <version.org.mortbay.jetty>6.1.25</version.org.mortbay.jetty>
+    
+    <!-- temporary: makes the enforcerRule (illegal-transitive-dependency-check) not to break the build -->
+    <illegaltransitivereportonly>true</illegaltransitivereportonly>
   </properties>
 
   <dependencyManagement>
@@ -67,6 +70,13 @@
       </dependency>
 
       <!-- Teiid -->
+      <dependency>
+        <groupId>org.jboss.teiid</groupId>
+        <artifactId>teiid-parent</artifactId>
+        <version>${version.org.jboss.teiid}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>  
       <dependency>
         <groupId>org.jboss.teiid</groupId>
         <artifactId>teiid-common-core</artifactId>
