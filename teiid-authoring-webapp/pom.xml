@@ -84,11 +84,6 @@
 
     <!-- Teiid -->
     <dependency>
-      <groupId>org.jboss.teiid</groupId>
-      <artifactId>teiid-parent</artifactId>
-    </dependency> 
-    <!--       
-    <dependency>
        <groupId>org.jboss.teiid</groupId>
        <artifactId>teiid-common-core</artifactId>
     </dependency>
@@ -100,7 +95,7 @@
        <groupId>org.jboss.teiid</groupId>
        <artifactId>teiid-admin</artifactId>
     </dependency>
-    -->
+    
       <!-- Third party libraries -->
       <dependency>
         <groupId>org.jboss.as</groupId>

@@ -72,14 +72,6 @@
       <!-- Teiid -->
       <dependency>
         <groupId>org.jboss.teiid</groupId>
-        <artifactId>teiid-parent</artifactId>
-        <version>${version.org.jboss.teiid}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>  
-      <!--      
-      <dependency>
-        <groupId>org.jboss.teiid</groupId>
         <artifactId>teiid-common-core</artifactId>
         <version>${version.org.jboss.teiid}</version>
       </dependency>
@@ -93,7 +85,6 @@
         <artifactId>teiid-admin</artifactId>
         <version>${version.org.jboss.teiid}</version>
       </dependency>
-      -->
       
       <!-- Third party libraries -->
       <dependency>
