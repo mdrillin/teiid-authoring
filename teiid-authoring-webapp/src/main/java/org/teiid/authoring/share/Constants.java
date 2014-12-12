@@ -46,6 +46,9 @@ public class Constants {
     public static final String CONFIRMATION_DIALOG_SOURCE_DELETE = "ConfirmSourceDelete";
     public static final String CONFIRMATION_DIALOG_REPLACE_VIEW_DEFN = "ConfirmReplaceViewDefn";    
     
+	public static final String ADD_VIEW_SRC_DIALOG = "AddViewSrcDialog";
+	public static final String ADD_VIEW_SRC_AVAILABLE_SRCS = "AddViewAvailSrcs";
+	
 	public static final int DATASOURCES_TABLE_PAGE_SIZE = 15;
 	public static final int DATASOURCE_TYPES_TABLE_PAGE_SIZE = 15;
 	public static final int VDBS_TABLE_PAGE_SIZE = 15;

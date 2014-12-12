@@ -16,22 +16,25 @@
 package org.teiid.authoring.client.widgets;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import javax.enterprise.event.Event;
 
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
-import org.teiid.authoring.client.dialogs.AddViewSourceContentPanel;
-import org.teiid.authoring.client.dialogs.AddViewSourceDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.services.StringUtils;
+import org.uberfire.client.mvp.PlaceManager;
+import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.ui.Button;
@@ -46,6 +49,9 @@ import com.google.gwt.view.client.SingleSelectionModel;
 @Templated("./ViewSourcePanel.html")
 public class ViewSourcePanel extends Composite {
 
+	@Inject
+	private PlaceManager placeManager;
+	
     @Inject
     private ClientMessages i18n;
     
@@ -57,10 +63,6 @@ public class ViewSourcePanel extends Composite {
     protected ViewSourceNamesTable viewSourceNamesTable;
     
     private SingleSelectionModel<String> dsSelectionModel;
-    
-    private AddViewSourceDialog addViewSourceDialog;
-    @Inject 
-    private AddViewSourceContentPanel addViewSourceContent;
     
     @Inject Event<UiEvent> sourcesChangedEvent;
     
@@ -104,8 +106,19 @@ public class ViewSourcePanel extends Composite {
      */
     @EventHandler("btn-viewsource-panel-add")
     public void onAddButtonClick(ClickEvent event) {
-    	createAddViewSourceDialog(allAvailableSources);
-    	addViewSourceDialog.show();
+		// Display the DataSource selection dialog
+		Map<String,String> parameters = new HashMap<String,String>();
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for(String src : allAvailableSources) {
+			if(!first) {
+				sb.append(";");
+			}
+			sb.append(src);
+			first=false;
+		}
+		parameters.put(Constants.ADD_VIEW_SRC_AVAILABLE_SRCS, sb.toString());
+    	placeManager.goTo(new DefaultPlaceRequest(Constants.ADD_VIEW_SRC_DIALOG,parameters));    	
     }
     
     /**
@@ -115,14 +128,12 @@ public class ViewSourcePanel extends Composite {
     public void onDialogEvent(@Observes UiEvent dEvent) {
     	// User has OK'd source rename
     	if(dEvent.getType() == UiEventType.ADD_VIEW_SOURCE_OK) {
-    		addViewSourceDialog.hide();
-    		String ds = addViewSourceDialog.getSelectedSource();
+    		String ds = dEvent.getDataSourceName();
     		if(!StringUtils.isEmpty(ds)) {
     			onAddConfirm(ds);
     		}
     	// User has OK'd source redeploy
     	} else if(dEvent.getType() == UiEventType.ADD_VIEW_SOURCE_CANCEL) {
-    		addViewSourceDialog.hide();
     	} 
     }
     
@@ -134,7 +145,6 @@ public class ViewSourcePanel extends Composite {
     		newSources.add(newSource);
     	}
     	
-    	addViewSourceDialog.hide();
     	viewSourceNamesTable.setData(newSources);
     }
 
@@ -184,18 +194,4 @@ public class ViewSourcePanel extends Composite {
     	sourcesChangedEvent.fire(new UiEvent(UiEventType.VIEW_SOURCES_CHANGED));
     }
     
-    /**
-     * Create a dialog for selecting a view source to add
-     * @param allAvailableSources list of all sources to populate the dropDown
-     */
-    private void createAddViewSourceDialog(List<String> allAvailableSources) {
-    	String dTitle = i18n.format("viewsource-panel.add-source-dialog-title");
-    	String dMsg = i18n.format("viewsource-panel.add-source-dialog-message");
-    	addViewSourceDialog = new AddViewSourceDialog(addViewSourceContent, dTitle );
-    	addViewSourceDialog.setContentTitle(dTitle);
-    	addViewSourceDialog.setContentMessage(dMsg);
-    	addViewSourceDialog.setAllAvailableSources(allAvailableSources);
-    	addViewSourceDialog.setOkCancelEventTypes(UiEventType.ADD_VIEW_SOURCE_OK, UiEventType.ADD_VIEW_SOURCE_CANCEL);
-    }
-
 }
