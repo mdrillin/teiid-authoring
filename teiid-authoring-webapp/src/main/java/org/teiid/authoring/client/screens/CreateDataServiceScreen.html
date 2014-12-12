@@ -27,51 +27,47 @@
 
       <div class="container-fluid">
       
-        <form class="form-horizontal" role="form">
-	    
         <!-- Page Title Info -->
         <h3>Create Data Service</h3>
-        <div>Create a custom data service containing data you need to access in your applications.</div>
+        <div style="font-style:italic;color:#666666">Create a custom data service containing data you need to access in your applications.</div>
         
-        <div class="form-group">
-          <div class="col-md-6">
+        <div class="row-fluid">
+          <div class="span6">
             <div class="alert alert-info" role="alert" data-field="label-create-service-status"></div>
           </div>
-          <div class="col-md-6"></div>
+          <span class="span6"></span>
         </div>
         
-        <div class="form-group">
-          <div class="col-md-3">
-	        <label title="The name of the Data Service">Name</label>
-            <input class="form-control" data-field="textbox-create-service-name" />
+        <div class="row-fluid">
+          <div class="span3">
+            <label title="The name of the Data Service"><strong>Name</strong></label>
+            <input type="text" style="width:100%" data-field="textbox-create-service-name" />
           </div>
-          <div class="col-md-3">
-	        <label>Tags</label>
-            <input class="form-control" placeholder="Not yet implemented" />
+          <div class="span3">
+            <label title="Tags for identification of the Data Service"><strong>Tags</strong></label>
+            <input type="text" style="width:100%" placeholder="Not yet implemented" />
           </div>
-          <div class="col-md-6"></div>
+          <span class="span6"></span>
         </div>
-
-        <div class="form-group">
-          <div class="col-md-3">
-	        <label title="A description for the Data Service">Description</label>
-            <textarea data-field="textarea-create-service-description" class="form-control" rows="2"></textarea>
+        <div class="row-fluid">
+          <div class="span3">
+            <label title="A description for the Data Service"><strong>Description</strong></label>
+            <textarea data-field="textarea-create-service-description" rows="2" style="width:100%" ></textarea>
           </div>
-          <div class="col-md-3">
+          <div class="span3">
             <span data-field="checkbox-create-service-visibility"></span>
           </div>
-          <div class="col-md-6"></div>
+          <span class="span6"></span>
         </div>
-                
-        <div class="form-group">
-          <div class="col-md-8" data-field="view-editor-create-service"></div>
-          <div class="col-md-4"></div>
+        <div class="row-fluid">
+          <div class="span8" data-field="view-editor-create-service"></div>
+          <div class="span4"></div>
         </div>
                         
-        <div class="form-group">
-          <div class="col-md-12">
+        <div class="row-fluid">
+          <div class="span12">
             <button data-field="btn-create-service-create" class="btn btn-primary">Create Data Service</button>
-            <button data-field="btn-create-service-cancel" class="btn btn-default">Cancel</button>
+            <button data-field="btn-create-service-cancel" class="btn">Cancel</button>
           </div>
         </div>
         
@@ -81,7 +77,6 @@
           <p>&copy; JBoss Data Virtualization 2014</p>
         </footer>
         
-      </form>
       </div> <!-- /container -->
       
     </div> <!-- /page -->

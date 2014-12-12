@@ -29,8 +29,6 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
-import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
-import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
@@ -48,6 +46,8 @@ import org.teiid.authoring.share.beans.QueryTableProcBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.services.StringUtils;
+import org.uberfire.client.mvp.PlaceManager;
+import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
@@ -79,6 +79,8 @@ public class ViewEditorPanel extends Composite {
 	private String currentStatus = null;
 	private String owner;
 	
+    @Inject
+    private PlaceManager placeManager;
     @Inject
     private ClientMessages i18n;
     @Inject
@@ -118,6 +120,9 @@ public class ViewEditorPanel extends Composite {
     
     @Inject @DataField("textarea-vieweditor-viewDdl")
     protected TextArea viewDdlTextArea;
+    
+    @Inject @DataField("textarea-vieweditor-testQuery")
+    protected TextArea testSqlTextArea;
  
     @Inject @DataField("panel-vieweditor-viewsources")
     protected ViewSourcePanel viewSourcePanel;
@@ -143,9 +148,6 @@ public class ViewEditorPanel extends Composite {
     @Inject @DataField("btn-vieweditor-apply-sample")
     protected Button applySampleDdlButton;
     
-    @Inject 
-    private ConfirmationContentPanel confirmationContent;
-	private ConfirmationDialog confirmationDialog;
 	private String workingDdl;
 	private List<String> workingViewSrcNames;
 	private String selectedDataSrcName;
@@ -509,13 +511,12 @@ public class ViewEditorPanel extends Composite {
      * Shows the confirmation dialog for overwrite of view defn
      */
     private void showConfirmOverwriteDialog() {
-    	String dTitle = i18n.format("ds-properties-panel.confirm-overwrite-dialog-title");
+		// Display the Confirmation Dialog for replacing the view defn
+		Map<String,String> parameters = new HashMap<String,String>();
     	String dMsg = i18n.format("ds-properties-panel.confirm-overwrite-dialog-message");
-    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
-    	confirmationDialog.setContentTitle(dTitle);
-    	confirmationDialog.setContentMessage(dMsg);
-    	confirmationDialog.setOkCancelEventTypes(UiEventType.VIEW_DEFN_REPLACE_OK, UiEventType.VIEW_DEFN_REPLACE_CANCEL);
-    	confirmationDialog.show();
+		parameters.put(Constants.CONFIRMATION_DIALOG_MESSAGE, dMsg);
+		parameters.put(Constants.CONFIRMATION_DIALOG_TYPE, Constants.CONFIRMATION_DIALOG_REPLACE_VIEW_DEFN);
+    	placeManager.goTo(new DefaultPlaceRequest(Constants.CONFIRMATION_DIALOG,parameters));
     }
     
     /**
@@ -525,11 +526,9 @@ public class ViewEditorPanel extends Composite {
     public void onDialogEvent(@Observes UiEvent dEvent) {
     	// User has OK'd source rename
     	if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_OK) {
-    		confirmationDialog.hide();
     		replaceViewDefn(workingDdl,workingViewSrcNames);
     	// User has OK'd source redeploy
     	} else if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_CANCEL) {
-    		confirmationDialog.hide();
     	} else if(dEvent.getType() == UiEventType.VIEW_SOURCES_CHANGED) {
     		updateStatus();
     	}
@@ -598,9 +597,7 @@ public class ViewEditorPanel extends Composite {
                         i18n.format("vieweditor-panel.testing-service-complete-msg")); //$NON-NLS-1$
 
                 String testVdbJndi = Constants.JNDI_PREFIX+testVDBName;
-    			String serviceSampleSQL = Constants.SELECT_STAR_FROM+Constants.SPACE + 
-    			           serviceName+Constants.DOT+Constants.SERVICE_VIEW_NAME+
-    			           Constants.SPACE+Constants.LIMIT_10;
+    			String serviceSampleSQL = testSqlTextArea.getText();
     	    	queryResultsPanel.showResultsTable(testVdbJndi, serviceSampleSQL);
     	    	
                 haveSuccessfullyTested = true;
@@ -689,8 +686,15 @@ public class ViewEditorPanel extends Composite {
     			currentStatus = statusTestView;
     		}
     		testViewButton.setEnabled(true);
+			String serviceSampleSQL = Constants.SELECT_STAR_FROM+Constants.SPACE + 
+			           serviceName+Constants.DOT+Constants.SERVICE_VIEW_NAME+
+			           Constants.SPACE+Constants.LIMIT_10;
+			testSqlTextArea.setText(serviceSampleSQL);
+			testSqlTextArea.setEnabled(true);
     	} else {
     		testViewButton.setEnabled(false);
+			testSqlTextArea.setText(Constants.BLANK);
+			testSqlTextArea.setEnabled(false);
     	}
     	
     	fireStateChanged();

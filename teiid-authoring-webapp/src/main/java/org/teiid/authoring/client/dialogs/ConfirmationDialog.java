@@ -1,59 +1,157 @@
-/*
- * Copyright 2014 JBoss Inc
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.teiid.authoring.client.dialogs;
 
-import org.kie.uberfire.client.common.popups.KieBaseModal;
+import javax.annotation.PostConstruct;
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
 
+import org.teiid.authoring.client.messages.ClientMessages;
+import org.teiid.authoring.share.Constants;
+import org.uberfire.client.annotations.WorkbenchPartTitle;
+import org.uberfire.client.annotations.WorkbenchPartView;
+import org.uberfire.client.annotations.WorkbenchPopup;
+import org.uberfire.client.mvp.PlaceManager;
+import org.uberfire.lifecycle.OnStartup;
+import org.uberfire.mvp.PlaceRequest;
+
+import com.github.gwtbootstrap.client.ui.Button;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.HTMLPanel;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 /**
- * This builds on the FormStyleLayout for providing common popup features in a
- * columnar form layout, with a title and a large (ish) icon.
+ * A generic confirmation dialog, used to confirm actions
  */
-public class ConfirmationDialog extends KieBaseModal {
+@WorkbenchPopup(identifier = "ConfirmationDialog")
+public class ConfirmationDialog {
 
-	private ConfirmationContentPanel contentPanel;
+	@Inject
+    private ClientMessages i18n;
+	
+	@Inject Event<UiEvent> buttonEvent;
 
-    public ConfirmationDialog(final ConfirmationContentPanel contentPanel, final String title) {
-        setup( contentPanel, title);
-    }
-
-    protected void setup(final ConfirmationContentPanel contentPanel, final String title) {
-    	this.contentPanel = contentPanel;
+    @Inject
+	private PlaceManager placeManager;
+	private PlaceRequest place;
+	private final VerticalPanel view = new VerticalPanel();
+	private HTMLPanel messagePanel;
+	private Button okButton;
+	private Button closeButton;
+	private String dialogType;
+	
+	@PostConstruct
+	public void setup() {
+		messagePanel = new HTMLPanel("<p>Click to close</p>");
+		closeButton = new Button( "Cancel" );
+		closeButton.addClickHandler( new ClickHandler() {
+			@Override
+			public void onClick( final ClickEvent event ) {
+				fireCancelEvent();
+				placeManager.closePlace( place );
+			}
+		} );
+		okButton = new Button( "Ok" );
+		okButton.addClickHandler( new ClickHandler() {
+			@Override
+			public void onClick( final ClickEvent event ) {
+				fireOkEvent();
+				placeManager.closePlace( place );
+			}
+		} );
+		HorizontalPanel hPanel = new HorizontalPanel();
+		hPanel.add(okButton);
+		hPanel.add(closeButton);
+		view.add( messagePanel );
+		view.add( hPanel );
+	}
+	
+	@OnStartup
+	public void onStartup( final PlaceRequest place ) {
+		this.place = place;
+		
+    	// Parameters are passed in for the message content and the confirmation dialog type
+    	String message = place.getParameter(Constants.CONFIRMATION_DIALOG_MESSAGE, "NONE");
+    	dialogType = place.getParameter(Constants.CONFIRMATION_DIALOG_TYPE, "NONE");
     	
-        setTitle(title);
-    }
+    	view.remove(messagePanel);
+    	messagePanel = new HTMLPanel("<p>"+message+"</p>");
+    	view.insert(messagePanel, 0);
+    	
+		okButton.setFocus( true );
+	}
+	
+	@WorkbenchPartTitle
+	public String getTitle() {
+		String dialogTitle = "Confirm the Operation";
+		
+		if(dialogType==null) {
+			return dialogTitle;
+		}
+    	if(Constants.CONFIRMATION_DIALOG_DELETE_SERVICE.equals(dialogType)) {
+			dialogTitle = i18n.format("dslibrary.confirm-delete-dialog-title");
+    	} else if(Constants.CONFIRMATION_DIALOG_EDIT_SERVICE_ABORT.equals(dialogType)) {
+			dialogTitle = i18n.format("editdataservice.confirm-abort-edit-dialog-title");
+    	} else if(Constants.CONFIRMATION_DIALOG_SOURCE_RENAME.equals(dialogType)) {
+			dialogTitle = i18n.format("ds-properties-panel.confirm-rename-dialog-title");
+    	} else if(Constants.CONFIRMATION_DIALOG_SOURCE_REDEPLOY.equals(dialogType)) {
+			dialogTitle = i18n.format("ds-properties-panel.confirm-redeploy-dialog-title");
+    	} else if(Constants.CONFIRMATION_DIALOG_SOURCE_CHANGETYPE.equals(dialogType)) {
+			dialogTitle = i18n.format("ds-properties-panel.confirm-changetype-dialog-title");
+		} else if(Constants.CONFIRMATION_DIALOG_SOURCE_DELETE.equals(dialogType)) {
+			dialogTitle = i18n.format("managesources.confirm-delete-dialog-title");
+		} else if(Constants.CONFIRMATION_DIALOG_REPLACE_VIEW_DEFN.equals(dialogType)) {
+			dialogTitle = i18n.format("ds-properties-panel.confirm-overwrite-dialog-title");
+		}
+		return dialogTitle;
+	}
+	
+	@WorkbenchPartView
+	public Widget getView() {
+		return view;
+	}
+	
+	/*
+	 * Fires different Cancel events, depending on the type of confirmation
+	 */
+	private void fireCancelEvent() {
+    	if(Constants.CONFIRMATION_DIALOG_DELETE_SERVICE.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.DELETE_SERVICE_CANCEL));
+    	} else if(Constants.CONFIRMATION_DIALOG_EDIT_SERVICE_ABORT.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.EDIT_SERVICE_ABORT_CANCEL));
+    	} else if(Constants.CONFIRMATION_DIALOG_SOURCE_RENAME.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.SOURCE_RENAME_CANCEL));
+    	} else if(Constants.CONFIRMATION_DIALOG_SOURCE_REDEPLOY.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.SOURCE_REDEPLOY_CANCEL));
+    	} else if(Constants.CONFIRMATION_DIALOG_SOURCE_CHANGETYPE.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.SOURCE_CHANGETYPE_CANCEL));
+		} else if(Constants.CONFIRMATION_DIALOG_SOURCE_DELETE.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.DELETE_SOURCE_CANCEL));
+		} else if(Constants.CONFIRMATION_DIALOG_REPLACE_VIEW_DEFN.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.VIEW_DEFN_REPLACE_CANCEL));
+    	}
+	}
 
-    public void setContentTitle(String title) {
-    	this.contentPanel.setTitle(title);
-    }
+	/*
+	 * Fires different OK events, depending on the type of confirmation
+	 */
+	private void fireOkEvent() {
+    	if(Constants.CONFIRMATION_DIALOG_DELETE_SERVICE.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.DELETE_SERVICE_OK));
+    	} else if(Constants.CONFIRMATION_DIALOG_EDIT_SERVICE_ABORT.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.EDIT_SERVICE_ABORT_OK));
+    	} else if(Constants.CONFIRMATION_DIALOG_SOURCE_RENAME.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.SOURCE_RENAME_OK));
+    	} else if(Constants.CONFIRMATION_DIALOG_SOURCE_REDEPLOY.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.SOURCE_REDEPLOY_OK));
+    	} else if(Constants.CONFIRMATION_DIALOG_SOURCE_CHANGETYPE.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.SOURCE_CHANGETYPE_OK));
+		} else if(Constants.CONFIRMATION_DIALOG_SOURCE_DELETE.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.DELETE_SOURCE_OK));
+		} else if(Constants.CONFIRMATION_DIALOG_REPLACE_VIEW_DEFN.equals(dialogType)) {
+    		buttonEvent.fire(new UiEvent(UiEventType.VIEW_DEFN_REPLACE_OK));
+    	}
+	}
 
-    public void setContentMessage(String message) {
-    	this.contentPanel.setMessage(message);
-    }
-    
-    public void setContentPanel(VerticalPanel panel) {
-    	this.contentPanel.addContentPanel(panel);
-    }
-    
-    public void setOkCancelEventTypes(UiEventType okType, UiEventType cancelType) {
-    	this.contentPanel.setOkCancelEventTypes(okType, cancelType);
-    }
-    
-    public void setSize(int width, int height) {
-    	//this.contentPanel.setSize(width+"px", height+"px");
-    }
 }

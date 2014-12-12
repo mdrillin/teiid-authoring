@@ -29,8 +29,6 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
-import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
-import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
@@ -115,10 +113,6 @@ public class EditDataServiceScreen extends Composite {
     
     @Inject @DataField("btn-edit-service-cancel")
     protected Button cancelButton;
-    
-    @Inject 
-    private ConfirmationContentPanel confirmationContent;
-	private ConfirmationDialog confirmationDialog;
     
     @Override
     @WorkbenchPartTitle
@@ -424,10 +418,8 @@ public class EditDataServiceScreen extends Composite {
     	    	placeManager.goTo(new DefaultPlaceRequest(Constants.MANAGE_SOURCES_SCREEN,parameters));
     		}
     	} else if(dEvent.getType() == UiEventType.EDIT_SERVICE_ABORT_OK) {
-        	confirmationDialog.hide();
         	placeManager.goTo(Constants.DATA_SERVICES_LIBRARY_SCREEN);
     	} else if(dEvent.getType() == UiEventType.EDIT_SERVICE_ABORT_CANCEL) {
-        	confirmationDialog.hide();
     	}
     }
     
@@ -476,24 +468,15 @@ public class EditDataServiceScreen extends Composite {
     public void onCancelButtonClick(ClickEvent event) {
     	// user must confirm if there are pending changes
     	if(saveServiceButton.isEnabled()) {
-    		showConfirmAbortDialog();
+			// Display the Confirmation Dialog for abortint the edits
+			Map<String,String> parameters = new HashMap<String,String>();
+			parameters.put(Constants.CONFIRMATION_DIALOG_MESSAGE, i18n.format("editdataservice.confirm-abort-edit-dialog-message"));
+			parameters.put(Constants.CONFIRMATION_DIALOG_TYPE, Constants.CONFIRMATION_DIALOG_EDIT_SERVICE_ABORT);
+	    	placeManager.goTo(new DefaultPlaceRequest(Constants.CONFIRMATION_DIALOG,parameters));
     	// no pending changes
     	} else {
         	placeManager.goTo(Constants.DATA_SERVICES_LIBRARY_SCREEN);
     	}
     }
     
-    /**
-     * Shows the confirmation dialog for cancel of edit operation
-     */
-    private void showConfirmAbortDialog() {
-    	String dTitle = i18n.format("editdataservice.confirm-abort-edit-dialog-title");
-    	String dMsg = i18n.format("editdataservice.confirm-abort-edit-dialog-message");
-    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
-    	confirmationDialog.setContentTitle(dTitle);
-    	confirmationDialog.setContentMessage(dMsg);
-    	confirmationDialog.setOkCancelEventTypes(UiEventType.EDIT_SERVICE_ABORT_OK, UiEventType.EDIT_SERVICE_ABORT_CANCEL);
-    	confirmationDialog.show();
-    }
-        
 }

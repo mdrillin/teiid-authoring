@@ -29,8 +29,6 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
-import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
-import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.dialogs.UploadContentPanel;
@@ -48,6 +46,8 @@ import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
 import org.teiid.authoring.share.beans.NotificationBean;
 import org.teiid.authoring.share.beans.PropertyBeanComparator;
 import org.teiid.authoring.share.services.StringUtils;
+import org.uberfire.client.mvp.PlaceManager;
+import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
@@ -74,11 +74,11 @@ public class DataSourcePropertiesPanel extends Composite {
 	private static final String MSG_ERROR = "ERROR";
 	
     @Inject
+    private PlaceManager placeManager;
+    @Inject
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;
-    @Inject 
-    private ConfirmationContentPanel confirmationContent;
     @Inject 
     private UploadContentPanel uploadContent;
     
@@ -88,7 +88,6 @@ public class DataSourcePropertiesPanel extends Composite {
 	private String statusEnterProps = null;
 	private String externalError = null;
 	
-	private ConfirmationDialog confirmationDialog;
 	private UploadDialog uploadDialog;
 	private String clickedSourceType;
     
@@ -158,8 +157,6 @@ public class DataSourcePropertiesPanel extends Composite {
     	
     	doPopulateTranslatorListBox();
     	
-    	dataSourceCorePropertyEditor.setTitle(i18n.format("ds-properties-panel.coreproperties-title"));
-    	dataSourceAdvancedPropertyEditor.setTitle(i18n.format("ds-properties-panel.advproperties-title"));
     	dataSourceCorePropertyEditor.clear();
     	dataSourceAdvancedPropertyEditor.clear();
     	
@@ -231,39 +228,33 @@ public class DataSourcePropertiesPanel extends Composite {
      * Shows the confirmation dialog for renaming a DataSource
      */
     private void showConfirmRenameDialog() {
-    	String dTitle = i18n.format("ds-properties-panel.confirm-rename-dialog-title");
-    	String dMsg = i18n.format("ds-properties-panel.confirm-rename-dialog-message");
-    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
-    	confirmationDialog.setContentTitle(dTitle);
-    	confirmationDialog.setContentMessage(dMsg);
-    	confirmationDialog.setOkCancelEventTypes(UiEventType.SOURCE_RENAME_OK, UiEventType.SOURCE_RENAME_CANCEL);
-    	confirmationDialog.show();
+		// Display the Confirmation Dialog for source rename
+		Map<String,String> parameters = new HashMap<String,String>();
+		parameters.put(Constants.CONFIRMATION_DIALOG_MESSAGE, i18n.format("ds-properties-panel.confirm-rename-dialog-message"));
+		parameters.put(Constants.CONFIRMATION_DIALOG_TYPE, Constants.CONFIRMATION_DIALOG_SOURCE_RENAME);
+    	placeManager.goTo(new DefaultPlaceRequest(Constants.CONFIRMATION_DIALOG,parameters));
     }
     
     /**
      * Shows the confirmation dialog for redeploy of a DataSource
      */
     private void showConfirmSourceRedeployDialog() {
-    	String dTitle = i18n.format("ds-properties-panel.confirm-redeploy-dialog-title");
-    	String dMsg = i18n.format("ds-properties-panel.confirm-redeploy-dialog-message");
-    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
-    	confirmationDialog.setContentTitle(dTitle);
-    	confirmationDialog.setContentMessage(dMsg);
-    	confirmationDialog.setOkCancelEventTypes(UiEventType.SOURCE_REDEPLOY_OK, UiEventType.SOURCE_REDEPLOY_CANCEL);
-    	confirmationDialog.show();
+		// Display the Confirmation Dialog for source redeploy
+		Map<String,String> parameters = new HashMap<String,String>();
+		parameters.put(Constants.CONFIRMATION_DIALOG_MESSAGE, i18n.format("ds-properties-panel.confirm-redeploy-dialog-message"));
+		parameters.put(Constants.CONFIRMATION_DIALOG_TYPE, Constants.CONFIRMATION_DIALOG_SOURCE_REDEPLOY);
+    	placeManager.goTo(new DefaultPlaceRequest(Constants.CONFIRMATION_DIALOG,parameters));    	
     }
     
     /**
      * Shows the confirmation dialog for changing a DataSource type
      */
     private void showConfirmChangeTypeDialog() {
-    	String dTitle = i18n.format("ds-properties-panel.confirm-changetype-dialog-title");
-    	String dMsg = i18n.format("ds-properties-panel.confirm-changetype-dialog-message");
-    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
-    	confirmationDialog.setContentTitle(dTitle);
-    	confirmationDialog.setContentMessage(dMsg);
-    	confirmationDialog.setOkCancelEventTypes(UiEventType.SOURCE_CHANGETYPE_OK, UiEventType.SOURCE_CHANGETYPE_CANCEL);
-    	confirmationDialog.show();
+		// Display the Confirmation Dialog for source type change
+		Map<String,String> parameters = new HashMap<String,String>();
+		parameters.put(Constants.CONFIRMATION_DIALOG_MESSAGE, i18n.format("ds-properties-panel.confirm-changetype-dialog-message"));
+		parameters.put(Constants.CONFIRMATION_DIALOG_TYPE, Constants.CONFIRMATION_DIALOG_SOURCE_CHANGETYPE);
+    	placeManager.goTo(new DefaultPlaceRequest(Constants.CONFIRMATION_DIALOG,parameters));    	
     }
     
     /**
@@ -273,26 +264,20 @@ public class DataSourcePropertiesPanel extends Composite {
     public void onDialogEvent(@Observes UiEvent dEvent) {
     	// User has OK'd source rename
     	if(dEvent.getType() == UiEventType.SOURCE_RENAME_OK) {
-    		confirmationDialog.hide();
     		onRenameConfirmed();
     	// User has OK'd source redeploy
     	} else if(dEvent.getType() == UiEventType.SOURCE_REDEPLOY_OK) {
-    		confirmationDialog.hide();
     		onRedeployConfirmed();
     	// User has OK'd source type change
     	} else if(dEvent.getType() == UiEventType.SOURCE_CHANGETYPE_OK) {
-    		confirmationDialog.hide();
     		onChangeTypeConfirmed();
     		setSelectedDataSourceType(this.selectedSourceType);
     	// User has cancelled source rename
     	} else if(dEvent.getType() == UiEventType.SOURCE_RENAME_CANCEL) {
-    		confirmationDialog.hide();
     	// User has cancelled source redeploy
     	} else if(dEvent.getType() == UiEventType.SOURCE_REDEPLOY_CANCEL) {
-    		confirmationDialog.hide();
     	// User has cancelled source type change
     	} else if(dEvent.getType() == UiEventType.SOURCE_CHANGETYPE_CANCEL) {
-    		confirmationDialog.hide();
     		setSelectedDataSourceType(this.selectedSourceType);
     	} 
     }

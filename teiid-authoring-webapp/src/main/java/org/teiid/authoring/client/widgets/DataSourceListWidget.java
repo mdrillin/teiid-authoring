@@ -149,9 +149,9 @@ public class DataSourceListWidget extends Composite {
         sb.appendHtmlConstant("</td>");
         
         // Add the name and address.
-        sb.appendHtmlConstant("<td style=\"width:3px;\"></td><td><h4>");
+        sb.appendHtmlConstant("<td style=\"width:3px;\"></td><td><strong>");
         sb.appendEscaped(dsRow.getName());
-        sb.appendHtmlConstant("</h4></td></tr></table>");
+        sb.appendHtmlConstant("</strong></td></tr></table>");
       }
     }  
 }

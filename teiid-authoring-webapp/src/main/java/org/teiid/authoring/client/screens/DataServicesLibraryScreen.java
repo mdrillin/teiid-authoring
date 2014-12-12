@@ -18,7 +18,9 @@ package org.teiid.authoring.client.screens;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
@@ -28,8 +30,6 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
-import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
-import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
@@ -49,6 +49,7 @@ import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.PlaceRequest;
+import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -74,10 +75,6 @@ public class DataServicesLibraryScreen extends Composite {
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;
-    
-	private ConfirmationDialog confirmationDialog;
-    @Inject 
-    private ConfirmationContentPanel confirmationContent;
     
     @Inject
     protected TeiidRpcService teiidService;
@@ -112,7 +109,7 @@ public class DataServicesLibraryScreen extends Composite {
     @PostConstruct
     protected void postConstruct() {
     	servicesPanel.add(serviceFlowListWidget);
-    	createConfirmDeleteDialog();
+
     	// Tooltips
     	createServiceButton.setTitle(i18n.format("dslibrary.createServiceButton.tooltip"));
     }
@@ -123,10 +120,12 @@ public class DataServicesLibraryScreen extends Composite {
     	String deleteName = place.getParameter(Constants.DELETE_SERVICE_KEY, "NONE");
     	String cloneName = place.getParameter(Constants.CLONE_SERVICE_KEY, "NONE");
     	if(!deleteName.equals("NONE")) {
+			// Display the Confirmation Dialog for deleting a Service
     		deleteServiceName = deleteName;
-        	String dMsg = i18n.format("dslibrary.confirm-delete-dialog-message",deleteServiceName);
-        	confirmationDialog.setContentMessage(dMsg);
-    		confirmationDialog.show();
+			Map<String,String> parameters = new HashMap<String,String>();
+			parameters.put(Constants.CONFIRMATION_DIALOG_MESSAGE, i18n.format("dslibrary.confirm-delete-dialog-message",deleteServiceName));
+			parameters.put(Constants.CONFIRMATION_DIALOG_TYPE, Constants.CONFIRMATION_DIALOG_DELETE_SERVICE);
+	    	placeManager.goTo(new DefaultPlaceRequest(Constants.CONFIRMATION_DIALOG,parameters));
     	} else if(!cloneName.equals("NONE")) {
     		doCloneService(cloneName);
     	} else {
@@ -136,32 +135,17 @@ public class DataServicesLibraryScreen extends Composite {
     }
     
     /**
-     * Create a dialog for confirming service deletion
-     * @param serviceName the name of the service
-     */
-    private void createConfirmDeleteDialog( ) {
-    	String dTitle = i18n.format("dslibrary.confirm-delete-dialog-title");
-    	String dMsg = i18n.format("dslibrary.confirm-delete-dialog-message");
-    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
-    	confirmationDialog.setContentTitle(dTitle);
-    	confirmationDialog.setContentMessage(dMsg);
-    	confirmationDialog.setOkCancelEventTypes(UiEventType.DELETE_SERVICE_OK, UiEventType.DELETE_SERVICE_CANCEL);
-    }
-    
-    /**
      * Handles UiEvents
      * @param dEvent
      */
     public void onUiEvent(@Observes UiEvent dEvent) {
     	// User has OK'd source deletion
     	if(dEvent.getType() == UiEventType.DELETE_SERVICE_OK) {
-    		confirmationDialog.hide();
     		if(deleteServiceName!=null) {
     			doRemoveService(deleteServiceName);
     		}
         // User has cancelled service deletion
     	} else if(dEvent.getType() == UiEventType.DELETE_SERVICE_CANCEL) {
-        	confirmationDialog.hide();
     		doGetServices();
     	// User requesting save service to file
     	} else if(dEvent.getType() == UiEventType.SAVE_SERVICE) {

@@ -17,6 +17,7 @@ package org.teiid.authoring.share;
 
 
 
+
 /**
  * Application constants
  * @author mdrillin@redhat.com
@@ -34,6 +35,17 @@ public class Constants {
 	public static final String MANAGE_SOURCES_SCREEN = "ManageSourcesScreen";
 	public static final String UNKNOWN = "[unknown]";
 	
+	public static final String CONFIRMATION_DIALOG = "ConfirmationDialog";
+	public static final String CONFIRMATION_DIALOG_TYPE = "ConfirmationType";
+	public static final String CONFIRMATION_DIALOG_MESSAGE = "ConfirmationMessage";
+    public static final String CONFIRMATION_DIALOG_DELETE_SERVICE = "ConfirmDeleteService";
+    public static final String CONFIRMATION_DIALOG_EDIT_SERVICE_ABORT = "ConfirmEditServiceAbort";
+    public static final String CONFIRMATION_DIALOG_SOURCE_RENAME = "ConfirmSourceRename";
+    public static final String CONFIRMATION_DIALOG_SOURCE_REDEPLOY = "ConfirmSourceRedeploy";
+    public static final String CONFIRMATION_DIALOG_SOURCE_CHANGETYPE = "ConfirmSourceChangeType";
+    public static final String CONFIRMATION_DIALOG_SOURCE_DELETE = "ConfirmSourceDelete";
+    public static final String CONFIRMATION_DIALOG_REPLACE_VIEW_DEFN = "ConfirmReplaceViewDefn";    
+    
 	public static final int DATASOURCES_TABLE_PAGE_SIZE = 15;
 	public static final int DATASOURCE_TYPES_TABLE_PAGE_SIZE = 15;
 	public static final int VDBS_TABLE_PAGE_SIZE = 15;

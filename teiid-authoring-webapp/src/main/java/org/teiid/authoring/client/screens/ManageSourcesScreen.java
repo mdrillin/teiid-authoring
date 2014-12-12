@@ -29,8 +29,6 @@ import javax.inject.Inject;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
-import org.teiid.authoring.client.dialogs.ConfirmationContentPanel;
-import org.teiid.authoring.client.dialogs.ConfirmationDialog;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
@@ -77,7 +75,6 @@ public class ManageSourcesScreen extends Composite {
 	private SingleSelectionModel<DataSourcePageRow> listSelectionModel;
 	private List<DataSourcePageRow> currentDataSourceList = new ArrayList<DataSourcePageRow>();
 	private boolean propPanelVisible = false;
-	private ConfirmationDialog confirmationDialog;
 	private String requestingScreen;
 
     @Inject
@@ -88,9 +85,6 @@ public class ManageSourcesScreen extends Composite {
 	
     @Inject
     private PlaceManager placeManager;
-    
-    @Inject 
-    private ConfirmationContentPanel confirmationContent;
     
     @Inject
     protected TeiidRpcService teiidService;
@@ -196,11 +190,9 @@ public class ManageSourcesScreen extends Composite {
     	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DELETE) {
     		onDeleteButtonClicked();
     	} else if(dEvent.getType() == UiEventType.DELETE_SOURCE_OK) {
-    		confirmationDialog.hide();
     		onDeleteConfirm();
     	// User has cancelled source deletion
     	} else if(dEvent.getType() == UiEventType.DELETE_SOURCE_CANCEL) {
-    		confirmationDialog.hide();
     	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DEPLOY_STARTING) {
         	updateDataSourceInfos(dEvent.getDataSourceName(), UiEventType.DATA_SOURCE_DEPLOY_STARTING);
     	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DEPLOY_SUCCESS) {
@@ -278,13 +270,13 @@ public class ManageSourcesScreen extends Composite {
     private void showConfirmDeleteDialog() {
 		DataSourcePageRow row = listSelectionModel.getSelectedObject();
 		String dsName = row.getName();
-    	String dTitle = i18n.format("managesources.confirm-delete-dialog-title");
+
+		// Display the Confirmation Dialog for source rename
+		Map<String,String> parameters = new HashMap<String,String>();
     	String dMsg = i18n.format("managesources.confirm-delete-dialog-message",dsName);
-    	confirmationDialog = new ConfirmationDialog(confirmationContent, dTitle );
-    	confirmationDialog.setContentTitle(dTitle);
-    	confirmationDialog.setContentMessage(dMsg);
-    	confirmationDialog.setOkCancelEventTypes(UiEventType.DELETE_SOURCE_OK, UiEventType.DELETE_SOURCE_CANCEL);
-    	confirmationDialog.show();
+		parameters.put(Constants.CONFIRMATION_DIALOG_MESSAGE, dMsg);
+		parameters.put(Constants.CONFIRMATION_DIALOG_TYPE, Constants.CONFIRMATION_DIALOG_SOURCE_DELETE);
+    	placeManager.goTo(new DefaultPlaceRequest(Constants.CONFIRMATION_DIALOG,parameters));
     }
     
     /**

@@ -53,7 +53,6 @@ public class DataSourcePropertyEditor extends Composite {
 	
     protected VerticalPanel panel = new VerticalPanel();
     protected Label label = new Label();
-    protected Label titleLabel = new Label();
 
     private List<DataSourcePropertyBean> propertyList = new ArrayList<DataSourcePropertyBean>();
     private Map<String,TextBox> nameTextBoxMap = new HashMap<String,TextBox>();
@@ -65,11 +64,6 @@ public class DataSourcePropertyEditor extends Composite {
 	
     public DataSourcePropertyEditor() {
         initWidget( panel );
-        titleLabel.addStyleName("h4");
-    }
-    
-    public void setTitle(String titleText) {
-    	titleLabel.setText(titleText);
     }
     
     public void setProperties(List<DataSourcePropertyBean> properties) {
@@ -124,7 +118,6 @@ public class DataSourcePropertyEditor extends Composite {
     	}
     	panel.clear();
     	if(properties.size()>0) {
-    		panel.add(titleLabel);
     		panel.add(allPropsPanel);
     	}
     }
