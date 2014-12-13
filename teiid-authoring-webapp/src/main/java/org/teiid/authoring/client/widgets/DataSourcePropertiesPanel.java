@@ -31,8 +31,6 @@ import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
-import org.teiid.authoring.client.dialogs.UploadContentPanel;
-import org.teiid.authoring.client.dialogs.UploadDialog;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.resources.AppResource;
 import org.teiid.authoring.client.resources.ImageHelper;
@@ -79,8 +77,6 @@ public class DataSourcePropertiesPanel extends Composite {
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;
-    @Inject 
-    private UploadContentPanel uploadContent;
     
 	private String statusEnterName = null;
 	private String statusSelectTrans = null;
@@ -88,7 +84,6 @@ public class DataSourcePropertiesPanel extends Composite {
 	private String statusEnterProps = null;
 	private String externalError = null;
 	
-	private UploadDialog uploadDialog;
 	private String clickedSourceType;
     
 	// List of all available translators
@@ -279,6 +274,8 @@ public class DataSourcePropertiesPanel extends Composite {
     	// User has cancelled source type change
     	} else if(dEvent.getType() == UiEventType.SOURCE_CHANGETYPE_CANCEL) {
     		setSelectedDataSourceType(this.selectedSourceType);
+    	} else if(dEvent.getType() == UiEventType.UPLOAD_DRIVER_COMPLETE) {
+        	doPopulateSourceTypesPanel(selectedSourceType);
     	} 
     }
     
@@ -377,16 +374,7 @@ public class DataSourcePropertiesPanel extends Composite {
                 addTypeButton.addClickHandler(new ClickHandler() {
             		public void onClick(ClickEvent event) {
             			addTypeButton.setValue(false);
-            			uploadContent.setCompletionHandler(new IImportCompletionHandler() {
-            	            @Override
-            	            public void onImportComplete() {
-            	                if (isAttached()) {
-            	                	doPopulateSourceTypesPanel(selectedSourceType);
-            	                }
-            	            }
-            	        });
-            	    	uploadDialog = new UploadDialog(uploadContent, "title" );
-            	    	uploadDialog.show();
+            			placeManager.goTo(Constants.UPLOAD_DRIVER_DIALOG);
             		}
             	});                	
             	DOM.setStyleAttribute(addTypeButton.getElement(), "cssFloat", "left");

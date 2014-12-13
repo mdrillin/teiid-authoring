@@ -19,7 +19,6 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import org.teiid.authoring.backend.server.servlets.DataVirtUploadServlet;
-import org.teiid.authoring.client.dialogs.UploadDialog;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.share.beans.NotificationBean;
@@ -47,7 +46,6 @@ public class ImportDataSourceTypeFormSubmitHandler implements SubmitHandler, Sub
     @Inject
     private NotificationService notificationService;
 
-    private UploadDialog dialog;
     private NotificationBean notification;
     private IImportCompletionHandler completionHandler;
 
@@ -58,19 +56,10 @@ public class ImportDataSourceTypeFormSubmitHandler implements SubmitHandler, Sub
     }
 
     /**
-     * @param dialog the dialog
-     */
-    public void setDialog(UploadDialog dialog) {
-        this.dialog = dialog;
-    }
-
-    /**
      * @see com.google.gwt.user.client.ui.FormPanel.SubmitHandler#onSubmit(com.google.gwt.user.client.ui.FormPanel.SubmitEvent)
      */
     @Override
     public void onSubmit(SubmitEvent event) {
-//        dialog.hide(false);
-        
         notification = notificationService.startProgressNotification(
                 i18n.format("import-datasource-type-submit.uploading.title"), //$NON-NLS-1$
                 i18n.format("import-datasource-type-submit.uploading.msg")); //$NON-NLS-1$
@@ -81,8 +70,6 @@ public class ImportDataSourceTypeFormSubmitHandler implements SubmitHandler, Sub
      */
     @Override
     public void onSubmitComplete(SubmitCompleteEvent event) {
-        dialog.hide();
-
         ImportResult results = ImportResult.fromResult(event.getResults());
         if (results.isError()) {
             if (results.getError() != null) {

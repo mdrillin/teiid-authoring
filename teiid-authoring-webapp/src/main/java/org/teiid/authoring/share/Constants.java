@@ -48,6 +48,7 @@ public class Constants {
     
 	public static final String ADD_VIEW_SRC_DIALOG = "AddViewSrcDialog";
 	public static final String ADD_VIEW_SRC_AVAILABLE_SRCS = "AddViewAvailSrcs";
+	public static final String UPLOAD_DRIVER_DIALOG = "UploadDriverDialog";
 	
 	public static final int DATASOURCES_TABLE_PAGE_SIZE = 15;
 	public static final int DATASOURCE_TYPES_TABLE_PAGE_SIZE = 15;
