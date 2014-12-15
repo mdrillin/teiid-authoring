@@ -686,10 +686,13 @@ public class ViewEditorPanel extends Composite {
     			currentStatus = statusTestView;
     		}
     		testViewButton.setEnabled(true);
-			String serviceSampleSQL = Constants.SELECT_STAR_FROM+Constants.SPACE + 
+    		// Populate the Test Query area
+    		if(StringUtils.isEmpty(testSqlTextArea.getText())) {
+    			String testQuery = Constants.SELECT_STAR_FROM+Constants.SPACE + 
 			           serviceName+Constants.DOT+Constants.SERVICE_VIEW_NAME+
 			           Constants.SPACE+Constants.LIMIT_10;
-			testSqlTextArea.setText(serviceSampleSQL);
+    			testSqlTextArea.setText(testQuery);
+    		}
 			testSqlTextArea.setEnabled(true);
     	} else {
     		testViewButton.setEnabled(false);

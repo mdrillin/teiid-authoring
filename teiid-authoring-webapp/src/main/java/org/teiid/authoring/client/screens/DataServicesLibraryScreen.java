@@ -273,7 +273,7 @@ public class DataServicesLibraryScreen extends Composite {
     
     protected void doSaveServiceToFile(String serviceName) {
         String contentUrl = getWebContext() + "/services/dataVirtDownload?vdbname="+serviceName; //$NON-NLS-1$
-       	Window.Location.assign(contentUrl);
+       	Window.open(contentUrl,"_blank",null);
     }
      	
     private String getWebContext() {

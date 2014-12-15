@@ -134,7 +134,6 @@ public class CreateDataServiceScreen extends Composite {
 		viewEditorPanel.setDescription(i18n.format("createdataservice.vieweditor-description"));
 		viewEditorPanel.setOwner(Constants.CREATE_DATA_SERVICE_SCREEN);
 		
-		serviceVisibleCheckbox.setText(i18n.format("createdataservice.checkbox-service-visible"));
     	serviceVisibleCheckbox.setValue(true);
     	
     	// Tooltips

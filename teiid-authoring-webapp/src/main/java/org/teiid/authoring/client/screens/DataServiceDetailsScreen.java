@@ -293,7 +293,7 @@ public class DataServiceDetailsScreen extends Composite {
     @EventHandler("anchor-download-clientjar")
     public void onDownloadClientJarAnchorClick(ClickEvent event) {
         String contentUrl = getWebContext() + "/services/dataVirtDownload?jarname=clientjar"; //$NON-NLS-1$
-       	Window.Location.assign(contentUrl);
+       	Window.open(contentUrl,"_blank",null);
     }
     
     private String getWebContext() {
