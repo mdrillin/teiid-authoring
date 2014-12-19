@@ -30,14 +30,18 @@
         <div class="accordion" id="accordion0">
           <div class="accordion-group">
             <div class="accordion-heading" style="background-color:#BBBBBB">
-              <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion0" href="#collapseHelpers">Service Helpers</a>
+              <table><tr>
+                <td width="90%"><a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion0" href="#collapseHelpers">Service Helpers</a></td>
+                <td><button data-field="btn-vieweditor-manage-sources" class="btn btn-primary btn-small">Manage Sources</button></td>
+              </tr></table>
             </div>
             <div id="collapseHelpers" class="accordion-body collapse in">
               <div class="accordion-inner">
                 <!-- Nav tabs -->
                 <ul class="nav nav-tabs" role="tablist">
-                  <li class="active"><a href="#sources" role="tab" data-toggle="tab" title="The active sources that can be used in your Data Service">Active Sources</a></li>
-                  <li><a href="#samples" role="tab" data-toggle="tab" title="Templates that provide a starting point for your Data Service Definition">View Templates</a></li>
+                  <li class="active"><a href="#sources" role="tab" data-toggle="tab" title="The active sources that can be used in your Data Service">Single Source Definition</a></li>
+                  <li><a href="#joineditor" role="tab" data-toggle="tab" title="The join editor">Join Definition</a></li>
+                  <li><a href="#samples" role="tab" data-toggle="tab" title="Templates that provide a starting point for your Data Service Definition">Templates</a></li>
                 </ul>
 
                 <!-- Tab panes -->
@@ -49,7 +53,9 @@
                         <label data-field="lbl-vieweditor-sources-message" style="font-style:italic" />
                       </td>
                     </tr>
+                    <!--
                     <tr><td width="100%" style="padding-left:300px;padding-top:10px"><button data-field="btn-vieweditor-manage-sources" class="btn btn-primary btn-small">Manage Sources</button></td></tr>
+					-->
                     <tr>
                       <td style="padding-left:110px">
                         <div data-field="picker-tables"></div>
@@ -62,6 +68,11 @@
                       </td>
                     </tr>
                     </table>
+                  </div>
+                  <div class="tab-pane" id="joineditor">
+                    <div class="row-fluid">
+                      <span class="span12" data-field="join-editor"></span>
+                    </div>
                   </div>
                   <div class="tab-pane" id="samples">
                     <table width="95%">

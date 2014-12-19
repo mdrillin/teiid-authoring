@@ -25,10 +25,8 @@
     }
   </ui:style>
 
-  <g:FlowPanel addStyleNames="{style.dataGridContainer}">
-    <g:SimplePanel>
-      <b:DataGrid ui:field="dataGrid" addStyleNames="table table-bordered table-striped table-hover"/>
-    </g:SimplePanel>
-  </g:FlowPanel>
+  <g:ResizeLayoutPanel height="200px" width="250px" addStyleNames="{style.dataGridContainer}">
+    <b:DataGrid width="100%" ui:field="dataGrid" addStyleNames="table table-bordered table-striped table-hover"/>
+  </g:ResizeLayoutPanel>
 
 </ui:UiBinder>

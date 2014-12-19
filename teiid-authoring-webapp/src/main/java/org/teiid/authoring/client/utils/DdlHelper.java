@@ -18,6 +18,8 @@ package org.teiid.authoring.client.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.teiid.authoring.share.Constants;
+
 
 public class DdlHelper {
 
@@ -61,13 +63,55 @@ public class DdlHelper {
 		sb.append(viewName);
 		sb.append(" (RowId integer PRIMARY KEY, ");
 		sb.append(getColWithTypeString(columnNames,typeNames));
-		sb.append(") AS SELECT ");
+		sb.append(") AS \nSELECT ");
 		sb.append(" ROW_NUMBER() OVER (ORDER BY ");
 		sb.append(columnNames.get(0));
 		sb.append(") , ");
 		sb.append(getColString(columnNames));
-		sb.append(" FROM ");
+		sb.append(" \nFROM ");
 		sb.append(sourceName);
+		sb.append(";");
+		
+		return sb.toString();
+	}
+	
+	/**
+	 * Generated View DDL that supports the Teiid OData requirement - that views must have a Primary Key - to get auto-generated.
+	 * @param viewName the view name
+	 * @param sourceName the source name
+	 * @param columnNames the list of column names
+	 * @return the View DDL
+	 */
+	public static String getODataViewJoinDdl(String viewName, String lhsTableName, List<String> lhsColNames, List<String> lhsColTypes, String lhsCriteriaCol,
+			                                                  String rhsTableName, List<String> rhsColNames, List<String> rhsColTypes, String rhsCriteriaCol, String joinType) {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("CREATE VIEW ");
+		sb.append(viewName);
+		sb.append(" (RowId integer PRIMARY KEY, ");
+		sb.append(getColWithTypeString(lhsColNames,lhsColTypes));
+		sb.append(", ");
+		sb.append(getColWithTypeString(rhsColNames,rhsColTypes));
+		sb.append(") AS \nSELECT ");
+		sb.append(" ROW_NUMBER() OVER (ORDER BY ");
+		sb.append(lhsColNames.get(0));
+		sb.append(") , ");
+		sb.append(getColString(lhsColNames));
+		sb.append(", ");
+		sb.append(getColString(rhsColNames));
+		sb.append(" \nFROM ");
+		sb.append(lhsTableName);
+		if(joinType=="Inner") {
+			sb.append("\n  INNER JOIN "+rhsTableName);
+		} else if(joinType=="LOuter") {
+			sb.append("\n  LEFT OUTER JOIN "+rhsTableName);
+		} else if(joinType=="ROuter") {
+			sb.append("\n  RIGHT OUTER JOIN "+rhsTableName);
+		} else if(joinType=="FOuter") {
+			sb.append("\n FULL OUTER JOIN "+rhsTableName);
+		}
+		sb.append(" ON ");
+		sb.append(lhsCriteriaCol+" = "+rhsCriteriaCol);
 		sb.append(";");
 		
 		return sb.toString();

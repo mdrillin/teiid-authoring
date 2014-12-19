@@ -155,6 +155,10 @@ public class ViewEditorPanel extends Composite {
 	private SingleSelectionModel<String> tableSelectionModel;
 	
     @Inject Event<UiEvent> stateChangedEvent;
+
+    // Join Editor
+    @Inject @DataField("join-editor")
+    private JoinEditorPanel joinEditorPanel;
     
     /**
      * Called after construction.
@@ -458,7 +462,6 @@ public class ViewEditorPanel extends Composite {
     		workingViewSrcNames = selectedSourceNames;
     		showConfirmOverwriteDialog();
     	}
-    
     }
     
     /**
@@ -531,6 +534,10 @@ public class ViewEditorPanel extends Composite {
     	} else if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_CANCEL) {
     	} else if(dEvent.getType() == UiEventType.VIEW_SOURCES_CHANGED) {
     		updateStatus();
+    	} else if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_FROM_JOIN_EDITOR) {
+    		String ddl = dEvent.getViewDdl();
+    		List<String> viewSrcs = dEvent.getViewSources();
+    		replaceViewDefn(ddl,viewSrcs);
     	}
     }
     

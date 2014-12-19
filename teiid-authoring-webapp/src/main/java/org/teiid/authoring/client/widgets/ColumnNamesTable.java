@@ -19,6 +19,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
+
+import org.teiid.authoring.client.dialogs.UiEvent;
+import org.teiid.authoring.client.dialogs.UiEventType;
+
 import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.FieldUpdater;
@@ -40,6 +46,8 @@ import com.google.gwt.view.client.SelectionModel;
  */
 public class ColumnNamesTable extends Composite {
 
+	@Inject Event<UiEvent> uiEvent;
+	
 	private static String COLUMN_HEADER_NAME = "Columns";
 
     protected VerticalPanel panel = new VerticalPanel();
@@ -95,6 +103,7 @@ public class ColumnNamesTable extends Composite {
             		cbHeader.setValue(false);
             	}
         		table.redrawHeaders();
+        		fireCheckboxEvent();
     	    }
     	});
 
@@ -113,15 +122,22 @@ public class ColumnNamesTable extends Composite {
             }
         };
         table.addColumn( nameColumn, COLUMN_HEADER_NAME );
-        table.setColumnWidth(nameColumn, 350, Unit.PX);
+        table.setColumnWidth(nameColumn, 200, Unit.PX);
         
-    	table.setWidth("395px");
-    	table.setHeight("200px");
+    	//table.setWidth("245px");
+    	//table.setHeight("200px");
     	
         VerticalPanel verticalPanel = new VerticalPanel();
         verticalPanel.add(table);
         return verticalPanel;
     }
+    
+	/*
+	 * Fires Ui event when any checkbox state changes
+	 */
+	private void fireCheckboxEvent() {
+		uiEvent.fire(new UiEvent(UiEventType.COLUMN_NAME_TABLE_CHECKBOX_CHANGED));
+	}
     
     private CheckboxHeader createCBHeader(boolean isChecked) {
     	CheckboxHeader cbHeader = new CheckboxHeader(new CheckboxCell(),false) {

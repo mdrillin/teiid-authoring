@@ -15,12 +15,16 @@
  */
 package org.teiid.authoring.client.dialogs;
 
+import java.util.List;
+
 public class UiEvent {
 	
 	private UiEventType type;
 	private String dataSourceName;
 	private String dataServiceName;
 	private String eventSource;
+	private String viewDdl;
+	private List<String> viewSources;
 	
 	public UiEvent(UiEventType type) {
 		this.type = type;
@@ -52,5 +56,21 @@ public class UiEvent {
 
 	public void setEventSource(String eventSource) {
 		this.eventSource = eventSource;
+	}
+
+	public String getViewDdl() {
+		return viewDdl;
+	}
+
+	public void setViewDdl(String viewDdl) {
+		this.viewDdl = viewDdl;
+	}
+
+	public List<String> getViewSources() {
+		return viewSources;
+	}
+
+	public void setViewSources(List<String> viewSources) {
+		this.viewSources = viewSources;
 	}
 }

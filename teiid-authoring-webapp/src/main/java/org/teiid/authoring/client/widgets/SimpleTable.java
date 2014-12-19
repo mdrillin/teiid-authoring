@@ -45,8 +45,7 @@ import com.google.gwt.view.client.RowCountChangeEvent;
 import com.google.gwt.view.client.SelectionModel;
 
 /**
- * A composite Widget that shows rows of data (not-paged) and a "column picker"
- * to allow columns to be hidden from view. Columns can also be sorted.
+ * A composite Widget that shows rows of data (not-paged).
  */
 public class SimpleTable<T>
         extends Composite
@@ -85,12 +84,6 @@ public class SimpleTable<T>
    
 
     private void setupGridTable() {
-        dataGrid.setStriped( true );
-        dataGrid.setBordered( true );
-        dataGrid.setSkipRowHoverCheck( false );
-        dataGrid.setSkipRowHoverStyleUpdate( false );
-        dataGrid.setWidth( "100%" );
-        dataGrid.setHeight( "100px" );
         dataGrid.addStyleName( CommonResources.INSTANCE.CSS().dataGrid() );
         dataGrid.setAutoHeaderRefreshDisabled(true);
         dataGrid.setVisibleRange(0, 7);

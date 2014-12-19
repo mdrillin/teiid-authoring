@@ -98,6 +98,11 @@ public class Constants {
 	public static final String DS_TYPE_TEIID = "teiid";
 	public static final String DS_TYPE_TEIID_LOCAL = "teiid-local";
 	public static final String DS_TYPE_WEBSERVICE = "webservice";
+
+	public static final String JOIN_TYPE_INNER = "Inner";
+	public static final String JOIN_TYPE_RIGHT_OUTER = "RightOuter";
+	public static final String JOIN_TYPE_LEFT_OUTER = "LeftOuter";
+	public static final String JOIN_TYPE_FULL_OUTER = "FullOuter";
 	
 	public static final String MYSQL_FRAGMENT = "mysql";
 	public static final String POSTGRES_FRAGMENT = "postgres";
@@ -124,7 +129,9 @@ public class Constants {
 	public static final int VDB_LOADING_TIMEOUT_SECS = 300;
 	public static final String NO_TYPE_SELECTION = "[Select a Type]";
 	public static final String NO_TRANSLATOR_SELECTION = "[Select a Translator]";
-
+	public static final String NO_CRITERIA_SELECTION = "[Select Criteria Column]";
+	public static final String NO_DATASOURCE_SELECTION = "[Select a DataSource]";
+	
 	public static final String SORT_COLID_NAME = "name"; //$NON-NLS-1$
     public static final String SORT_COLID_MODIFIED_ON = "lastModifiedTimestamp"; //$NON-NLS-1$
 }

@@ -133,4 +133,16 @@ public interface AppImages extends ClientBundle {
     
     @Source("images/WebService_dv_logos_70x40.png")
     ImageResource dsType_webservice_small_Image();
+    
+    @Source("images/JoinInner.png")
+    ImageResource joinInner_Image();
+        
+    @Source("images/JoinFullOuter.png")
+    ImageResource joinFullOuter_Image();
+    
+    @Source("images/JoinLeftOuter.png")
+    ImageResource joinLeftOuter_Image();
+    
+    @Source("images/JoinRightOuter.png")
+    ImageResource joinRightOuter_Image();
 }

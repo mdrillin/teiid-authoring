@@ -59,10 +59,10 @@ public class DataSourceNamesTable extends Composite {
             }
         };
         table.addColumn( nameColumn, COLUMN_HEADER_NAME );
-        table.setColumnWidth(nameColumn, 300, Unit.PX);
+        table.setColumnWidth(nameColumn, 200, Unit.PX);
         
-    	table.setWidth("305px");
-    	table.setHeight("200px");
+    	//table.setWidth("205px");
+    	//table.setHeight("200px");
     	
         VerticalPanel verticalPanel = new VerticalPanel();
         verticalPanel.add(table);
