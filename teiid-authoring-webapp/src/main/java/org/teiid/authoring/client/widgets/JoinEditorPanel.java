@@ -116,12 +116,23 @@ public class JoinEditorPanel extends Composite {
     private String currentStatus = "";
 	private SingleSelectionModel<String> tableSelectionModel;
 	private String selectedTable;
+	private String msgDefineLeftRightTables;
+	private String msgCheckOneOrMoreColumns;
+	private String msgSelectLeftJoinCriteria;
+	private String msgSelectRightJoinCriteria;
+	private String msgClickApplyWhenFinished;
     
     /**
      * Called after construction.
      */
     @PostConstruct
     protected void postConstruct() {
+    	msgDefineLeftRightTables = i18n.format("joineditor.define-left-right-tables.message");
+    	msgCheckOneOrMoreColumns = i18n.format("joineditor.check-one-or-more-columns.message");
+    	msgSelectLeftJoinCriteria = i18n.format("joineditor.select-left-join-criteria.message");
+    	msgSelectRightJoinCriteria= i18n.format("joineditor.select-right-join-criteria.message");
+    	msgClickApplyWhenFinished = i18n.format("joineditor.click-apply-when-finished.message");
+  	  
     	setLHSTableButton.setEnabled(false);
     	setRHSTableButton.setEnabled(false);
     	
@@ -129,10 +140,10 @@ public class JoinEditorPanel extends Composite {
         joinLeftOuterButton = new ToggleButton(new Image(AppResource.INSTANCE.images().joinLeftOuter_Image()));
         joinRightOuterButton = new ToggleButton(new Image(AppResource.INSTANCE.images().joinRightOuter_Image()));
         joinFullOuterButton = new ToggleButton(new Image(AppResource.INSTANCE.images().joinFullOuter_Image()));
-        joinInnerButton.setTitle("Inner Join");
-        joinLeftOuterButton.setTitle("Left Outer Join");
-        joinRightOuterButton.setTitle("Right Outer Join");
-        joinFullOuterButton.setTitle("Full Outer Join");
+        joinInnerButton.setTitle(i18n.format("joineditor.inner-join.tooltip"));
+        joinLeftOuterButton.setTitle(i18n.format("joineditor.left-outer-join.tooltip"));
+        joinRightOuterButton.setTitle(i18n.format("joineditor.right-outer-join.tooltip"));
+        joinFullOuterButton.setTitle(i18n.format("joineditor.full-outer-join.tooltip"));
     	DOM.setStyleAttribute(joinLeftOuterButton.getElement(), "margin-top", "5px");
     	DOM.setStyleAttribute(joinRightOuterButton.getElement(), "margin-top", "5px");
     	DOM.setStyleAttribute(joinFullOuterButton.getElement(), "margin-top", "5px");
@@ -459,7 +470,7 @@ public class JoinEditorPanel extends Composite {
      */
     @EventHandler("btn-joineditor-setDdl")
     public void onSetDdlButtonClick(ClickEvent event) {
-    	String ddl = formDdl();
+    	String ddl = buildDdl();
     	
 		UiEvent uiEvent = new UiEvent(UiEventType.VIEW_DEFN_REPLACE_FROM_JOIN_EDITOR);
 		uiEvent.setViewDdl(ddl);
@@ -471,7 +482,11 @@ public class JoinEditorPanel extends Composite {
 		setDdlEvent.fire(uiEvent);
     }
     
-    private String formDdl( ) {
+    /**
+     * Build the DDL from the editor selections
+     * @return the DDL
+     */
+    private String buildDdl( ) {
     	List<String> lhsColNames = lhsJoinTable.getSelectedColumnNames();
     	List<String> lhsColTypes = lhsJoinTable.getSelectedColumnTypes();
     	List<String> rhsColNames = rhsJoinTable.getSelectedColumnNames();
@@ -515,7 +530,7 @@ public class JoinEditorPanel extends Composite {
     		}
     		@Override
     		public void onError(Throwable error) {
-//    			notificationService.sendErrorNotification(i18n.format("vieweditor-panel.error-getting-tablecols"), error); //$NON-NLS-1$
+    			notificationService.sendErrorNotification(i18n.format("vieweditor-panel.error-getting-tablecols"), error); //$NON-NLS-1$
     		}
     	});
 
@@ -548,7 +563,7 @@ public class JoinEditorPanel extends Composite {
     		}
     		@Override
     		public void onError(Throwable error) {
-//    			notificationService.sendErrorNotification(i18n.format("vieweditor-panel.error-getting-tablecols"), error); //$NON-NLS-1$
+    			notificationService.sendErrorNotification(i18n.format("vieweditor-panel.error-getting-tablecols"), error); //$NON-NLS-1$
     		}
     	});
 
@@ -573,7 +588,7 @@ public class JoinEditorPanel extends Composite {
     	
     	// Ensure LH and RH tables are selected
     	if(StringUtils.isEmpty(getLHTable()) || StringUtils.isEmpty(getRHTable())) {
-    		currentStatus = "Define the Left and Right tables by choosing from available tables, then click LHS > or RHS >";
+    		currentStatus = msgDefineLeftRightTables;
     	}
     	
 		// Ensure some columns are selected
@@ -581,7 +596,7 @@ public class JoinEditorPanel extends Composite {
     		List<String> selectedLHColumns = lhsJoinTable.getSelectedColumnNames();
     		List<String> selectedRHColumns = rhsJoinTable.getSelectedColumnNames();
     		if(selectedLHColumns.isEmpty() && selectedRHColumns.isEmpty()) {
-    			currentStatus = "Check one or more columns for the SELECT";
+    			currentStatus = msgCheckOneOrMoreColumns;
     		}
     	}
     	
@@ -589,7 +604,7 @@ public class JoinEditorPanel extends Composite {
     	if(Constants.OK.equals(currentStatus)) {
     		String lhCritColumn = getLHCriteriaSelection();
     		if(Constants.NO_CRITERIA_SELECTION.equals(lhCritColumn)) {
-    			currentStatus = "Select the LHS join criteria column";
+    			currentStatus = msgSelectLeftJoinCriteria;
     		}
     	}
 
@@ -597,13 +612,13 @@ public class JoinEditorPanel extends Composite {
     	if(Constants.OK.equals(currentStatus)) {
     		String rhCritColumn = getRHCriteriaSelection();
     		if(Constants.NO_CRITERIA_SELECTION.equals(rhCritColumn)) {
-    			currentStatus = "Select the RHS join criteria column";
+    			currentStatus = msgSelectRightJoinCriteria;
     		}
     	}
     	
 		// Enable setDdlButton button if OK
     	if(Constants.OK.equals(currentStatus)) {
-    		messageLabel.setText("Click the 'Apply' button when finished with service definition");
+    		messageLabel.setText(msgClickApplyWhenFinished);
     		setDdlButton.setEnabled(true);
     	} else {
     		messageLabel.setText(currentStatus);

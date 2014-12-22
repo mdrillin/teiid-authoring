@@ -101,14 +101,16 @@ public class DdlHelper {
 		sb.append(getColString(rhsColNames));
 		sb.append(" \nFROM ");
 		sb.append(lhsTableName);
-		if(joinType=="Inner") {
+		if(Constants.JOIN_TYPE_INNER.equals(joinType)) {
 			sb.append("\n  INNER JOIN "+rhsTableName);
-		} else if(joinType=="LOuter") {
+		} else if(Constants.JOIN_TYPE_LEFT_OUTER.equals(joinType)) {
 			sb.append("\n  LEFT OUTER JOIN "+rhsTableName);
-		} else if(joinType=="ROuter") {
+		} else if(Constants.JOIN_TYPE_RIGHT_OUTER.equals(joinType)) {
 			sb.append("\n  RIGHT OUTER JOIN "+rhsTableName);
-		} else if(joinType=="FOuter") {
+		} else if(Constants.JOIN_TYPE_FULL_OUTER.equals(joinType)) {
 			sb.append("\n FULL OUTER JOIN "+rhsTableName);
+		} else {
+			sb.append("\n  INNER JOIN "+rhsTableName);
 		}
 		sb.append(" ON ");
 		sb.append(lhsCriteriaCol+" = "+rhsCriteriaCol);

@@ -99,10 +99,10 @@ public class Constants {
 	public static final String DS_TYPE_TEIID_LOCAL = "teiid-local";
 	public static final String DS_TYPE_WEBSERVICE = "webservice";
 
-	public static final String JOIN_TYPE_INNER = "Inner";
-	public static final String JOIN_TYPE_RIGHT_OUTER = "RightOuter";
-	public static final String JOIN_TYPE_LEFT_OUTER = "LeftOuter";
-	public static final String JOIN_TYPE_FULL_OUTER = "FullOuter";
+	public static final String JOIN_TYPE_INNER = "Join-Inner";
+	public static final String JOIN_TYPE_RIGHT_OUTER = "Join-RightOuter";
+	public static final String JOIN_TYPE_LEFT_OUTER = "Join-LeftOuter";
+	public static final String JOIN_TYPE_FULL_OUTER = "Join-FullOuter";
 	
 	public static final String MYSQL_FRAGMENT = "mysql";
 	public static final String POSTGRES_FRAGMENT = "postgres";
