@@ -76,6 +76,10 @@ public class JoinEditorPanel extends Composite {
     
     @Inject @DataField("lbl-joineditor-message")
     protected Label messageLabel;
+    @Inject @DataField("lbl-joineditor-lhsTableTitle")
+    protected Label lhsTableTitleLabel;
+    @Inject @DataField("lbl-joineditor-rhsTableTitle")
+    protected Label rhsTableTitleLabel;
     
     // Join Editor
     @Inject @DataField("listbox-sources")
@@ -136,6 +140,9 @@ public class JoinEditorPanel extends Composite {
     	setLHSTableButton.setEnabled(false);
     	setRHSTableButton.setEnabled(false);
     	
+    	lhsTableTitleLabel.setText(i18n.format("joineditor.lhs-table.title"));
+    	rhsTableTitleLabel.setText(i18n.format("joineditor.rhs-table.title"));
+    	
     	joinInnerButton = new ToggleButton(new Image(AppResource.INSTANCE.images().joinInner_Image()));
         joinLeftOuterButton = new ToggleButton(new Image(AppResource.INSTANCE.images().joinLeftOuter_Image()));
         joinRightOuterButton = new ToggleButton(new Image(AppResource.INSTANCE.images().joinRightOuter_Image()));
@@ -144,9 +151,15 @@ public class JoinEditorPanel extends Composite {
         joinLeftOuterButton.setTitle(i18n.format("joineditor.left-outer-join.tooltip"));
         joinRightOuterButton.setTitle(i18n.format("joineditor.right-outer-join.tooltip"));
         joinFullOuterButton.setTitle(i18n.format("joineditor.full-outer-join.tooltip"));
-    	DOM.setStyleAttribute(joinLeftOuterButton.getElement(), "margin-top", "5px");
-    	DOM.setStyleAttribute(joinRightOuterButton.getElement(), "margin-top", "5px");
-    	DOM.setStyleAttribute(joinFullOuterButton.getElement(), "margin-top", "5px");
+        
+    	DOM.setStyleAttribute(joinInnerButton.getElement(), "padding", "0px");
+    	DOM.setStyleAttribute(joinLeftOuterButton.getElement(), "padding", "0px");
+    	DOM.setStyleAttribute(joinRightOuterButton.getElement(), "padding", "0px");
+    	DOM.setStyleAttribute(joinFullOuterButton.getElement(), "padding", "0px");
+    	DOM.setStyleAttribute(joinInnerButton.getElement(), "margin", "0px 0px 0px 0px");
+    	DOM.setStyleAttribute(joinLeftOuterButton.getElement(), "margin", "5px 0px 0px 0px");
+    	DOM.setStyleAttribute(joinRightOuterButton.getElement(), "margin", "5px 0px 0px 0px");
+    	DOM.setStyleAttribute(joinFullOuterButton.getElement(), "margin", "5px 0px 0px 0px");
 
         togglePanel.add(joinInnerButton);
         togglePanel.add(joinLeftOuterButton);
@@ -526,6 +539,7 @@ public class JoinEditorPanel extends Composite {
     			}
     			lhsJoinTable.setData(colList);
     			populateLHCriteriaListBox(colNames);
+    	    	lhsTableTitleLabel.setText("LHS (" + lhTableName + ")");
     			updateStatus();
     		}
     		@Override
@@ -559,7 +573,8 @@ public class JoinEditorPanel extends Composite {
     			}
     			rhsJoinTable.setData(colList);
     			populateRHCriteriaListBox(colNames);
-    			updateStatus();
+    	    	rhsTableTitleLabel.setText("RHS (" + rhTableName + ")");
+   			    updateStatus();
     		}
     		@Override
     		public void onError(Throwable error) {

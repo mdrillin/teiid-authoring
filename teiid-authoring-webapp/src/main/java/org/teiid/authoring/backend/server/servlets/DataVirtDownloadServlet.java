@@ -43,7 +43,7 @@ public class DataVirtDownloadServlet extends HttpServlet {
 
 	private static final long serialVersionUID = DataVirtDownloadServlet.class.hashCode();
 	private static final String DV600_JDBC_JAR = "teiid-8.4.1-redhat-7-jdbc.jar";
-	private static final String DV610_JDBC_JAR = "teiid-8.7.1.redhat-4-jdbc.jar";
+	private static final String DV610_JDBC_JAR = "teiid-8.7.1.redhat-6-jdbc.jar";
 
     @Inject
     protected TeiidService teiidService;

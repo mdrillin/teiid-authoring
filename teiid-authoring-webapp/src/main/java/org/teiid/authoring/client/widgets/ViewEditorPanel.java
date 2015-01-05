@@ -323,7 +323,8 @@ public class ViewEditorPanel extends Composite {
     }
     
     public void setServiceName(String svcName) {
-    	this.serviceName = svcName;  
+    	this.serviceName = svcName;
+    	this.testSqlTextArea.setText(Constants.BLANK);  // Force reset of test query if service name changes
     	updateStatus();
     }
 
