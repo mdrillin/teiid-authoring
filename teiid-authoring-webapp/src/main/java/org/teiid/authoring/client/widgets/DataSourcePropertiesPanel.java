@@ -34,6 +34,8 @@ import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.resources.AppResource;
 import org.teiid.authoring.client.resources.ImageHelper;
+import org.teiid.authoring.client.services.ApplicationStateKeys;
+import org.teiid.authoring.client.services.ApplicationStateService;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
@@ -77,6 +79,8 @@ public class DataSourcePropertiesPanel extends Composite {
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;
+    @Inject
+    private ApplicationStateService stateService;
     
 	private String statusEnterName = null;
 	private String statusSelectTrans = null;
@@ -209,7 +213,7 @@ public class DataSourcePropertiesPanel extends Composite {
         // Only the translator changed.  No need to muck with DS - just redeploy VDB and its source
         if(!hasNameChange() && !hasPropertyChanges() && !hasDataSourceTypeChange() && hasTranslatorChange()) {
             DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
-        	doCreateVdbAndVdbSource(sourceBean);
+            doCreateSourceVdbWithTeiidDS(sourceBean);
         // No name change
         } else if(!hasNameChange()) {
         	showConfirmSourceRedeployDialog();
@@ -288,10 +292,9 @@ public class DataSourcePropertiesPanel extends Composite {
     	originalDsNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+this.originalName);
     	
     	// Also must delete the Source Vdb
-    	List<String> srcVdbNames = new ArrayList<String>();
-    	srcVdbNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+this.originalName);
+    	String srcVdbName = Constants.SERVICE_SOURCE_VDB_PREFIX+this.originalName;
     	
-    	doDeleteThenCreateDataSource(originalDsNames,srcVdbNames,sourceBean);
+    	doDeleteThenCreateDataSource(originalDsNames,srcVdbName,sourceBean);
     }
     
     private void onRedeployConfirmed() {
@@ -529,7 +532,7 @@ public class DataSourcePropertiesPanel extends Composite {
      * Create a VDB and corresponding teiid source.  Used when there are no changes to the underlying source.
      * @param dsDetailsBean the data source details
      */
-    private void doCreateVdbAndVdbSource(final DataSourceWithVdbDetailsBean detailsBean) {
+    private void doCreateSourceVdbWithTeiidDS(final DataSourceWithVdbDetailsBean detailsBean) {
     	final String dsName = detailsBean.getName();
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("ds-properties-panel.creating-vdbwsource-title"), //$NON-NLS-1$
@@ -538,7 +541,7 @@ public class DataSourcePropertiesPanel extends Composite {
         // fire event
         fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,dsName,null);
 
-        teiidService.createVdbAndVdbSource(detailsBean, new IRpcServiceInvocationHandler<Void>() {
+        teiidService.createSourceVdbWithTeiidDS(detailsBean, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
@@ -609,27 +612,44 @@ public class DataSourcePropertiesPanel extends Composite {
     /**
      * Called when the user confirms the dataSource deletion.
      */
-    private void doDeleteThenCreateDataSource(final List<String> dsNamesToDelete, final List<String> srcVdbNames, final DataSourceWithVdbDetailsBean detailsBean) {
+    private void doDeleteThenCreateDataSource(final List<String> dsNamesToDelete, final String srcVdbName, final DataSourceWithVdbDetailsBean detailsBean) {
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("ds-properties-panel.creating-datasource-title"), //$NON-NLS-1$
                 i18n.format("ds-properties-panel.creating-datasource-msg")); //$NON-NLS-1$
-        // fire event to show removed source in progress
-        if(!dsNamesToDelete.isEmpty()) {
-            fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,dsNamesToDelete.get(0),null);
-        }
-        teiidService.deleteDataSourcesAndVdbs(dsNamesToDelete, srcVdbNames, new IRpcServiceInvocationHandler<Void>() {
+        
+        // fire event to show in progress
+        fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,detailsBean.getName(),null);
+
+        teiidService.deleteSourcesAndVdbRedeployRenamed(dsNamesToDelete, srcVdbName, detailsBean, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("ds-properties-panel.datasource-created"), //$NON-NLS-1$
                         i18n.format("ds-properties-panel.create-success-msg")); //$NON-NLS-1$
-            	doCreateDataSource(detailsBean);
+                
+                // if the in-process edit contains the renamed source, update the state service accordingly
+                List<String> updatedViewSrcs = new ArrayList<String>();
+            	@SuppressWarnings("unchecked")
+        		List<String> svcViewSrcs = (List<String>)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_SRCS);
+            	for(String svcViewSrc : svcViewSrcs) {
+            		if(svcViewSrc.equals(originalName)) {
+            			updatedViewSrcs.add(detailsBean.getName());
+            		} else {
+            			updatedViewSrcs.add(svcViewSrc);
+            		}
+            	}
+            	stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_SRCS, updatedViewSrcs);
+
+            	// fire event
+                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_SUCCESS,detailsBean.getName(),null);
             }
             @Override
             public void onError(Throwable error) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("ds-properties-panel.create-error"), //$NON-NLS-1$
                         error);
+            	// fire event
+                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_FAIL,detailsBean.getName(),null);
             }
         });
     }

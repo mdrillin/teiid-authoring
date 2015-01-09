@@ -117,14 +117,20 @@ public class Constants {
 	public static final String SPACE = " ";
 	public static final String BLANK = "";
 	public static final String SUCCESS = "success";
-	public static final String PHYSICAL = "PHYSICAL";
-	public static final String VIRTUAL = "VIRTUAL";
+	public static final String MODEL_TYPE_PHYSICAL = "PHYSICAL";
+	public static final String MODEL_TYPE_VIRTUAL = "VIRTUAL";
 
 	public static final String DYNAMIC_VDB_SUFFIX = "-vdb.xml";
 	public static final String STATUS_ACTIVE = "ACTIVE";
 	public static final String STATUS_INACTIVE = "INACTIVE";
 	public static final String STATUS_LOADING = "LOADING";
 	public static final String STATUS_UNKNOWN = "Unknown";
+	
+	public static final String VDB_INACTIVE_DS_CONNECTION_ERROR = "INACTIVE: Data Source connection failed...";
+	public static final String VDB_INACTIVE_SQL_VALIDATION_ERROR = "INACTIVE: Validation Error with SQL";
+	public static final String VDB_INACTIVE_SQL_PARSE_ERROR = "INACTIVE: Parse Error with SQL";
+	public static final String VDB_INACTIVE_METADATA_LOADING = "INACTIVE: Metadata loading in progress...";
+	public static final String VDB_INACTIVE_UNKNOWN_ERROR = "INACTIVE: unknown issue";
 	
 	public static final int VDB_LOADING_TIMEOUT_SECS = 300;
 	public static final String NO_TYPE_SELECTION = "[Select a Type]";

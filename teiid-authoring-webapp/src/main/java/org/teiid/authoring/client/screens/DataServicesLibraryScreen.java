@@ -259,11 +259,13 @@ public class DataServicesLibraryScreen extends Composite {
 				String description = model.getDescription();
 				String modelType = model.getType();
 				boolean isVisible = model.isVisible();
-				if(modelType.equals(Constants.VIRTUAL)) {
+				String status = model.getStatus();
+				if(modelType.equals(Constants.MODEL_TYPE_VIRTUAL)) {
 					ServiceRow srow = new ServiceRow();
 					srow.setName(modelName);
 					srow.setDescription(description);
 					srow.setVisible(isVisible);
+					srow.setStatus(status);
 					serviceRows.add(srow);
 				}
 			}

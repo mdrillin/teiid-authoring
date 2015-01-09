@@ -639,26 +639,19 @@ public class TeiidService implements ITeiidService {
 			throw new DataVirtUiException(e.getMessage());
 		}  
     	
-    	// Get JNDI for the specified DataSource name.
-    	String jndiName = getSourceJndiName(bean.getName());
-    	
-    	// Delete Source VDB if it already exists
-    	List<String> vdbsToDelete = new ArrayList<String>(1);
-    	vdbsToDelete.add(bean.getSourceVdbName());
-    	deleteVdbs(vdbsToDelete);
-    	// Create the corresponding SrcVdb for the new source
-    	deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator());
-    	
-    	// Create the teiid dataSource for the deployed source VDB
-    	createVdbDataSource(bean.getSourceVdbName());
+    	// Create the Source VDB and corresponding Teiid DS
+    	createSourceVdbWithTeiidDS(bean);
     }
     
     /**
-     * Create a VDB and its corresponding teiid source
+     * Create a source VDB and its corresponding teiid source
      * @param bean the DataSource and VDB details
      * @throws DataVirtUiException
      */
-    public void createVdbAndVdbSource(DataSourceWithVdbDetailsBean bean) throws DataVirtUiException {
+    public void createSourceVdbWithTeiidDS(DataSourceWithVdbDetailsBean bean) throws DataVirtUiException {
+    	// Get all VDBS that use the sourceVDB.  They will need to be redeployed.
+    	Collection<VDBMetaData> vdbsToRedeploy = getVdbsWithImport(bean.getSourceVdbName());
+    	
     	// Get JNDI for the specified DataSource name.  if null choose a default
     	String jndiName = getSourceJndiName(bean.getName());
     	
@@ -666,10 +659,30 @@ public class TeiidService implements ITeiidService {
     	deleteVdb(bean.getSourceVdbName());
     	
     	// Deploy the VDB
-    	deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator());
+    	String sourceVDBStatus = deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator());
     	
     	// Create the teiid dataSource for the deployed source VDB
     	createVdbDataSource(bean.getSourceVdbName());
+    	
+    	// Finally, re-deploy Service VDBs
+    	for(VDBMetaData vdbMeta : vdbsToRedeploy) {
+    		String vdbName = vdbMeta.getName();
+    		try {
+    			VDBMetaData cloneVdb = vdbHelper.cloneVdb(vdbMeta);
+    			
+    			// If the source VDB deployment was not successful, no need to wait the full timeout period for VDB deployment
+    			int deployTimeout = Constants.VDB_LOADING_TIMEOUT_SECS;
+    			if(!Constants.SUCCESS.equals(sourceVDBStatus)) {
+    				deployTimeout = 5;
+    			}
+				deployVdb(cloneVdb, vdbName, deployTimeout);
+		        // need to rebind the datasource
+		        createVdbDataSource(vdbName);
+			} catch (Exception e) {
+				throw new DataVirtUiException(e.getMessage());
+			}
+    	}
+
     }
     
     private void deleteVdbs(Collection<String> vdbNames) throws DataVirtUiException {
@@ -710,9 +723,6 @@ public class TeiidService implements ITeiidService {
         		return sourceVdbStatus;
         	}
         	
-        	// Deployment name for vdb must end in '-vdb.xml'.
-        	String deploymentName = sourceVDBName + Constants.DYNAMIC_VDB_SUFFIX;
-
         	// Create a new Source VDB to deploy
         	sourceVdb = vdbHelper.createVdb(sourceVDBName,1,new Properties());
 
@@ -722,15 +732,9 @@ public class TeiidService implements ITeiidService {
         	// Adding the SourceModel to the VDB
         	sourceVdb.addModel(model);
 
-        	// If it exists, undeploy it
-        	byte[] vdbBytes = vdbHelper.getVdbByteArray(sourceVdb);
-
-        	// Deploy the VDB
-        	clientAccessor.getClient().deploy(deploymentName, new ByteArrayInputStream(vdbBytes));
-
-        	// Wait for VDB to finish loading
-        	waitForVDBLoad(sourceVDBName, 1, Constants.VDB_LOADING_TIMEOUT_SECS);                        
-
+        	// Deploy VDB and wait for it to load
+        	deployVdb(sourceVdb,sourceVDBName,Constants.VDB_LOADING_TIMEOUT_SECS);
+        	
         	// Get deployed VDB and return status
         	String vdbStatus = getVDBStatusMessage(sourceVDBName);
         	if(!vdbStatus.equals(Constants.SUCCESS)) {
@@ -741,6 +745,25 @@ public class TeiidService implements ITeiidService {
 			throw new DataVirtUiException(e.getMessage());
     	}
 
+    }
+    
+    /** 
+     * Deploys a VDB and waits for it to load
+     * @param theVDB the VDB
+     * @param vdbName the VDB name
+     * @throws Exception
+     */
+    private void deployVdb(VDBMetaData theVDB, String vdbName, int deploymentTimeout) throws Exception {
+    	// If it exists, undeploy it
+    	byte[] vdbBytes = vdbHelper.getVdbByteArray(theVDB);
+
+    	// Deployment name for vdb must end in '-vdb.xml'.
+    	String deploymentName = vdbName + Constants.DYNAMIC_VDB_SUFFIX;
+    	// Deploy the VDB
+    	clientAccessor.getClient().deploy(deploymentName, new ByteArrayInputStream(vdbBytes));
+
+    	// Wait for VDB to finish loading
+    	waitForVDBLoad(vdbName, 1, deploymentTimeout);                        
     }
     
     /*
@@ -798,6 +821,31 @@ public class TeiidService implements ITeiidService {
     	return jndiName;
     }
     
+    /*
+     * Get any VDB that has the supplied import VDB
+     * @param importVdbName the name of the import VDB
+     */
+    private Collection<VDBMetaData> getVdbsWithImport(String importVdbName) {
+    	Collection<VDBMetaData> vdbsWithImport = new ArrayList<VDBMetaData>();
+    	
+    	// Get VDB name and version for the specified deploymentName
+    	Collection<? extends VDB> allVdbs = null;
+    	try {
+    		allVdbs = clientAccessor.getClient().getVdbs();
+    		for(VDB vdbMeta : allVdbs) {
+    			if(vdbMeta instanceof VDBMetaData) {
+    				VDBMetaData theVDB = (VDBMetaData)vdbMeta;
+    				if(vdbHelper.hasImport(theVDB,importVdbName)) {
+    					vdbsWithImport.add(theVDB);
+    				}
+    			}
+    		}
+    	} catch (AdminApiClientException e) {
+    	}
+
+    	return vdbsWithImport;
+    }
+   
     /*
      * Create the specified VDB "teiid-local" source on the server. If it already exists, delete it first.
      * @param vdbName the name of the VDB for the connection
@@ -867,7 +915,7 @@ public class TeiidService implements ITeiidService {
      * @throws DataVirtUiException
      */
     @Override
-    public void deleteDataSourcesAndVdbs(Collection<String> dsNames, Collection<String> vdbNames) throws DataVirtUiException {
+    public void deleteDataSourcesAndVdb(Collection<String> dsNames, String vdbName) throws DataVirtUiException {
     	// Delete the dataSources
     	try {
 			clientAccessor.getClient().deleteDataSources(dsNames);
@@ -876,7 +924,81 @@ public class TeiidService implements ITeiidService {
 		}
     	
     	// Delete the VDBs
-    	deleteVdbs(vdbNames);
+    	deleteVdb(vdbName);
+    }
+    
+    /**
+     * Delete the dataSources and VDBs.  Then redeploy the supplied vdb with renamed sources
+     * @param dsNames the source names
+     * @param vdbNames the vdb names
+     * @param bean the details bean
+     * @throws DataVirtUiException
+     */
+    @Override
+    public void deleteSourcesAndVdbRedeployRenamed(Collection<String> dsNames, String vdbName, DataSourceWithVdbDetailsBean bean) throws DataVirtUiException {
+    	// Save all VDBS that use the sourceVDB.  They will need to be redeployed.
+    	Collection<VDBMetaData> vdbsToRedeploy = getVdbsWithImport(vdbName);
+    	// Save exising vdb import and new vdb import names.  Import needs to be replaced on redeploy
+    	String originalImportName = vdbName;
+    	String newImportName = bean.getSourceVdbName();
+
+    	// Delete the dataSources
+    	try {
+			clientAccessor.getClient().deleteDataSources(dsNames);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+    	
+    	// Delete the VDBs
+    	deleteVdb(vdbName);
+    	
+    	// Create the 'Raw' Server source with connection properties
+    	List<DataSourcePropertyBean> dsPropBeans = bean.getProperties();
+    	Properties dsProps = new Properties();
+    	for(DataSourcePropertyBean dsPropBean : dsPropBeans) {
+    		dsProps.put(dsPropBean.getName(),dsPropBean.getValue());
+    	}
+    	
+    	try {
+			clientAccessor.getClient().createDataSource(bean.getName(), bean.getType(), dsProps);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}  
+    	
+    	// Get JNDI for the specified DataSource name.  if null choose a default
+    	String jndiName = getSourceJndiName(bean.getName());
+    	
+    	// Delete VDB if it already exists
+    	deleteVdb(bean.getSourceVdbName());
+    	
+    	// Deploy the VDB
+    	String sourceVDBStatus = deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator());
+    	
+    	// Create the teiid dataSource for the deployed source VDB
+    	createVdbDataSource(bean.getSourceVdbName());
+    	
+    	// Finally, re-deploy Service VDBs
+    	for(VDBMetaData vdbMeta : vdbsToRedeploy) {
+    		String svcVdbName = vdbMeta.getName();
+    		try {
+    			VDBMetaData cloneVdb = vdbHelper.cloneVdb(vdbMeta);
+    			
+    			// Replace the old Source VDB import with the new one.
+    			VDBMetaData newVdb = vdbHelper.replaceImport(cloneVdb, originalImportName, 1, newImportName, 1);
+
+    			// If the source VDB deployment was not successful, no need to wait the full timeout period for VDB deployment
+    			int deployTimeout = Constants.VDB_LOADING_TIMEOUT_SECS;
+    			if(!Constants.SUCCESS.equals(sourceVDBStatus)) {
+    				deployTimeout = 5;
+    			}
+				deployVdb(newVdb, svcVdbName, deployTimeout);
+				
+		        // need to rebind the datasource
+		        createVdbDataSource(svcVdbName);
+			} catch (Exception e) {
+				throw new DataVirtUiException(e.getMessage());
+			}
+    	}
     }
     
     @Override

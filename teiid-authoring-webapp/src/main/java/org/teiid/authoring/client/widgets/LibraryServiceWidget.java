@@ -92,6 +92,24 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 
 	public void setModel(ServiceRow service) {
 		serviceBinder.setModel(service);
+		
+		// Set the status image
+    	String rStatus = getModel().getStatus();
+    	if(Constants.STATUS_ACTIVE.equals(rStatus)) {
+        	this.viewServiceStatusImage.setResource(AppResource.INSTANCE.images().okIcon16x16Image());
+    	} else {
+        	this.viewServiceStatusImage.setResource(AppResource.INSTANCE.images().errorIcon16x16Image());
+    	}
+    	
+//    	ServiceRow row = getModel();
+//    	if(row.isVisible()) {
+//    		this.viewServiceVisibilityLabel.removeStyleName("glyphicon-eye-close");
+//    		this.viewServiceVisibilityLabel.addStyleName("glyphicon glyphicon-eye-open");
+//    	} else {
+//    		this.viewServiceVisibilityLabel.removeStyleName("glyphicon-eye-open");
+//    		this.viewServiceVisibilityLabel.addStyleName("glyphicon glyphicon-eye-close");
+//    	}
+    	
 	}
 
     /**
@@ -121,16 +139,7 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
         		}
         	}
         });
-    	this.viewServiceStatusImage.setResource(AppResource.INSTANCE.images().okIcon16x16Image());
-//    	ServiceRow row = getModel();
-//    	if(row.isVisible()) {
-//    		this.viewServiceVisibilityLabel.removeStyleName("glyphicon-eye-close");
-//    		this.viewServiceVisibilityLabel.addStyleName("glyphicon glyphicon-eye-open");
-//    	} else {
-//    		this.viewServiceVisibilityLabel.removeStyleName("glyphicon-eye-open");
-//    		this.viewServiceVisibilityLabel.addStyleName("glyphicon glyphicon-eye-close");
-//    	}
-    	
+
     	// Tooltips
     	viewServiceButton.setTitle(i18n.format("lib-service-widget.viewServiceButton.tooltip"));
     	moreActionsListBox.setTitle(i18n.format("lib-service-widget.moreActionsListBox.tooltip"));

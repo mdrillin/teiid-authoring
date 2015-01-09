@@ -57,13 +57,15 @@ public interface ITeiidService {
         
     public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean dataSourceWithVdb) throws DataVirtUiException;
     
-    public void createVdbAndVdbSource(DataSourceWithVdbDetailsBean bean) throws DataVirtUiException;
+    public void createSourceVdbWithTeiidDS(DataSourceWithVdbDetailsBean bean) throws DataVirtUiException;
 
     public List<VdbDetailsBean> deleteDataSourceAndVdb(String dsName, String vdbName) throws DataVirtUiException;
 
     public void deleteDataSources(Collection<String> dsNames) throws DataVirtUiException;
 
-    public void deleteDataSourcesAndVdbs(Collection<String> dsNames, Collection<String> vdbNames) throws DataVirtUiException;
+    public void deleteDataSourcesAndVdb(Collection<String> dsNames, String vdbName) throws DataVirtUiException;
+    
+    public void deleteSourcesAndVdbRedeployRenamed(Collection<String> dsNames, String vdbName, DataSourceWithVdbDetailsBean bean) throws DataVirtUiException;
 
     public void deleteTypes(Collection<String> dsTypes) throws DataVirtUiException;
 

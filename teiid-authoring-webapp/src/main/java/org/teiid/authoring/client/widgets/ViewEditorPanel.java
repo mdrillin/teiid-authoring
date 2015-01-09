@@ -16,6 +16,7 @@
 package org.teiid.authoring.client.widgets;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +45,7 @@ import org.teiid.authoring.share.beans.QueryColumnBean;
 import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
 import org.teiid.authoring.share.beans.QueryTableProcBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
+import org.teiid.authoring.share.beans.VdbModelBean;
 import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.services.StringUtils;
 import org.uberfire.client.mvp.PlaceManager;
@@ -604,11 +606,30 @@ public class ViewEditorPanel extends Composite {
                         i18n.format("vieweditor-panel.testing-service-complete"), //$NON-NLS-1$
                         i18n.format("vieweditor-panel.testing-service-complete-msg")); //$NON-NLS-1$
 
-                String testVdbJndi = Constants.JNDI_PREFIX+testVDBName;
-    			String serviceSampleSQL = testSqlTextArea.getText();
-    	    	queryResultsPanel.showResultsTable(testVdbJndi, serviceSampleSQL);
-    	    	
-                haveSuccessfullyTested = true;
+                // If VDB is not active, show the status message
+                if(!vdbDetailsBean.isActive()) {
+                	haveSuccessfullyTested = false;
+                	// Get ViewModel error.  Otherwise take any of the source model errors.
+                	Collection<VdbModelBean> models = vdbDetailsBean.getModels();
+                	String modelError = null;
+                	String currentError = null;
+                	for(VdbModelBean model : models) {
+                		currentError = model.getStatus();
+                		if(!currentError.equalsIgnoreCase(Constants.STATUS_ACTIVE)) {
+                			modelError = currentError;
+                			if(model.isView()) {
+                				break;
+                			}
+                		}
+                	}
+                	queryResultsPanel.showErrorMessage(getUserReadableModelErrorMessage(modelError));
+                } else {
+                	haveSuccessfullyTested = true;
+
+                	String testVdbJndi = Constants.JNDI_PREFIX+testVDBName;
+                	String serviceSampleSQL = testSqlTextArea.getText();
+                	queryResultsPanel.showResultsTable(testVdbJndi, serviceSampleSQL);
+                }
                 updateStatus();
             }
             @Override
@@ -618,6 +639,29 @@ public class ViewEditorPanel extends Composite {
                 updateStatus();
             }
         });           	
+    }
+    
+    /**
+     * Get a more user readable error message for display
+     * @param modelError the model error
+     * @return the user friendly error
+     */
+    private String getUserReadableModelErrorMessage(String modelError) {
+    	String userReadableMessage = i18n.format("vieweditor-panel.testVdbError.genericError");
+    	if(Constants.VDB_INACTIVE_DS_CONNECTION_ERROR.equalsIgnoreCase(modelError)) {
+        	userReadableMessage = i18n.format("vieweditor-panel.testVdbError.sourceConnectionError");
+    	} else if(modelError.startsWith(Constants.VDB_INACTIVE_SQL_PARSE_ERROR)) {
+    		String errorDetail = modelError.substring(Constants.VDB_INACTIVE_SQL_PARSE_ERROR.length());
+        	userReadableMessage = i18n.format("vieweditor-panel.testVdbError.sqlParseError")+" :  "+errorDetail;
+    	} else if(modelError.startsWith(Constants.VDB_INACTIVE_SQL_VALIDATION_ERROR)) {
+    		String errorDetail = modelError.substring(Constants.VDB_INACTIVE_SQL_VALIDATION_ERROR.length());
+        	userReadableMessage = i18n.format("vieweditor-panel.testVdbError.sqlValidationError")+" :  "+errorDetail;
+    	} else if(Constants.VDB_INACTIVE_METADATA_LOADING.equalsIgnoreCase(modelError)) {
+        	userReadableMessage = i18n.format("vieweditor-panel.testVdbError.metadataLoadingError");
+    	} else if(Constants.VDB_INACTIVE_UNKNOWN_ERROR.equalsIgnoreCase(modelError)) {
+        	userReadableMessage = i18n.format("vieweditor-panel.testVdbError.genericError");
+    	}
+    	return userReadableMessage;  
     }
     
     /**

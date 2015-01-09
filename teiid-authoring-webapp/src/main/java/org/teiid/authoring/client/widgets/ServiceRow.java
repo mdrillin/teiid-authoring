@@ -22,6 +22,7 @@ public class ServiceRow {
 	
 	private String name;
 	private String description;
+	private String status;  // ACTIVE = ok.  Anything else = not ok.
 	private boolean isChecked = false;
 	private boolean isVisible = false;
 	
@@ -36,6 +37,12 @@ public class ServiceRow {
 	}
 	public void setDescription(String description) {
 		this.description = description;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
 	}
 	public boolean isChecked() {
 		return isChecked;

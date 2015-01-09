@@ -17,6 +17,7 @@ package org.teiid.authoring.share.beans;
 
 import org.jboss.errai.common.client.api.annotations.Portable;
 import org.jboss.errai.databinding.client.api.Bindable;
+import org.teiid.authoring.share.Constants;
 
 /**
  * A data bean for returning information for a VDB Model.
@@ -68,6 +69,28 @@ public class VdbModelBean {
      */
     public String getType() {
         return type;
+    }
+    
+    /**
+     * Determine if the model is a source model
+     */
+    public boolean isSource() {
+    	boolean isSource = false;
+    	if(Constants.MODEL_TYPE_PHYSICAL.equalsIgnoreCase(getType())) {
+    		isSource = true;
+    	}
+    	return isSource;
+    }
+    
+    /**
+     * Determine if the model is a view model
+     */
+    public boolean isView() {
+    	boolean isView = false;
+    	if(Constants.MODEL_TYPE_VIRTUAL.equalsIgnoreCase(getType())) {
+    		isView = true;
+    	}
+    	return isView;
     }
     
     /**

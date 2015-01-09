@@ -234,16 +234,6 @@ public class ManageSourcesScreen extends Composite {
         doCreateDataSource(sourceWithVdbBean);
     }
     
-//    /**
-//     * Shows a status popup with message
-//     */
-//    private void showStatusPopup(String title, String message) {
-//    	statusPopup = new StatusPopup(statusContent, title );
-//    	statusPopup.setContentTitle(title);
-//    	statusPopup.setContentMessage(message);
-//    	statusPopup.show();
-//    }
-    
     private String getNewSourceName() {
     	String sourceRootName = Constants.DATA_SOURCE_NEW_NAME;
     	String newSourceName = Constants.DATA_SOURCE_NEW_NAME;
@@ -327,14 +317,11 @@ public class ManageSourcesScreen extends Composite {
      * Called when the user confirms the dataSource deletion.
      */
     private void doDeleteDataSourcesAndVdb(final List<String> dsNames, final String vdbName, final String selectedDS) {
-    	List<String> vdbNames = new ArrayList<String>(1);
-    	vdbNames.add(vdbName);
-    	
     	dsListDeckPanel.showWidget(0);
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("managesources.deleting-datasource-title"), //$NON-NLS-1$
                 i18n.format("managesources.deleting-datasource-msg", "sourceList")); //$NON-NLS-1$
-        teiidService.deleteDataSourcesAndVdbs(dsNames, vdbNames, new IRpcServiceInvocationHandler<Void>() {
+        teiidService.deleteDataSourcesAndVdb(dsNames, vdbName, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),

@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.jboss.errai.common.client.api.annotations.Portable;
 import org.jboss.errai.databinding.client.api.Bindable;
+import org.teiid.authoring.share.Constants;
 
 /**
  * A data bean for returning summary information for a VDB.
@@ -71,6 +72,15 @@ public class VdbSummaryBean {
     		isDyn = true;
     	}
     	return isDyn;
+    }
+    
+    public boolean isActive() {
+    	boolean isActive = false;
+    	String status = getStatus();
+    	if(Constants.STATUS_ACTIVE.equalsIgnoreCase(status)) {
+    		isActive = true;
+    	}
+    	return isActive;
     }
     
     /**

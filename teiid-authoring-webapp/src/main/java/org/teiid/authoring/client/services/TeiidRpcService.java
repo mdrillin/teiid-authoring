@@ -156,11 +156,11 @@ public class TeiidRpcService {
         }
     }
     
-    public void createVdbAndVdbSource(DataSourceWithVdbDetailsBean dataSourceWithVdb, final IRpcServiceInvocationHandler<Void> handler) {
+    public void createSourceVdbWithTeiidDS(DataSourceWithVdbDetailsBean dataSourceWithVdb, final IRpcServiceInvocationHandler<Void> handler) {
         RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
-        	remoteTeiidService.call(successCallback, errorCallback).createVdbAndVdbSource(dataSourceWithVdb);
+        	remoteTeiidService.call(successCallback, errorCallback).createSourceVdbWithTeiidDS(dataSourceWithVdb);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }
@@ -186,11 +186,21 @@ public class TeiidRpcService {
         }
     }
     
-    public void deleteDataSourcesAndVdbs(Collection<String> dsNames, Collection<String> vdbNames, final IRpcServiceInvocationHandler<Void> handler) {
+    public void deleteDataSourcesAndVdb(Collection<String> dsNames, String vdbName, final IRpcServiceInvocationHandler<Void> handler) {
         RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
-        	remoteTeiidService.call(successCallback, errorCallback).deleteDataSourcesAndVdbs(dsNames,vdbNames);
+        	remoteTeiidService.call(successCallback, errorCallback).deleteDataSourcesAndVdb(dsNames,vdbName);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
+    public void deleteSourcesAndVdbRedeployRenamed(Collection<String> dsNames, String vdbName, DataSourceWithVdbDetailsBean detailsBean, final IRpcServiceInvocationHandler<Void> handler) {
+        RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteTeiidService.call(successCallback, errorCallback).deleteSourcesAndVdbRedeployRenamed(dsNames,vdbName,detailsBean);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }

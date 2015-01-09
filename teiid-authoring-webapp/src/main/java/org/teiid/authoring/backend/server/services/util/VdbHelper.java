@@ -226,18 +226,35 @@ public class VdbHelper {
 				} else {
 					List<String> errors = modelMeta.getValidityErrors();
 					if(errors.size()==0) {
-						modelStatus = Constants.STATUS_ACTIVE;
+						String mStatus = modelMeta.getMetadataStatus().toString();
+						if("LOADING".equals(mStatus) || "FAILED".equals(mStatus) || "RETRYING".equals(mStatus)) {
+							modelStatus = Constants.VDB_INACTIVE_METADATA_LOADING;
+						} else {
+							modelStatus = Constants.STATUS_ACTIVE;
+						}
 					} else {
 						// There may be multiple errors - process the list...
 						boolean connectionError = false;
+						boolean parseError = false;
 						boolean validationError = false;
 						boolean isLoading = false;
 						// Iterate Errors and set status flags
+						String errorDetail = null;
 						for(String error: errors) {
 							if(error.indexOf("TEIID11009")!=-1 || error.indexOf("TEIID60000")!=-1 || error.indexOf("TEIID31097")!=-1) {
 								connectionError=true;
-							} else if(error.indexOf("TEIID31080")!=-1 || error.indexOf("TEIID31071")!=-1) {
+							} else if(error.indexOf("TEIID31100")!=-1) {
+								parseError=true;
+								errorDetail = error.substring(error.indexOf("TEIID31100"));
+							} else if(error.indexOf("TEIID31079")!=-1) {
 								validationError=true;
+								errorDetail = error.substring(error.indexOf("TEIID31079"));
+							} else if(error.indexOf("TEIID31080")!=-1) {
+								validationError=true;
+								errorDetail = error.substring(error.indexOf("TEIID31080"));
+							} else if(error.indexOf("TEIID31071")!=-1) {
+								validationError=true;
+								errorDetail = error.substring(error.indexOf("TEIID31071"));
 							} else if(error.indexOf("TEIID50029")!=-1) {
 								isLoading=true;
 							}
@@ -247,16 +264,19 @@ public class VdbHelper {
 						// --------------------------------------------------
 						// Connection Error. Reset the VDB overall status, as it may say loading
 						if(connectionError) {
-							modelStatus = "INACTIVE: Data Source connection failed...";
+							modelStatus = Constants.VDB_INACTIVE_DS_CONNECTION_ERROR;
+						// Validation Error with View SQL
+						} else if(parseError) {
+							modelStatus = Constants.VDB_INACTIVE_SQL_PARSE_ERROR+" \n"+errorDetail;
 						// Validation Error with View SQL
 						} else if(validationError) {
-							modelStatus = "INACTIVE: Validation Error with SQL";
+							modelStatus = Constants.VDB_INACTIVE_SQL_VALIDATION_ERROR+" \n"+errorDetail;
 						// Loading in progress
 						} else if(isLoading) {
-							modelStatus = "INACTIVE: Metadata loading in progress...";
+							modelStatus = Constants.VDB_INACTIVE_METADATA_LOADING;
 						// Unknown - use generic message
 						} else {
-							modelStatus = "INACTIVE: unknown source issue";
+							modelStatus = Constants.VDB_INACTIVE_UNKNOWN_ERROR;
 						}
 					}
 				}
@@ -377,8 +397,8 @@ public class VdbHelper {
 		// Get current vdb imports
 		List<VDBImportMetadata> currentVdbImports = getVdbImports(vdb);
 		List<String> currentVdbImportNames = new ArrayList<String>();
-		for(VDBImportMetadata vdbMeta : currentVdbImports) {
-			currentVdbImportNames.add(vdbMeta.getName());
+		for(VDBImportMetadata importMeta : currentVdbImports) {
+			currentVdbImportNames.add(importMeta.getName());
 		}
 		List<ModelMetaData> currentViewModels = getVdbViewModels(vdb);
 		Properties currentProperties = getVdbProperties(vdb);
@@ -402,6 +422,73 @@ public class VdbHelper {
 		newVdb.getVDBImports().addAll(currentVdbImports);
 
 		return newVdb;
+	}
+	
+	/**
+	 * Replaces and import in the supplied vdb with a different import.  (Used for source renames)
+	 * @param vdb the VDB
+	 * @param originalImportName the name of the existing import
+	 * @param originalImportName the version of the existing import
+	 * @param newImportName the name of the new import which replaces existing
+	 * @param newImportName the version of the new import which replaces existing
+	 * @return the new VDB
+	 */
+	public VDBMetaData replaceImport(VDBMetaData vdb, String originalImportName, Integer originalImportVersion, String newImportName, Integer newImportVersion) {
+		String vdbName = vdb.getName();
+		int vdbVersion = vdb.getVersion();
+		
+		// Get current vdb imports
+		List<VDBImportMetadata> currentVdbImports = getVdbImports(vdb);
+		List<String> currentVdbImportNames = new ArrayList<String>();
+		for(VDBImportMetadata importMeta : currentVdbImports) {
+			currentVdbImportNames.add(importMeta.getName());
+		}
+		List<ModelMetaData> currentViewModels = getVdbViewModels(vdb);
+		Properties currentProperties = getVdbProperties(vdb);
+
+		// Clear any prior Model Messages (needed for successful redeploy)
+		clearModelMessages(currentViewModels);
+
+		// Create a new vdb
+		VDBMetaData newVdb = createVdb(vdbName,vdbVersion,currentProperties);
+
+		// Add the existing ViewModels
+		newVdb.setModels(currentViewModels);
+
+		// Go thru the current Vdb Imports.  Add them into the new import list.  If the originalImportName import is found, replace it.
+		List<VDBImportMetadata> newVdbImports = new ArrayList<VDBImportMetadata>();
+		for(VDBImportMetadata currentImport : currentVdbImports) {
+			if(currentImport.getName().equalsIgnoreCase(originalImportName)) {
+				newVdbImports.add(createVdbImport(newImportName, newImportVersion));
+			} else {
+				newVdbImports.add(currentImport);
+			}
+		}
+		newVdb.getVDBImports().addAll(newVdbImports);
+
+		return newVdb;
+	}
+
+	/**
+	 * Determine if the supplied VDB has the specified import VDB
+	 * @param vdb the VDB
+	 * @param importVdbName the name of the VDB import
+	 * @return 'true' if the VDB has the import, 'false' if not.
+	 */
+	public boolean hasImport(VDBMetaData vdb, String importVdbName) {
+		boolean hasImport = false;
+		
+		// Get current vdb imports
+		List<VDBImportMetadata> currentVdbImports = getVdbImports(vdb);
+		for(VDBImportMetadata vdbImportMeta : currentVdbImports) {
+			String vdbImport = vdbImportMeta.getName();
+			if(vdbImport.equals(importVdbName)) {
+				hasImport = true;
+				break;
+			}
+		}
+
+		return hasImport;
 	}
 	
 	/**
@@ -510,7 +597,7 @@ public class VdbHelper {
 		List<String> removeImportNameList = new ArrayList<String>();
 		for(String modelName : removeModelNameAndTypeMap.keySet()) {
 			String modelType = removeModelNameAndTypeMap.get(modelName);
-			if(modelType.equalsIgnoreCase(Constants.VIRTUAL)) {
+			if(modelType.equalsIgnoreCase(Constants.MODEL_TYPE_VIRTUAL)) {
 				removeViewModelNameList.add(modelName);
 			} else {
 				removeImportNameList.add(modelName);
@@ -604,6 +691,56 @@ public class VdbHelper {
 		return newVdb;
 	}
 	
+	/**
+	 * Clone the supplied VDB, basically to force reload of the source models
+	 * @param vdb the VDB
+	 * @return the new VDB
+	 */
+	public VDBMetaData cloneVdb(VDBMetaData vdb) {                
+		String vdbName = vdb.getName();
+		int vdbVersion = vdb.getVersion();
+		
+		// Get current vdb imports
+		List<VDBImportMetadata> currentVdbImports = getVdbImports(vdb);
+		List<ModelMetaData> currentViewModels = getVdbViewModels(vdb);
+		Properties currentProperties = getVdbProperties(vdb);
+
+		// Clear any prior Model Messages (needed for successful redeploy)
+		clearModelMessages(currentViewModels);
+
+		// Create a new vdb
+		VDBMetaData newVdb = createVdb(vdbName,vdbVersion,currentProperties);
+
+		// The new View Model list is all current models, plus clones
+		List<ModelMetaData> newViewModels = new ArrayList<ModelMetaData>();
+		// Iterate the list of names to clone
+		for(Model model: currentViewModels) {
+			ModelMetaData modelMeta = (ModelMetaData)model;
+			
+			// Clone the view model
+			String theModelName = model.getName();
+			String newViewModelName = theModelName;
+			String description = model.getDescription();
+			boolean isVisible = model.isVisible();
+			String ddlString = modelMeta.getSchemaText();
+			ModelMetaData clonedModelMeta = createViewModel(newViewModelName,description,ddlString,isVisible);
+
+			// Add to list of new models
+			newViewModels.add(clonedModelMeta);
+		}
+
+		newVdb.setModels(newViewModels);
+
+		// The imports are unchanged
+		List<VDBImportMetadata> newImports = new ArrayList<VDBImportMetadata>();
+		for(VDBImportMetadata vdbImport: currentVdbImports) {
+			newImports.add((VDBImportMetadata)vdbImport);
+		}
+		newVdb.getVDBImports().addAll(newImports);
+
+		return newVdb;
+	}
+
 	/**
 	 * Clone the supplied view models from the supplied VDB - if they exist. The new VDB is returned.
 	 * @param vdb the VDB
