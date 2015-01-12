@@ -411,7 +411,7 @@ public class ManageSourcesScreen extends Composite {
     	List<DataSourcePropertyBean> props = new ArrayList<DataSourcePropertyBean>();
     	DataSourcePropertyBean urlProp = new DataSourcePropertyBean();
     	urlProp.setName("connection-url");
-    	urlProp.setValue("jdbc:h2:file:${jboss.server.data.dir}/teiid-dashboard/teiid-dashboard-ds;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1");
+    	urlProp.setValue("jdbc:h2:${jboss.server.data.dir}/teiid-dashboard-ds;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1");
 
     	DataSourcePropertyBean userProp = new DataSourcePropertyBean();
     	userProp.setName("user-name");
