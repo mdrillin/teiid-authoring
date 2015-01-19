@@ -15,9 +15,10 @@
  */
 package org.teiid.authoring.client.resources;
 
-import com.github.gwtbootstrap.client.ui.DataGrid;
-import com.github.gwtbootstrap.client.ui.DataGrid.Resources;
+import org.gwtbootstrap3.client.ui.gwt.DataGrid;
+
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.cellview.client.DataGrid.Resources;
 
 public interface DataGridResources extends Resources {
 

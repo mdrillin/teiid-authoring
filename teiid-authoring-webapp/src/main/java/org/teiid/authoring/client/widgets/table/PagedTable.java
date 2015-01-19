@@ -1,25 +1,26 @@
+package org.teiid.authoring.client.widgets.table;
+
 /*
- * Copyright 2014 JBoss Inc
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
+ * Copyright 2011 JBoss Inc
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
-package org.teiid.authoring.client.widgets;
 
 import java.util.List;
 
 import org.gwtbootstrap3.client.ui.Label;
+import org.gwtbootstrap3.client.ui.Pager;
 import org.gwtbootstrap3.client.ui.gwt.DataGrid;
-import org.teiid.authoring.client.resources.DataGridResources;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
@@ -29,10 +30,13 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
-import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.RowStyles;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HasWidgets;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.CellPreviewEvent.Handler;
 import com.google.gwt.view.client.HasData;
@@ -43,52 +47,75 @@ import com.google.gwt.view.client.RowCountChangeEvent;
 import com.google.gwt.view.client.SelectionModel;
 
 /**
- * A composite Widget that shows rows of data (not-paged).
+ * A composite Widget that shows rows of data (not-paged) and a "column picker"
+ * to allow columns to be hidden from view. Columns can also be sorted.
  */
-public class SimpleTable<T>
+public class PagedTable<T>
         extends Composite
         implements HasData<T> {
 
     interface Binder
             extends
-            UiBinder<Widget, SimpleTable<?>> {
+            UiBinder<Widget, PagedTable> {
 
     }
 
     private static Binder uiBinder = GWT.create( Binder.class );
 
+    @UiField
+    public Pager pager;
+
+    private int pageSize;
+    private AsyncDataProvider<T> dataProvider;
+    
     @UiField(provided = true)
     public DataGrid<T> dataGrid;
 
+    @UiField
+    public HorizontalPanel toolbarContainer;
+    @UiField
+    public FlowPanel rightToolbar;
+    @UiField
+    public FlowPanel leftToolbar;
+    @UiField
+    public FlowPanel centerToolbar;
+
     private String emptyTableCaption;
 
-    public SimpleTable() {
-    	DataGridResources.INSTANCE.dataGridStyle().ensureInjected();
-    	dataGrid = new DataGrid<T>(Integer.MAX_VALUE,DataGridResources.INSTANCE);
+    public PagedTable( final int pageSize ) {
+        dataGrid = new DataGrid<T>();
         setupGridTable();
+        this.pageSize = pageSize;
+        this.dataGrid.setPageSize( pageSize );
+        //this.pager.setDisplay( dataGrid );
+        //this.pager.setPageSize( pageSize );
+        
+    }
+
+    public PagedTable( final int pageSize,
+                       final ProvidesKey<T> providesKey ) {
+        dataGrid = new DataGrid<T>( Integer.MAX_VALUE,
+                providesKey );
+        setupGridTable();
+        this.pageSize = pageSize;
+        this.dataGrid.setPageSize( pageSize );
+        //this.pager.setDisplay( dataGrid );
+        //this.pager.setPageSize( pageSize );
     }
     
-//    public SimpleTable(final ProvidesKey<T> providesKey, GridGlobalPreferences gridGlobalPreferences) {
-//        dataGrid = new DataGrid<T>( Integer.MAX_VALUE,
-//                                    providesKey );
-//        setupGridTable();
-//    }
-
-    public SimpleTable( final ProvidesKey<T> providesKey ) {
-        dataGrid = new DataGrid<T>( Integer.MAX_VALUE,
-                                    providesKey );
-        setupGridTable();
-    }
-   
-
     private void setupGridTable() {
+        dataGrid.setStriped( true );
+        dataGrid.setBordered( true );
+        dataGrid.setSkipRowHoverCheck( false );
+        dataGrid.setSkipRowHoverStyleUpdate( false );
+        dataGrid.setWidth( "100%" );
+        dataGrid.setHeight( "300px" );
         //dataGrid.addStyleName( CommonResources.INSTANCE.CSS().dataGrid() );
-        dataGrid.setAutoHeaderRefreshDisabled(true);
-        dataGrid.setVisibleRange(0, 7);
-        
+
         setEmptyTableWidget();
 
         initWidget( makeWidget() );
+
     }
 
     protected Widget makeWidget() {
@@ -101,7 +128,7 @@ public class SimpleTable<T>
     }
 
     private void setEmptyTableWidget() {
-        String caption = "No rows";
+        String caption = "-----";
         if ( !( emptyTableCaption == null || emptyTableCaption.trim().isEmpty() ) ) {
             caption = emptyTableCaption;
         }
@@ -110,10 +137,6 @@ public class SimpleTable<T>
 
     public void redraw() {
         dataGrid.redraw();
-    }
-    
-    public void redrawHeaders() {
-    	dataGrid.redrawHeaders();
     }
 
     public void refresh() {
@@ -136,9 +159,10 @@ public class SimpleTable<T>
         return dataGrid.addRowCountChangeHandler( handler );
     }
 
-    public int getColumnIndex(Column<T, ?> column) {
-      return dataGrid.getColumnIndex(column);
+    public int getColumnIndex( Column<T, ?> column ) {
+        return dataGrid.getColumnIndex( column );
     }
+
     /**
      * Link a column sort handler to the table
      * @param handler
@@ -205,10 +229,6 @@ public class SimpleTable<T>
     public Iterable<T> getVisibleItems() {
         return dataGrid.getVisibleItems();
     }
-    
-    public List<T> getRowData() {
-    	return dataGrid.getVisibleItems();
-    }
 
     @Override
     public void setRowData( final int start,
@@ -219,7 +239,6 @@ public class SimpleTable<T>
 
     public void setRowData( final List<? extends T> values ) {
         dataGrid.setRowData( values );
-        dataGrid.setRowCount(values.size(),true);
     }
 
     @Override
@@ -242,11 +261,7 @@ public class SimpleTable<T>
 
     public void addColumn( final Column<T, ?> column,
                            final String caption ) {
-        dataGrid.addColumn( column, caption);
-    }
-    
-    public void addColumn(Column<T, ?> col, Header<?> header) {
-    	dataGrid.addColumn(col,header);
+    	dataGrid.addColumn( column, caption);
     }
 
     public void setColumnWidth( final Column<T, ?> column,
@@ -278,13 +293,51 @@ public class SimpleTable<T>
     public void setWidth( String width ) {
         dataGrid.setWidth( width );
     }
- 
+
+    public void setToolBarVisible( boolean visible ) {
+        toolbarContainer.setVisible( visible );
+    }
+
     public ColumnSortList getColumnSortList() {
         return dataGrid.getColumnSortList();
     }
 
-    public void setRowStyles(RowStyles<T> styles) {
-      dataGrid.setRowStyles(styles);
+    public HasWidgets getToolbar() {
+        return toolbarContainer;
     }
 
+    public HasWidgets getRightToolbar() {
+        return rightToolbar;
+    }
+
+    public HasWidgets getLeftToolbar() {
+        return leftToolbar;
+    }
+
+    public HasWidgets getCenterToolbar() {
+        return centerToolbar;
+    }
+
+    public void setRowStyles( RowStyles<T> styles ) {
+        dataGrid.setRowStyles( styles );
+    }
+    
+    /**
+     * Link a data provider to the table
+     * @param dataProvider
+     */
+    public void setDataProvider( final AsyncDataProvider<T> dataProvider ) {
+        this.dataProvider = dataProvider;
+        this.dataProvider.addDataDisplay( dataGrid );
+    }
+
+    public int getPageSize() {
+        return this.pageSize;
+    }
+
+//    public int getPageStart() {
+//        return this.pager.getPageStart();
+//    }
+
 }
+

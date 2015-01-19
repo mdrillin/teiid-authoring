@@ -4,6 +4,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Button;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.widgets.IImportCompletionHandler;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
@@ -13,7 +14,6 @@ import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.PlaceRequest;
 
-import com.github.gwtbootstrap.client.ui.Button;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.HorizontalPanel;

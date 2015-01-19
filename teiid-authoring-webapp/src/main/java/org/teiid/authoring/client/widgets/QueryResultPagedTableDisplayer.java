@@ -20,18 +20,18 @@ import java.util.List;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
-import org.kie.uberfire.client.tables.PagedTable;
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
+import org.teiid.authoring.client.widgets.table.PagedTable;
 import org.teiid.authoring.share.beans.QueryColumnBean;
 import org.teiid.authoring.share.beans.QueryResultPageRow;
 import org.uberfire.paging.PageRequest;
 import org.uberfire.paging.PageResponse;
 
-import com.github.gwtbootstrap.client.ui.Button;
-import com.github.gwtbootstrap.client.ui.constants.IconType;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.TextColumn;
