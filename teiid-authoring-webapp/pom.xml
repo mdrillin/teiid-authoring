@@ -12,8 +12,10 @@
   </parent>
   
   <properties>
-    <version.org.uberfire>0.5.0-SNAPSHOT</version.org.uberfire>
+    <version.org.uberfire>0.6.0-SNAPSHOT</version.org.uberfire>
+    <maven.gwt.plugin.version>2.6.1</maven.gwt.plugin.version>
     <errai.jboss.home>${user.home}/apps/DV600-Servers/DV610-ER3-TeiidWebTest</errai.jboss.home>
+    <gwt.version>2.6.1</gwt.version>  
   </properties>
   
   <dependencyManagement>
@@ -83,10 +85,10 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- KIE Widgets (PagedTable) -->
     <dependency>
-      <groupId>org.kie.uberfire</groupId>
-      <artifactId>kie-uberfire-widgets-commons</artifactId>
+      <groupId>org.uberfire</groupId>
+      <artifactId>uberfire-workbench-client-views-patternfly</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <!-- Teiid -->
@@ -284,6 +286,24 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>gwt-maven-plugin</artifactId>
+        <version>${maven.gwt.plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-user</artifactId>
+            <version>${gwt.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-dev</artifactId>
+            <version>${gwt.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-codeserver</artifactId>
+            <version>${gwt.version}</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <server>org.jboss.errai.cdi.server.gwt.JBossLauncher</server>
           <localWorkers>4</localWorkers>
