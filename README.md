@@ -26,7 +26,7 @@ The general idea is to keep your 'master' branch in-sync with the 'upstream/mast
 
 We use Maven 3.x to build our software. The following command compiles all the code, installs the JARs into your local Maven repository, and runs all of the unit tests:
 
-	$ mvn clean install
+	$ mvn clean install -s settings.xml
 
 ## Running teiid-authoring
 
