@@ -22,7 +22,7 @@
     <version.org.jboss.integration-platform>6.0.0.CR13</version.org.jboss.integration-platform>
     <version.org.jboss.errai>3.0.4.Final</version.org.jboss.errai>
     <version.org.uberfire>0.6.0-SNAPSHOT</version.org.uberfire>
-    <version.org.jboss.teiid>8.7.1</version.org.jboss.teiid>
+    <version.org.jboss.teiid>8.7.0.Final</version.org.jboss.teiid>
     <version.jboss-as-cli>7.2.0.Final</version.jboss-as-cli>
     <version.jboss-as-controller>7.2.0.Final</version.jboss-as-controller>
     <version.org.mortbay.jetty>6.1.25</version.org.mortbay.jetty>
