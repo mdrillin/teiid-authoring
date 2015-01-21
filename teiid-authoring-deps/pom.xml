@@ -19,6 +19,8 @@
   </description>
 
   <properties>
+    <version.com.google.gwt>2.6.1</version.com.google.gwt>
+    <version.com.allen-sauer.gwt.dnd>3.3.3</version.com.allen-sauer.gwt.dnd> 
     <version.org.jboss.integration-platform>6.0.0.CR13</version.org.jboss.integration-platform>
     <version.org.jboss.errai>3.0.4.Final</version.org.jboss.errai>
     <version.org.uberfire>0.6.0-SNAPSHOT</version.org.uberfire>
@@ -26,7 +28,6 @@
     <version.jboss-as-cli>7.2.0.Final</version.jboss-as-cli>
     <version.jboss-as-controller>7.2.0.Final</version.jboss-as-controller>
     <version.org.mortbay.jetty>6.1.25</version.org.mortbay.jetty>
-    <gwt.version>2.6.1</gwt.version>  
     
     <!-- temporary: makes the enforcerRule (illegal-transitive-dependency-check) not to break the build -->
     <illegaltransitivereportonly>true</illegaltransitivereportonly>
@@ -66,7 +67,7 @@
       <dependency>
         <groupId>com.google.gwt</groupId>
         <artifactId>gwt-user</artifactId>
-        <version>${gwt.version}</version>
+        <version>${version.com.google.gwt}</version>
       </dependency>
 
       <!-- Teiid -->
