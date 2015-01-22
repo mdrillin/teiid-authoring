@@ -29,17 +29,17 @@
       
         <a data-field="anchor-goto-library">&lt; Back to Library</a>
 	    
-        <div class="row-fluid">
-          <div class="span8">
-            <h3><div data-field="label-service-details-pagetitle"></div></h3>
+        <div class="row">
+          <div class="col-sm-8">
+            <h2><div data-field="label-service-details-pagetitle"></div></h2>
         	<div data-field="label-service-details-description" style="font-style:italic;color:#666666"></div>
           </div>
-          <div class="span4"><button data-field="btn-edit-service" class="btn">Edit</button></div>
+          <div class="col-sm-4"><button data-field="btn-edit-service" class="btn">Edit</button></div>
         </div>
 
-        <div class="row-fluid">
-          <div class="span4">
-            <h4>Access via REST or OData</h4>
+        <div class="row">
+          <div class="col-sm-4">
+            <h3>Access via REST or OData</h3>
             <label><strong>REST Endpoint:</strong></label>
             <input data-field="textbox-service-details-rest"  class="form-control" style="width:100%" />
             <div><button data-field="btn-service-details-open-rest" class="btn btn-small">Open in Browser</button></div>
@@ -48,21 +48,21 @@
             <input data-field="textbox-service-details-odata" class="form-control" style="width:100%" />
             <div><button data-field="btn-service-details-open-odata" class="btn btn-small">Open in Browser</button><span>&nbsp;&nbsp;Refer to <a href="https://docs.jboss.org/author/display/teiid84final/OData+Support" target="_blank">Teiid OData documentation</a></span></div>
           </div>        
-          <div class="span4">
-            <h4>Access via JDBC</h4>
+          <div class="col-sm-4">
+            <h3>Access via JDBC</h3>
             <div>Download the client jar:&nbsp;<i class="icon-download"></i>&nbsp;<a data-field="anchor-download-clientjar"></a></div>
             <label><strong>Use this connection URL:</strong></label>
             <textarea data-field="textarea-service-details-jdbc-snippet" class="form-control" rows="3" style="width:100%"></textarea>
             <div>To add this service to your code, refer to our <a href="https://access.redhat.com/documentation/en-US/Red_Hat_JBoss_Data_Virtualization/6/html/Development_Guide_Client_Development/chap-Connecting_to_a_Virtual_Database.html#Create_a_Connection_to_a_VDB_Using_the_Driver_Class1" target="_blank">documentation</a></div>
           </div>
-          <div class="span4"></div>
+          <div class="col-sm-4"></div>
         </div>
         
-        <div class="row-fluid" style="height:20px"></div>
-        <h4>Example Data</h4>
-        <div class="row-fluid">
-          <div class="span10" data-field="table-service-details-queryResults"></div>
-          <div class="span2"></div>
+        <div class="row" style="height:20px"></div>
+        <h3>Example Data</h3>
+        <div class="row">
+          <div class="col-sm-10" data-field="table-service-details-queryResults"></div>
+          <div class="col-sm-2"></div>
         </div>
         
         <!-- Footer -->

@@ -39,6 +39,7 @@ import org.teiid.authoring.client.services.ApplicationStateService;
 import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
+import org.teiid.authoring.client.utils.UiUtils;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.TranslatorHelper;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
@@ -70,9 +71,6 @@ import com.google.gwt.user.client.ui.Widget;
 @Templated("./DataSourcePropertiesPanel.html")
 public class DataSourcePropertiesPanel extends Composite {
 
-	private static final String MSG_INFO = "INFO";
-	private static final String MSG_ERROR = "ERROR";
-	
     @Inject
     private PlaceManager placeManager;
     @Inject
@@ -803,7 +801,7 @@ public class DataSourcePropertiesPanel extends Composite {
      */
     private void setInfoMessage(String statusMsg) {
     	statusLabel.setText(statusMsg);
-    	setMessageStyle(MSG_INFO);
+    	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.INFO);
     }
     
     /**
@@ -819,17 +817,7 @@ public class DataSourcePropertiesPanel extends Composite {
      */
     private void setErrorMessage(String statusMsg) {
     	statusLabel.setText(statusMsg);
-    	setMessageStyle(MSG_ERROR);
-    }
-    
-    private void setMessageStyle(String msgType) {
-    	statusLabel.removeStyleName("alert-info");
-    	statusLabel.removeStyleName("alert-danger");
-    	if(msgType.equals(MSG_INFO)) {
-    		statusLabel.addStyleName("alert-info");
-    	} else if(msgType.equals(MSG_ERROR)) {
-    		statusLabel.addStyleName("alert-danger");
-    	}
+    	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
     }
     
     /**

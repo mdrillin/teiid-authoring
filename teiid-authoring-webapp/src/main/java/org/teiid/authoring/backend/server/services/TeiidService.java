@@ -41,6 +41,7 @@ import org.teiid.authoring.share.beans.DataSourceDetailsBean;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
+import org.teiid.authoring.share.beans.TranslatorImportPropertyBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbModelBean;
 import org.teiid.authoring.share.beans.ViewModelRequestBean;
@@ -403,6 +404,39 @@ public class TeiidService implements ITeiidService {
     	}
     	return mappings;
     }
+
+    public List<TranslatorImportPropertyBean> getTranslatorImportProperties(String translatorName) throws DataVirtUiException {
+    	List<TranslatorImportPropertyBean> importPropBeanList = new ArrayList<TranslatorImportPropertyBean>();
+    	
+		Collection<? extends PropertyDefinition> propDefnList = null;
+    	try {
+    		propDefnList = clientAccessor.getClient().getTranslatorImportProperties(translatorName);
+		} catch (AdminApiClientException e) {
+			throw new DataVirtUiException(e.getMessage());
+		}
+    	
+    	if(propDefnList==null || propDefnList.isEmpty()) {
+    		return Collections.emptyList();
+    	}
+    	
+		for(PropertyDefinition propDefn: propDefnList) {
+			TranslatorImportPropertyBean propBean = new TranslatorImportPropertyBean();
+			
+			// ------------------------
+			// Set PropertyObj fields
+			// ------------------------
+			// Name
+			String name = propDefn.getName();
+			propBean.setName(name);
+
+			// ------------------------
+			// Add PropertyObj to List
+			// ------------------------
+			importPropBeanList.add(propBean);
+		}
+
+    	return importPropBeanList;
+    } 
 
     public List<String> getDataSourceTypes() throws DataVirtUiException {
     	List<String> dsTypeList = new ArrayList<String>();

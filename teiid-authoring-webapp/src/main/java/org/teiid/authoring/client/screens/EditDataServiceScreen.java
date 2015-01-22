@@ -39,6 +39,7 @@ import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.utils.DdlHelper;
+import org.teiid.authoring.client.utils.UiUtils;
 import org.teiid.authoring.client.widgets.ViewEditorPanel;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.NotificationBean;
@@ -184,6 +185,7 @@ public class EditDataServiceScreen extends Composite {
     	String serviceName = serviceNameTextBox.getText();
     	if(StringUtils.isEmpty(serviceName)) {
     		statusLabel.setText(statusEnterName);
+        	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
     		isOK = false;
     	}
     	
@@ -192,6 +194,7 @@ public class EditDataServiceScreen extends Composite {
     		String nameStatus = StringUtils.checkValidServiceName(serviceName);
     		if(!nameStatus.equals(Constants.OK)) {
     			statusLabel.setText(nameStatus);
+            	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
     			isOK = false;
     		}
     	}
@@ -202,6 +205,7 @@ public class EditDataServiceScreen extends Composite {
     			String nameStatus = checkServiceNameInUse(serviceName);
     			if(!nameStatus.equals(Constants.OK)) {
     				statusLabel.setText(nameStatus);
+                	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
     				isOK = false;
     			}
     		}
@@ -212,12 +216,14 @@ public class EditDataServiceScreen extends Composite {
     		String viewEditorStatus = viewEditorPanel.getStatus();
     		if(!Constants.OK.equals(viewEditorStatus)) {
     			statusLabel.setText(viewEditorStatus);
+            	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
     			isOK = false;
     		}
     	}
     	
     	if(isOK) {
     		statusLabel.setText(statusClickSave);
+        	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.SUCCESS);
     		saveServiceButton.setEnabled(true);
     	} else {
     		saveServiceButton.setEnabled(false);

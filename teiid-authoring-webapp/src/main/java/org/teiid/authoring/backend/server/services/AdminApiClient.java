@@ -270,7 +270,29 @@ public class AdminApiClient {
 
 		return transNames;
 	}
-    
+	
+	/*
+     * Get the current Collection of Translator Import property definitions
+     * @return the collection of translator import properties
+     */
+	public Collection<? extends PropertyDefinition> getTranslatorImportProperties(String translatorName) throws AdminApiClientException {
+		if(this.admin==null) return Collections.emptyList();
+
+		// Get list of Translators
+		Collection<? extends PropertyDefinition> importProps = null;
+		try {
+			importProps = this.admin.getTranslatorPropertyDefinitions(translatorName, Admin.TranlatorPropertyType.IMPORT);
+		} catch (AdminException e) {
+			throw new AdminApiClientException(e.getMessage());
+		}
+
+		if(importProps!=null) {
+			return importProps;
+		} else {
+			return Collections.emptyList();
+		}
+	}
+	
     /*
      * Get the Properties for the supplied DataSource name
      * @param dataSourceName the name of the datasource

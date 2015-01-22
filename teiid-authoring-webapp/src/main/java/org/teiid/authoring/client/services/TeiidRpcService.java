@@ -31,6 +31,7 @@ import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
+import org.teiid.authoring.share.beans.TranslatorImportPropertyBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.ViewModelRequestBean;
 import org.teiid.authoring.share.exceptions.DataVirtUiException;
@@ -94,8 +95,7 @@ public class TeiidRpcService {
             errorCallback.error(null, e);
         }
     }
-    
-    
+        
     public void getDataSources(final String filter, final String srcVdbPrefix, final IRpcServiceInvocationHandler<List<DataSourcePageRow>> handler) {
         RemoteCallback<List<DataSourcePageRow>> successCallback = new DelegatingRemoteCallback<List<DataSourcePageRow>>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
@@ -145,7 +145,17 @@ public class TeiidRpcService {
             errorCallback.error(null, e);
         }
     }
-
+    
+    public void getTranslatorImportProperties(String translatorName, final IRpcServiceInvocationHandler<List<TranslatorImportPropertyBean>> handler) {
+        RemoteCallback<List<TranslatorImportPropertyBean>> successCallback = new DelegatingRemoteCallback<List<TranslatorImportPropertyBean>>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteTeiidService.call(successCallback, errorCallback).getTranslatorImportProperties(translatorName);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
     public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean dataSourceWithVdb, final IRpcServiceInvocationHandler<Void> handler) {
         RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);

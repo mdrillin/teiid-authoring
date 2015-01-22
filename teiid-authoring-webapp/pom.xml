@@ -282,7 +282,7 @@
         <configuration>
           <server>org.jboss.errai.cdi.server.gwt.JBossLauncher</server>
           <localWorkers>4</localWorkers>
-          <module>org.teiid.TeiidAuthoringWebApp</module>
+          <module>org.teiid.FastCompiledTeiidAuthoringWebApp</module>
           <logLevel>INFO</logLevel>
           <strict>true</strict>
           <compileSourcesArtifacts>

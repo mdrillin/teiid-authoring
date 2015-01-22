@@ -25,6 +25,7 @@ import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.client.services.TeiidRpcService;
+import org.teiid.authoring.client.utils.UiUtils;
 
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
@@ -33,9 +34,6 @@ import com.google.gwt.user.client.ui.Label;
 @Templated("./QueryResultsPanel.html")
 public class QueryResultsPanel extends Composite {
 
-	private static final String MSG_INFO = "INFO";
-	private static final String MSG_ERROR = "ERROR";
-	
 	private Label statusLabel = new Label();
 	private boolean resultTableVisible = false;
 	private String defaultMessage;
@@ -81,18 +79,8 @@ public class QueryResultsPanel extends Composite {
      */
     public void showStatusMessage(String statusMsg) {
     	statusLabel.setText(statusMsg);
-    	setMessageStyle(MSG_INFO);
+    	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
     	showMessage();
-    }
-    
-    private void setMessageStyle(String msgType) {
-    	statusLabel.removeStyleName("alert-info");
-    	statusLabel.removeStyleName("alert-danger");
-    	if(msgType.equals(MSG_INFO)) {
-    		statusLabel.addStyleName("alert-info");
-    	} else if(msgType.equals(MSG_ERROR)) {
-    		statusLabel.addStyleName("alert-danger");
-    	}
     }
     
     /**
@@ -100,7 +88,7 @@ public class QueryResultsPanel extends Composite {
      */
     public void showErrorMessage(String statusMsg) {
     	statusLabel.setText(statusMsg);
-    	setMessageStyle(MSG_ERROR);
+    	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
     	showMessage();
     }
     
