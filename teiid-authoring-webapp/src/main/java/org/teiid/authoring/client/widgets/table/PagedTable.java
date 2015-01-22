@@ -19,7 +19,6 @@ package org.teiid.authoring.client.widgets.table;
 import java.util.List;
 
 import org.gwtbootstrap3.client.ui.Label;
-import org.gwtbootstrap3.client.ui.Pager;
 import org.gwtbootstrap3.client.ui.gwt.DataGrid;
 
 import com.google.gwt.core.client.GWT;
@@ -31,6 +30,8 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.RowStyles;
+import com.google.gwt.user.cellview.client.SimplePager;
+import com.google.gwt.user.cellview.client.SimplePager.TextLocation;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HasWidgets;
@@ -54,7 +55,7 @@ public class PagedTable<T>
         extends Composite
         implements HasData<T> {
 
-    interface Binder
+	interface Binder
             extends
             UiBinder<Widget, PagedTable> {
 
@@ -63,7 +64,7 @@ public class PagedTable<T>
     private static Binder uiBinder = GWT.create( Binder.class );
 
     @UiField
-    public Pager pager;
+    public SimplePager pager;
 
     private int pageSize;
     private AsyncDataProvider<T> dataProvider;
@@ -87,20 +88,23 @@ public class PagedTable<T>
         setupGridTable();
         this.pageSize = pageSize;
         this.dataGrid.setPageSize( pageSize );
-        //this.pager.setDisplay( dataGrid );
-        //this.pager.setPageSize( pageSize );
+        SimplePager.Resources pagerResources = GWT.create(SimplePager.Resources.class);
+        pager = new SimplePager(TextLocation.CENTER, pagerResources, false, 0, true);
+        pager.setDisplay(dataGrid);
+        pager.setPageSize(pageSize);
         
     }
 
     public PagedTable( final int pageSize,
                        final ProvidesKey<T> providesKey ) {
-        dataGrid = new DataGrid<T>( Integer.MAX_VALUE,
-                providesKey );
+        dataGrid = new DataGrid<T>( Integer.MAX_VALUE, providesKey );
         setupGridTable();
         this.pageSize = pageSize;
         this.dataGrid.setPageSize( pageSize );
-        //this.pager.setDisplay( dataGrid );
-        //this.pager.setPageSize( pageSize );
+        SimplePager.Resources pagerResources = GWT.create(SimplePager.Resources.class);
+        pager = new SimplePager(TextLocation.CENTER, pagerResources, false, 0, true);
+        this.pager.setDisplay( dataGrid );
+        this.pager.setPageSize( pageSize );
     }
     
     private void setupGridTable() {

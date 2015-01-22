@@ -24,6 +24,7 @@ import javax.inject.Inject;
 
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
+import org.teiid.authoring.client.widgets.table.SimpleTable;
 
 import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.cell.client.CheckboxCell;

@@ -16,6 +16,7 @@
 package org.teiid.authoring.client.dialogs;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
@@ -30,6 +31,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
 
+@Dependent
 @Templated("./UploadContentPanel.html")
 public class UploadContentPanel extends Composite {
 

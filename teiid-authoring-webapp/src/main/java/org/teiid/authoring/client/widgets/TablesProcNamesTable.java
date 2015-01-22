@@ -18,6 +18,8 @@ package org.teiid.authoring.client.widgets;
 import java.util.Collections;
 import java.util.List;
 
+import org.teiid.authoring.client.widgets.table.SimpleTable;
+
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.ui.Composite;

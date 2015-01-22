@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.teiid.authoring.client.widgets;
+package org.teiid.authoring.client.widgets.table;
 
 import java.util.List;
 

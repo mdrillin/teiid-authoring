@@ -126,6 +126,7 @@ public class DataServicesLibraryScreen extends Composite {
 			parameters.put(Constants.CONFIRMATION_DIALOG_MESSAGE, i18n.format("dslibrary.confirm-delete-dialog-message",deleteServiceName));
 			parameters.put(Constants.CONFIRMATION_DIALOG_TYPE, Constants.CONFIRMATION_DIALOG_DELETE_SERVICE);
 	    	placeManager.goTo(new DefaultPlaceRequest(Constants.CONFIRMATION_DIALOG,parameters));
+	    	//placeManager.goTo(new DefaultPlaceRequest("MyTestPopUp"));
     	} else if(!cloneName.equals("NONE")) {
     		doCloneService(cloneName);
     	} else {

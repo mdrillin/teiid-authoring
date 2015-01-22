@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
@@ -28,6 +29,7 @@ import com.google.gwt.user.client.ui.Widget;
 /**
  * A generic confirmation dialog, used to confirm actions
  */
+@Dependent
 @WorkbenchPopup(identifier = "AddViewSrcDialog")
 public class AddViewSrcDialog {
 

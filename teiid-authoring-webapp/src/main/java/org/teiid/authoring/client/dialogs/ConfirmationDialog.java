@@ -1,6 +1,7 @@
 package org.teiid.authoring.client.dialogs;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
@@ -16,14 +17,17 @@ import org.uberfire.mvp.PlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+
+import org.gwtbootstrap3.client.ui.gwt.FlowPanel;
+
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.IsWidget;
 
 /**
  * A generic confirmation dialog, used to confirm actions
  */
+@Dependent
 @WorkbenchPopup(identifier = "ConfirmationDialog")
 public class ConfirmationDialog {
 
@@ -35,7 +39,7 @@ public class ConfirmationDialog {
     @Inject
 	private PlaceManager placeManager;
 	private PlaceRequest place;
-	private final VerticalPanel view = new VerticalPanel();
+	private final FlowPanel view = new FlowPanel();
 	private HTMLPanel messagePanel;
 	private Button okButton;
 	private Button closeButton;
@@ -65,6 +69,7 @@ public class ConfirmationDialog {
 		hPanel.add(closeButton);
 		view.add( messagePanel );
 		view.add( hPanel );
+		view.setHeight("200px");
 	}
 	
 	@OnStartup
@@ -108,10 +113,10 @@ public class ConfirmationDialog {
 	}
 	
 	@WorkbenchPartView
-	public Widget getView() {
+	public IsWidget getView() {
 		return view;
 	}
-	
+
 	/*
 	 * Fires different Cancel events, depending on the type of confirmation
 	 */

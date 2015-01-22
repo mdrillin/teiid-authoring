@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -46,6 +47,7 @@ import com.google.gwt.view.client.SingleSelectionModel;
 /**
  * Composite for display of ViewSource list and controls
  */
+@Dependent
 @Templated("./ViewSourcePanel.html")
 public class ViewSourcePanel extends Composite {
 

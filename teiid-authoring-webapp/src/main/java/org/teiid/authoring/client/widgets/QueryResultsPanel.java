@@ -16,6 +16,7 @@
 package org.teiid.authoring.client.widgets;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
@@ -31,6 +32,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
 import com.google.gwt.user.client.ui.Label;
 
+@Dependent
 @Templated("./QueryResultsPanel.html")
 public class QueryResultsPanel extends Composite {
 

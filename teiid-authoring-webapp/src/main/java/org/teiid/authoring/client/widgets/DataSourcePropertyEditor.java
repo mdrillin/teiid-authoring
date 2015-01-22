@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
@@ -45,6 +46,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 /**
  * Composite for display of DataSource names
  */
+@Dependent
 public class DataSourcePropertyEditor extends Composite {
 
 	private static final String PASSWORD_KEY = "password"; //$NON-NLS-1$

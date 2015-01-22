@@ -1,6 +1,7 @@
 package org.teiid.authoring.client.dialogs;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
@@ -23,6 +24,7 @@ import com.google.gwt.user.client.ui.Widget;
 /**
  * A dialog for upload of jdbc drivers
  */
+@Dependent
 @WorkbenchPopup(identifier = "UploadDriverDialog")
 public class UploadDriverDialog {
 

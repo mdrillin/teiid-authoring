@@ -17,6 +17,7 @@ package org.teiid.authoring.client.widgets;
 
 import java.util.List;
 
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
@@ -45,6 +46,7 @@ import com.google.gwt.view.client.Range;
 /**
  * Composite for display of Query Results
  */
+@Dependent
 public class QueryResultPagedTableDisplayer extends Composite {
 
 	private static int NUMBER_ROWS_DEFAULT = 10;
