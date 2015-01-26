@@ -89,7 +89,7 @@ public class PagedTable<T>
         this.pageSize = pageSize;
         this.dataGrid.setPageSize( pageSize );
         SimplePager.Resources pagerResources = GWT.create(SimplePager.Resources.class);
-        pager = new SimplePager(TextLocation.CENTER, pagerResources, false, 0, true);
+        pager = new SimplePager(TextLocation.RIGHT, pagerResources, false, 0, true);
         pager.setDisplay(dataGrid);
         pager.setPageSize(pageSize);
         
@@ -102,7 +102,7 @@ public class PagedTable<T>
         this.pageSize = pageSize;
         this.dataGrid.setPageSize( pageSize );
         SimplePager.Resources pagerResources = GWT.create(SimplePager.Resources.class);
-        pager = new SimplePager(TextLocation.CENTER, pagerResources, false, 0, true);
+        pager = new SimplePager(TextLocation.RIGHT, pagerResources, false, 0, true);
         this.pager.setDisplay( dataGrid );
         this.pager.setPageSize( pageSize );
     }
@@ -328,10 +328,10 @@ public class PagedTable<T>
     
     /**
      * Link a data provider to the table
-     * @param dataProvider
+     * @param dProvider the async data provider
      */
-    public void setDataProvider( final AsyncDataProvider<T> dataProvider ) {
-        this.dataProvider = dataProvider;
+    public void setDataProvider( final AsyncDataProvider<T> dProvider ) {
+        this.dataProvider = dProvider;
         this.dataProvider.addDataDisplay( dataGrid );
     }
 
@@ -339,9 +339,9 @@ public class PagedTable<T>
         return this.pageSize;
     }
 
-//    public int getPageStart() {
-//        return this.pager.getPageStart();
-//    }
+    public int getPageStart() {
+        return this.pager.getPageStart();
+    }
 
 }
 

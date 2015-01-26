@@ -62,29 +62,24 @@ public class SimpleTable<T>
 
     private String emptyTableCaption;
 
-    public SimpleTable() {
+    public SimpleTable(final int heightPx, final int widthPx, final int visibleRows) {
     	DataGridResources.INSTANCE.dataGridStyle().ensureInjected();
     	dataGrid = new DataGrid<T>(Integer.MAX_VALUE,DataGridResources.INSTANCE);
-        setupGridTable();
+        setupGridTable(heightPx,widthPx,visibleRows);
     }
     
-//    public SimpleTable(final ProvidesKey<T> providesKey, GridGlobalPreferences gridGlobalPreferences) {
-//        dataGrid = new DataGrid<T>( Integer.MAX_VALUE,
-//                                    providesKey );
-//        setupGridTable();
-//    }
-
-    public SimpleTable( final ProvidesKey<T> providesKey ) {
+    public SimpleTable( final ProvidesKey<T> providesKey, final int heightPx, final int widthPx, final int visibleRows ) {
         dataGrid = new DataGrid<T>( Integer.MAX_VALUE,
                                     providesKey );
-        setupGridTable();
+        setupGridTable(heightPx,widthPx,visibleRows);
     }
    
 
-    private void setupGridTable() {
-        //dataGrid.addStyleName( CommonResources.INSTANCE.CSS().dataGrid() );
+    private void setupGridTable(int heightPx, int widthPx,int visibleRows) {
         dataGrid.setAutoHeaderRefreshDisabled(true);
-        dataGrid.setVisibleRange(0, 7);
+        dataGrid.setVisibleRange(0, visibleRows);
+        dataGrid.setWidth(widthPx+"px");
+        dataGrid.setHeight(heightPx+"px");
         
         setEmptyTableWidget();
 

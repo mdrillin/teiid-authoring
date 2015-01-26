@@ -1,27 +1,29 @@
 <!DOCTYPE html>
-<div>
+<div style="margin:8px">
   <div class="row">
-    <div class="col-sm-11">
+    <div class="col-sm-10">
       <label data-field="lbl-joineditor-message" style="font-style:italic" />
     </div>
-    <div class="col-sm-1">
-      <button data-field="btn-joineditor-setDdl">Apply</button>
+    <div class="col-sm-2">
+      <button data-field="btn-joineditor-setDdl" class="btn btn-sm">Replace View</button>
     </div>
   </div>
   <div class="row">
+    <div class="col-sm-1">
+    </div>
     <div class="col-sm-3">
-      <label title="The available Data Sources"><strong>Available Sources</strong></label>
-      <div data-field="listbox-sources"></div>
-      <label title="Source Tables"><strong>Source Tables</strong></label>
+      <div><label title="The available Data Sources"><strong>Available Sources</strong></label></div>
+      <div data-field="listbox-sources" style="width:100%"></div>
+      <div><label title="Source Tables"><strong>Source Tables</strong></label></div>
       <div data-field="tbl-source-tables"></div>
     </div>
     <div class="col-sm-1">
       <div style="height:50px"></div>
-      <button data-field="btn-joineditor-setLHS">LHS&nbsp;&gt;</button>
+      <button data-field="btn-joineditor-setLHS" class="btn btn-lg">LHS&nbsp;&gt;</button>
       <div style="height:50px"></div>
-      <button data-field="btn-joineditor-setRHS">RHS&nbsp;&gt;</button>
+      <button data-field="btn-joineditor-setRHS" class="btn btn-lg">RHS&nbsp;&gt;</button>
     </div>
-      <div class="col-sm-8">
+      <div class="col-sm-7">
         <div class="row">
           <div class="col-sm-12">
             <div class="row">
@@ -44,15 +46,15 @@
             </div>
             <div class="row">
               <div class="col-sm-5">
-                <div data-field="listbox-lhcriteria"></div>
+                <div data-field="listbox-lhcriteria" style="width:100%"></div>
               </div>
               <div class="col-sm-1">
                 <div><label><strong>&#61;</strong></label></div>
               </div>
               <div class="col-sm-5">
-                <div data-field="listbox-rhcriteria"></div>
+                <div data-field="listbox-rhcriteria" style="width:100%"></div>
               </div>
-              <span class="col-sm-1"></span>
+              <div class="col-sm-1"></div>
             </div>
           </div>
         </div>

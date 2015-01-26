@@ -20,14 +20,6 @@
              xmlns:b="urn:import:org.gwtbootstrap3.client.ui"
              xmlns:b.gwt="urn:import:org.gwtbootstrap3.client.ui.gwt">
 
-  <ui:style>
-    .dataGridContainer {
-      margin: 0px;
-    }
-  </ui:style>
-
-  <g:ResizeLayoutPanel height="200px" width="250px" addStyleNames="{style.dataGridContainer}">
-    <b.gwt:DataGrid width="100%" ui:field="dataGrid" addStyleNames="table table-bordered table-striped table-hover"/>
-  </g:ResizeLayoutPanel>
+  <b.gwt:DataGrid ui:field="dataGrid" addStyleNames="table table-bordered table-striped table-hover"/>
 
 </ui:UiBinder>

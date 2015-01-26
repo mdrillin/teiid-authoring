@@ -38,3 +38,8 @@
   line-height: normal;
   font-size: 12px;
 }
+.vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}

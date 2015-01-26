@@ -24,6 +24,8 @@ package org.teiid.authoring.share;
  */
 public class Constants {
 
+	public static final String COMMA = ",";
+	
 	public static final String WEBUI_USER = "webui";
 	public static final String WEBUI_PASS = "webui";
 	

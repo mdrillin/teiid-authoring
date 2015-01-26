@@ -17,7 +17,6 @@ package org.teiid.authoring.client.widgets;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,13 +36,8 @@ import org.teiid.authoring.client.services.NotificationService;
 import org.teiid.authoring.client.services.QueryRpcService;
 import org.teiid.authoring.client.services.TeiidRpcService;
 import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
-import org.teiid.authoring.client.utils.DdlHelper;
 import org.teiid.authoring.share.Constants;
-import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.NotificationBean;
-import org.teiid.authoring.share.beans.QueryColumnBean;
-import org.teiid.authoring.share.beans.QueryColumnResultSetBean;
-import org.teiid.authoring.share.beans.QueryTableProcBean;
 import org.teiid.authoring.share.beans.VdbDetailsBean;
 import org.teiid.authoring.share.beans.VdbModelBean;
 import org.teiid.authoring.share.beans.ViewModelRequestBean;
@@ -51,27 +45,18 @@ import org.teiid.authoring.share.services.StringUtils;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextArea;
-import com.google.gwt.view.client.SelectionChangeEvent;
-import com.google.gwt.view.client.SingleSelectionModel;
 
 @Templated("./ViewEditorPanel.html")
 public class ViewEditorPanel extends Composite {
 
-	private Map<String,String> shortToLongTableNameMap = new HashMap<String,String>();
 	private String serviceName = null;
-	private String selectedTable = null;
 	private boolean haveSuccessfullyTested = false;
 	private String statusEnterName = null;
 	private String statusEnterView = null;
@@ -99,24 +84,6 @@ public class ViewEditorPanel extends Composite {
     @Inject @DataField("label-vieweditor-description")
     protected Label viewEditorPanelDescription;
     
-    @Inject
-    protected DataSourceNamesTable dsNamesTable;
-    
-    @Inject
-    protected TablesProcNamesTable tablesAndProcsTable;
-    
-    @Inject
-    protected ColumnNamesTable columnsTable;
-    
-    @Inject @DataField("picker-tables")
-    protected HorizontalPanel horizPanel;
-    
-    @Inject @DataField("btn-vieweditor-createDdl")
-    protected Button createDdlButton;
-    
-    @Inject @DataField("btn-vieweditor-addToDdl")
-    protected Button addToDdlButton;
-        
     @Inject @DataField("btn-vieweditor-manage-sources")
     protected Button manageSourceButton;
     
@@ -135,33 +102,23 @@ public class ViewEditorPanel extends Composite {
     @Inject @DataField("table-vieweditor-queryResults")
     protected QueryResultsPanel queryResultsPanel;
     
-    @Inject @DataField("lbl-vieweditor-sources-message")
-    protected Label sourcesMessageLabel;
-    
-    @Inject @DataField("lbl-vieweditor-samples-message")
-    protected Label samplesMessageLabel;
-    
-    @Inject @DataField("listbox-vieweditor-templates")
-    protected ListBox ddlTemplatesListBox;
-
-    @Inject @DataField("textarea-vieweditor-sampleDdl")
-    protected TextArea sampleDdlTextArea;
-    
-    @Inject @DataField("btn-vieweditor-apply-sample")
-    protected Button applySampleDdlButton;
-    
 	private String workingDdl;
 	private List<String> workingViewSrcNames;
-	private String selectedDataSrcName;
-	private SingleSelectionModel<String> dsSelectionModel;
-	private SingleSelectionModel<String> tableSelectionModel;
 	
     @Inject Event<UiEvent> stateChangedEvent;
 
+    // Single Source Editor
+    @Inject @DataField("single-source-editor")
+    private SingleSourceEditorPanel singleSourceEditorPanel;
+    
     // Join Editor
     @Inject @DataField("join-editor")
     private JoinEditorPanel joinEditorPanel;
     
+    // Templates Editor
+    @Inject @DataField("templates-editor")
+    private TemplatesEditorPanel templatesEditorPanel;
+
     /**
      * Called after construction.
      */
@@ -174,47 +131,6 @@ public class ViewEditorPanel extends Composite {
 		statusTestView = i18n.format("vieweditor-panel.status-label-test-view");
 		currentStatus = statusEnterView;
 
-    	tablesAndProcsTable.clear();
-    	columnsTable.clear();
-
-    	// Add the three picker tables to horizontal panel
-    	horizPanel.setSpacing(0);
-    	horizPanel.add(dsNamesTable);
-    	horizPanel.add(tablesAndProcsTable);
-    	horizPanel.add(columnsTable);
-    	
-    	doGetQueryableSources();
-    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
-
-    	// SelectionModel to handle Source selection 
-    	dsSelectionModel = new SingleSelectionModel<String>();
-    	dsNamesTable.setSelectionModel(dsSelectionModel); 
-    	dsSelectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
-    		public void onSelectionChange( SelectionChangeEvent event) { 
-    			tablesAndProcsTable.clear();
-    			columnsTable.clear();
-    			String srcName = dsSelectionModel.getSelectedObject();
-    			selectedDataSrcName = srcName;
-    			if (srcName != null) {
-    				doGetTablesAndProcs(srcName);
-    			}
-    		} });
-
-    	// SelectionModel to handle Table-procedure selection 
-    	tableSelectionModel = new SingleSelectionModel<String>();
-    	tablesAndProcsTable.setSelectionModel(tableSelectionModel); 
-    	tableSelectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
-    		public void onSelectionChange( SelectionChangeEvent event) { 
-    			String selected = tableSelectionModel.getSelectedObject();
-    			selectedTable = selected;
-    			if (selected != null) {
-    				String srcName = dsSelectionModel.getSelectedObject();
-    				String longTableName = shortToLongTableNameMap.get(selected);
-    				doGetTableColumns(srcName, longTableName, 1);
-    			}
-    		} });
-    	
-    	
     	viewDdlTextArea.addKeyUpHandler(new KeyUpHandler() {
             @Override
             public void onKeyUp(KeyUpEvent event) {
@@ -226,77 +142,19 @@ public class ViewEditorPanel extends Composite {
             }
         });
     	
+    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
+    	
     	// starting viewSources list is empty
     	List<String> sList = new ArrayList<String>();
-    	viewSourcePanel.setData(sList,dsNamesTable.getData());
+    	viewSourcePanel.setData(sList,sList);
     	
-    	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-picksource-message"));
-    	samplesMessageLabel.setText(i18n.format("vieweditor-panel.sample-ddl-message"));
-
-    	populateDdlTemplatesListBox();
-    	sampleDdlTextArea.setText(DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_SINGLE_SOURCE));
-    	// Change Listener for Type ListBox
-    	ddlTemplatesListBox.addChangeHandler(new ChangeHandler()
-        {
-        	// Changing the Type selection will re-populate property table with defaults for that type
-        	public void onChange(ChangeEvent event)
-        	{
-        		String ddlSample = null;
-        		String template = getSelectedDdlTemplate(); 
-        		if(template.equals(DdlHelper.DDL_TEMPLATE_SINGLE_SOURCE)) {
-        			ddlSample = DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_SINGLE_SOURCE);
-        		} else if(template.equals(DdlHelper.DDL_TEMPLATE_TWO_SOURCE_JOIN)) {
-        			ddlSample = DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_TWO_SOURCE_JOIN);
-        		} else if(template.equals(DdlHelper.DDL_TEMPLATE_FLAT_FILE)) {
-        			ddlSample = DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_FLAT_FILE);
-        		} else if(template.equals(DdlHelper.DDL_TEMPLATE_WEBSERVICE)) {
-        			ddlSample = DdlHelper.getDdlTemplate(DdlHelper.DDL_TEMPLATE_WEBSERVICE);
-        		} 
-        		sampleDdlTextArea.setText(ddlSample);
-        	}
-        });
-
     	// Tooltips
     	viewDdlTextArea.setTitle(i18n.format("vieweditor-panel.viewDdlTextArea.tooltip"));
-    	createDdlButton.setTitle(i18n.format("vieweditor-panel.createDdlButton.tooltip"));
-    	addToDdlButton.setTitle(i18n.format("vieweditor-panel.addToDdlButton.tooltip"));
-    	sampleDdlTextArea.setTitle(i18n.format("vieweditor-panel.sampleDdlTextArea.tooltip"));
-    	applySampleDdlButton.setTitle(i18n.format("vieweditor-panel.applySampleDdlButton.tooltip"));
-    	ddlTemplatesListBox.setTitle(i18n.format("vieweditor-panel.ddlTemplatesListBox.tooltip"));
-    	dsNamesTable.setTitle(i18n.format("vieweditor-panel.dsNamesTable.tooltip"));
-    	tablesAndProcsTable.setTitle(i18n.format("vieweditor-panel.tablesAndProcsTable.tooltip"));
-    	columnsTable.setTitle(i18n.format("vieweditor-panel.columnsTable.tooltip"));
     	testViewButton.setTitle(i18n.format("vieweditor-panel.testViewButton.tooltip"));
     	manageSourceButton.setTitle(i18n.format("vieweditor-panel.manageSourceButton.tooltip"));
 
     	updateStatus();
     }
-    
-    /**
-     * Init the List of Service actions
-     */
-    private void populateDdlTemplatesListBox( ) {
-    	// Make sure clear first
-    	ddlTemplatesListBox.clear();
-
-    	ddlTemplatesListBox.insertItem(DdlHelper.DDL_TEMPLATE_SINGLE_SOURCE, 0);
-    	ddlTemplatesListBox.insertItem(DdlHelper.DDL_TEMPLATE_TWO_SOURCE_JOIN, 1);
-    	ddlTemplatesListBox.insertItem(DdlHelper.DDL_TEMPLATE_FLAT_FILE, 2);
-    	ddlTemplatesListBox.insertItem(DdlHelper.DDL_TEMPLATE_WEBSERVICE, 3);
-    	
-    	// Initialize by setting the selection to the first item.
-    	ddlTemplatesListBox.setSelectedIndex(0);
-    }
-    
-    /**
-     * Get the selected action from the MoreActions dropdown
-     * @return
-     */
-    private String getSelectedDdlTemplate() {
-    	int index = ddlTemplatesListBox.getSelectedIndex();
-    	return ddlTemplatesListBox.getValue(index);
-    }
-    
     
     public void setTitle(String title) {
     	viewEditorPanelTitle.setText(title);
@@ -312,7 +170,7 @@ public class ViewEditorPanel extends Composite {
     }
     
     public void setViewSources(List<String> viewSources) {
-    	this.viewSourcePanel.setData(viewSources,dsNamesTable.getData());
+    	this.viewSourcePanel.setData(viewSources,singleSourceEditorPanel.getAllSourceNames());
     	updateStatus();
     }
     
@@ -338,177 +196,48 @@ public class ViewEditorPanel extends Composite {
     	return this.owner;
     }
     
-    protected void doGetQueryableSources( ) {
-    	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
-    		@Override
-    		public void onReturn(List<DataSourcePageRow> dsInfos) {
-    			// Create list of DataSources that are accessible.  Only the Sources that have 'OK' state
-    			// have an associated VDB source and are reachable...
-            	List<String> dsList = new ArrayList<String>();
-    			for(DataSourcePageRow row : dsInfos) {
-    				if(row.getState()==DataSourcePageRow.State.OK) {
-            			dsList.add(row.getName());
-    				}
-    			}
-            	dsSelectionModel.clear();
-             	dsNamesTable.setData(dsList);
-             	viewSourcePanel.setAllAvailableSources(dsList);
-            	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-picksource-message"));
-            	updateStatus();
-    		}
-    		@Override
-    		public void onError(Throwable error) {
-                notificationService.sendErrorNotification(i18n.format("vieweditor-panel.error-getting-svcsources"), error); //$NON-NLS-1$
-    		}
-    	});
-    }
- 
     /**
-     * Get the Tables and Procs for the supplied data source
-     * @param dataSourceName the name of the source
+     * Handles UiEvents
+     * @param dEvent
      */
-    protected void doGetTablesAndProcs(String dataSourceName) {
-    	String vdbSrcName = Constants.SERVICE_SOURCE_VDB_PREFIX+dataSourceName;
-    	String vdbSrcJndi = Constants.JNDI_PREFIX+vdbSrcName;
-		queryService.getTablesAndProcedures(vdbSrcJndi, vdbSrcName, new IRpcServiceInvocationHandler<List<QueryTableProcBean>>() {
-			@Override
-			public void onReturn(List<QueryTableProcBean> tablesAndProcs) {
-				List<String> nameList = new ArrayList<String>();
-				shortToLongTableNameMap.clear();
-				for(QueryTableProcBean tp : tablesAndProcs) {
-					String name = tp.getName();
-					if(name!=null) {
-						if(name.contains(".PUBLIC.")) {
-							String shortName = name.substring(name.indexOf(".PUBLIC.")+".PUBLIC.".length());
-							shortToLongTableNameMap.put(shortName, name);
-							nameList.add(shortName);
-						} else if(!name.contains(".INFORMATION_SCHEMA.")) {
-							shortToLongTableNameMap.put(name, name);
-							nameList.add(name);
-						}
-					}
-				}
-				tableSelectionModel.clear();
-				tablesAndProcsTable.setData(nameList);
-            	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-picktable-message"));
-            	updateStatus();
-			}
-			@Override
-			public void onError(Throwable error) {
-				notificationService.sendErrorNotification(i18n.format("vieweditor-panel.error-getting-tables-procs"), error); //$NON-NLS-1$
-			}
-		});
-
-    }
-    
-    /**
-     * Search for QueryColumns based on the current page and filter settings.
-     * @param page
-     */
-    protected void doGetTableColumns(String source, String table, int page) {
-    	String filterText = "";
-    	String vdbSrcJndi = Constants.JNDI_PREFIX+Constants.SERVICE_SOURCE_VDB_PREFIX+source;
-//    	String filterText = (String)stateService.get(ApplicationStateKeys.QUERY_COLUMNS_FILTER_TEXT,"");
-//        stateService.put(ApplicationStateKeys.QUERY_COLUMNS_PAGE, currentQueryColumnsPage);
-
-    	queryService.getQueryColumnResultSet(page, filterText, vdbSrcJndi, table,
-    			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
-    		@Override
-    		public void onReturn(QueryColumnResultSetBean data) {
-    			List<CheckableNameTypeRow> colList = new ArrayList<CheckableNameTypeRow>();
-    			List<QueryColumnBean> qColumns = data.getQueryColumns();
-    			for(QueryColumnBean col : qColumns) {
-    				CheckableNameTypeRow cRow = new CheckableNameTypeRow();
-    				cRow.setName(col.getName());
-    				cRow.setType(col.getType());
-    				colList.add(cRow);
-    			}
-    			columnsTable.setData(colList);
-            	sourcesMessageLabel.setText(i18n.format("vieweditor-panel.sources-ddl-pickcolumns-message"));
-            	updateStatus();
-    		}
-    		@Override
-    		public void onError(Throwable error) {
-    			notificationService.sendErrorNotification(i18n.format("vieweditor-panel.error-getting-tablecols"), error); //$NON-NLS-1$
-    			// noColumnsMessage.setVisible(true);
-    			// columnFetchInProgressMessage.setVisible(false);
-    		}
-    	});
-
-    }
-    
-    /**
-     * Event handler that fires when the user clicks the create view defn button.
-     * @param event
-     */
-    @EventHandler("btn-vieweditor-createDdl")
-    public void onCreateDdlButtonClick(ClickEvent event) {
-    	String theTable = (selectedTable==null) ? "NULL" : selectedTable;
-    	
-    	List<String> colNames = columnsTable.getSelectedColumnNames();
-    	List<String> colTypes = columnsTable.getSelectedColumnTypes();
-    	List<String> selectedSourceNames = new ArrayList<String>();
-    	selectedSourceNames.add(this.selectedDataSrcName);
-    	
-    	if(colNames.isEmpty()) {
-    		Window.alert("Please select one or more columns");
-    		return;
+    public void onDialogEvent(@Observes UiEvent dEvent) {
+    	// User has OK'd source rename
+    	if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_OK) {
+    		replaceViewDefn(workingDdl,workingViewSrcNames);
+    	// User has OK'd source redeploy
+    	} else if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_CANCEL) {
+    	} else if(dEvent.getType() == UiEventType.VIEW_SOURCES_CHANGED) {
+    		updateStatus();
+    	} else if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_FROM_JOIN_EDITOR) {
+    		handleViewReplaceEvent(dEvent);
+    	} else if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_FROM_SSOURCE_EDITOR) {
+    		handleViewReplaceEvent(dEvent);
+    	} else if(dEvent.getType() == UiEventType.VIEW_DEFN_ADD_COLS_FROM_SSOURCE_EDITOR) {
+    		String ddl = viewDdlTextArea.getText();
+    		String colString = dEvent.getViewDdl();
+    		List<String> viewSrcs = dEvent.getViewSources();
+    		replaceViewDefn(ddl+'\n'+colString,viewSrcs);
+    	} else if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_FROM_TEMPLATES_EDITOR) {
+    		handleViewReplaceEvent(dEvent);
     	}
-     	String viewDdl = DdlHelper.getODataViewDdl(Constants.SERVICE_VIEW_NAME, theTable, colNames, colTypes);
-    	// Nothing in viewDDL area - safe to replace.
+    }
+    
+    /**
+     * Handle event requesting replacement of the view
+     * @param viewReplaceEvent
+     */
+    private void handleViewReplaceEvent(UiEvent viewReplaceEvent) {
+    	String ddl = viewReplaceEvent.getViewDdl();
+		List<String> viewSrcs = viewReplaceEvent.getViewSources();
+    	
+    	// Nothing in viewDDL area - safe to replace without confirmation
     	if(StringUtils.isEmpty(viewDdlTextArea.getText())) {
-    		replaceViewDefn(viewDdl,selectedSourceNames);
-    		viewSourcePanel.setData(selectedSourceNames,dsNamesTable.getData());
-        // has View DDL - prompt before replace.
+    		replaceViewDefn(ddl,viewSrcs);
+        // has View DDL - confirm before replace.
     	} else {
-    		workingDdl = viewDdl;
-    		workingViewSrcNames = selectedSourceNames;
-    		showConfirmOverwriteDialog();
-    	}
-    }
-    
-    /**
-     * Event handler that fires when the user clicks the Add to view defn button.
-     * @param event
-     */
-    @EventHandler("btn-vieweditor-addToDdl")
-    public void onAddToDdlButtonClick(ClickEvent event) {
-    	String colString = columnsTable.getSelectedRowString();
-    	if(colString.isEmpty()) {
-    		Window.alert("Please select one or more columns");
-    		return;
-    	}
-
-    	String currentDdl = viewDdlTextArea.getText();
-    	viewDdlTextArea.setText(currentDdl+"\n"+colString);  
-    	
-    	List<String> selectedSrcNames = new ArrayList<String>();
-    	selectedSrcNames.add(this.selectedDataSrcName);
-    	this.viewSourcePanel.addData(selectedSrcNames,dsNamesTable.getData());
-    	
-    	haveSuccessfullyTested = false;
-    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
-    	updateStatus();
-    }
-    
-    /**
-     * Event handler that fires when the user clicks the Apply sample button.
-     * @param event
-     */
-    @EventHandler("btn-vieweditor-apply-sample")
-    public void onApplySampleDdlButtonClick(ClickEvent event) {
-    	String ddlTemplate = sampleDdlTextArea.getText();
-    	if(ddlTemplate.isEmpty()) {
-    		Window.alert("Please select a template");
-    		return;
-    	}
-    	// Nothing in viewDDL area - safe to replace.
-    	if(StringUtils.isEmpty(viewDdlTextArea.getText())) {
-    		replaceViewDefn(ddlTemplate,Collections.<String>emptyList());
-        // has View DDL - prompt before replace.
-    	} else {
-    		workingDdl = ddlTemplate;
-    		workingViewSrcNames = Collections.<String>emptyList();
+    		// Sets working vars.  If confirmed, the working vars are used to replace content 
+    		workingDdl = ddl;
+    		workingViewSrcNames = viewSrcs;
     		showConfirmOverwriteDialog();
     	}
     }
@@ -526,25 +255,6 @@ public class ViewEditorPanel extends Composite {
     }
     
     /**
-     * Handles UiEvents
-     * @param dEvent
-     */
-    public void onDialogEvent(@Observes UiEvent dEvent) {
-    	// User has OK'd source rename
-    	if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_OK) {
-    		replaceViewDefn(workingDdl,workingViewSrcNames);
-    	// User has OK'd source redeploy
-    	} else if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_CANCEL) {
-    	} else if(dEvent.getType() == UiEventType.VIEW_SOURCES_CHANGED) {
-    		updateStatus();
-    	} else if(dEvent.getType() == UiEventType.VIEW_DEFN_REPLACE_FROM_JOIN_EDITOR) {
-    		String ddl = dEvent.getViewDdl();
-    		List<String> viewSrcs = dEvent.getViewSources();
-    		replaceViewDefn(ddl,viewSrcs);
-    	}
-    }
-    
-    /**
      * Replace the ViewDefn TextArea with the supplied DDL
      * @param ddl the ddl
      * @param viewSrcNames the viewSrcNames needed for this view
@@ -552,7 +262,7 @@ public class ViewEditorPanel extends Composite {
     private void replaceViewDefn(String ddl,List<String> viewSrcNames) {
     	viewDdlTextArea.setText(ddl);  
     	if(viewSrcNames!=null) {
-    		viewSourcePanel.setData(viewSrcNames,dsNamesTable.getData());
+    		viewSourcePanel.setData(viewSrcNames,singleSourceEditorPanel.getAllSourceNames());
     	}
     	
     	haveSuccessfullyTested = false;
@@ -714,21 +424,6 @@ public class ViewEditorPanel extends Composite {
     		if(getViewSources().isEmpty()) {
     			currentStatus = statusDefineViewSources;
     		}
-    	}
-    	
-    	List<CheckableNameTypeRow> colRows = columnsTable.getData();
-    	if(colRows.isEmpty()) {
-    		createDdlButton.setEnabled(false);
-    		addToDdlButton.setEnabled(false);
-    	} else {
-    		createDdlButton.setEnabled(true);
-    		addToDdlButton.setEnabled(true);
-    	}
-    	
-    	if(StringUtils.isEmpty(sampleDdlTextArea.getText())) {
-    		applySampleDdlButton.setEnabled(false);
-    	} else {
-    		applySampleDdlButton.setEnabled(true);
     	}
     	
 		// Force the user to successfully test the service first

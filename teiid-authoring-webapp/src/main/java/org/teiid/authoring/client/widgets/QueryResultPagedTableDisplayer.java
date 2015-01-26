@@ -190,8 +190,7 @@ public class QueryResultPagedTableDisplayer extends Composite {
     	AsyncDataProvider<QueryResultPageRow> dataProvider = new AsyncDataProvider<QueryResultPageRow>() {
     		protected void onRangeChanged( HasData<QueryResultPageRow> display ) {
     			final Range range = display.getVisibleRange();
-    			PageRequest request = new PageRequest( range.getStart(),
-    					range.getLength() );
+    			PageRequest request = new PageRequest( range.getStart(), range.getLength() );
 
     			queryService.getQueryResults(request, source, sql, new IRpcServiceInvocationHandler<PageResponse<QueryResultPageRow>>() {
     				@Override

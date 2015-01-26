@@ -291,7 +291,7 @@ public class JoinEditorPanel extends Composite {
     		}
     		@Override
     		public void onError(Throwable error) {
-                notificationService.sendErrorNotification(i18n.format("vieweditor-panel.error-getting-svcsources"), error); //$NON-NLS-1$
+                notificationService.sendErrorNotification(i18n.format("joineditor-panel.error-getting-svcsources"), error); //$NON-NLS-1$
     		}
     	});
     }
@@ -327,7 +327,7 @@ public class JoinEditorPanel extends Composite {
 			}
 			@Override
 			public void onError(Throwable error) {
-				notificationService.sendErrorNotification(i18n.format("vieweditor-panel.error-getting-tables-procs"), error); //$NON-NLS-1$
+				notificationService.sendErrorNotification(i18n.format("joineditor-panel.error-getting-tables-procs"), error); //$NON-NLS-1$
 			}
 		});
 
@@ -546,7 +546,7 @@ public class JoinEditorPanel extends Composite {
     		}
     		@Override
     		public void onError(Throwable error) {
-    			notificationService.sendErrorNotification(i18n.format("vieweditor-panel.error-getting-tablecols"), error); //$NON-NLS-1$
+    			notificationService.sendErrorNotification(i18n.format("joineditor-panel.error-getting-tablecols"), error); //$NON-NLS-1$
     		}
     	});
 
@@ -580,7 +580,7 @@ public class JoinEditorPanel extends Composite {
     		}
     		@Override
     		public void onError(Throwable error) {
-    			notificationService.sendErrorNotification(i18n.format("vieweditor-panel.error-getting-tablecols"), error); //$NON-NLS-1$
+    			notificationService.sendErrorNotification(i18n.format("joineditor-panel.error-getting-tablecols"), error); //$NON-NLS-1$
     		}
     	});
 

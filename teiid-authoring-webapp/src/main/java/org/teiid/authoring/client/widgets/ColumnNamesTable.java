@@ -25,6 +25,7 @@ import javax.inject.Inject;
 import org.teiid.authoring.client.dialogs.UiEvent;
 import org.teiid.authoring.client.dialogs.UiEventType;
 import org.teiid.authoring.client.widgets.table.SimpleTable;
+import org.teiid.authoring.share.Constants;
 
 import com.google.gwt.cell.client.Cell.Context;
 import com.google.gwt.cell.client.CheckboxCell;
@@ -50,6 +51,9 @@ public class ColumnNamesTable extends Composite {
 	@Inject Event<UiEvent> uiEvent;
 	
 	private static String COLUMN_HEADER_NAME = "Columns";
+	private static int TABLE_HEIGHT_PX = 200;
+	private static int TABLE_WIDTH_PX = 250;
+	private static int TABLE_VISIBLE_ROWS = 7;
 
     protected VerticalPanel panel = new VerticalPanel();
     protected Label label = new Label();
@@ -67,7 +71,7 @@ public class ColumnNamesTable extends Composite {
      * @return the panel widget
      */
     protected Widget createTablePanel() {
-    	table = new SimpleTable<CheckableNameTypeRow>();
+    	table = new SimpleTable<CheckableNameTypeRow>(TABLE_HEIGHT_PX,TABLE_WIDTH_PX,TABLE_VISIBLE_ROWS);
     	
         // Add Checkbox column
     	Column<CheckableNameTypeRow, Boolean> checkboxColumn= new Column<CheckableNameTypeRow, Boolean>(new CheckboxCell(true,false))
@@ -125,9 +129,6 @@ public class ColumnNamesTable extends Composite {
         table.addColumn( nameColumn, COLUMN_HEADER_NAME );
         table.setColumnWidth(nameColumn, 200, Unit.PX);
         
-    	//table.setWidth("245px");
-    	//table.setHeight("200px");
-    	
         VerticalPanel verticalPanel = new VerticalPanel();
         verticalPanel.add(table);
         return verticalPanel;
@@ -148,6 +149,7 @@ public class ColumnNamesTable extends Composite {
     			for(CheckableNameTypeRow aRow : tableRows) {
     				aRow.setChecked(checkState);
     			}
+    			uiEvent.fire(new UiEvent(UiEventType.COLUMN_NAME_TABLE_CHECKBOX_CHANGED));
     			table.redraw();
     		}
     	};
@@ -165,7 +167,7 @@ public class ColumnNamesTable extends Composite {
     	for(CheckableNameTypeRow row : rows) {
     		if(row.isChecked()) {
     			if(!sb.toString().isEmpty()) {
-    				sb.append(",");
+    				sb.append(Constants.COMMA);
     			}
     			sb.append(row.getName());
     		}

@@ -59,7 +59,7 @@
       <b.gwt:DataGrid ui:field="dataGrid" addStyleNames="table table-bordered table-striped table-hover"/>
     </g:SimplePanel>
     <!-- <b:Pager ui:field="pager" addStyleNames="pagination pagination-right pull-right {style.horizontalContainer}"/> -->
-    <f:SimplePager ui:field="pager" addStyleNames="{style.horizontalContainer}" location='CENTER' />
+    <f:SimplePager ui:field="pager" addStyleNames="{style.horizontalContainer}" location='RIGHT' />
   </g:FlowPanel>
 
 </ui:UiBinder>

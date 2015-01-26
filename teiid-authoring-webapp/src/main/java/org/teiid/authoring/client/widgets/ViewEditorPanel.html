@@ -3,127 +3,95 @@
   <!-- Title and Description -->
   <h3><div style="margin-top:8px;" data-field="label-vieweditor-title"></div></h3>
   <div data-field="label-vieweditor-description" style="font-style:italic;color:#666666"></div>
-
+ 
   <!-- View Editor -->
-  <table width="100%" style="border-style:solid;border-width:2px;border-color:#999999;margin-bottom:8px">
-    <!-- View DDL area -->
-    <tr style="background-color:#BBBBBB"><td width="100%" height="30px" style="border-style:solid;border-width:2px;border-color:#999999;font-weight:bold;">Service View Definition</td></tr>
-    <tr>
-      <td width="100%">
-        <table width="100%" height="100%">
-          <tr>
-            <td width="100%" height="100%">
-              <textarea data-field="textarea-vieweditor-viewDdl" class="form-control" style="width:95%" rows="8"></textarea>
-            </td>
-            <td>
-              <span data-field="panel-vieweditor-viewsources"></span>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-    
-    <!-- <tr style="background-color:#BBBBBB"><td width="100%" height="30px" style="border-style:solid;border-width:2px;border-color:#999999;font-weight:bold;">Service Helpers</td></tr> -->
-
-    <tr><td width="100%">
-    
-        <div class="accordion" id="accordion0">
-          <div class="accordion-group">
-            <div class="accordion-heading" style="background-color:#BBBBBB">
-              <table><tr>
-                <td width="90%"><a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion0" href="#collapseHelpers">Service Helpers</a></td>
-                <td><button data-field="btn-vieweditor-manage-sources" class="btn btn-primary btn-small">Manage Sources</button></td>
-              </tr></table>
-            </div>
-            <div id="collapseHelpers" class="accordion-body collapse in">
-              <div class="accordion-inner">
-                <!-- Nav tabs -->
-                <ul class="nav nav-tabs" role="tablist">
-                  <li class="active"><a href="#sources" role="tab" data-toggle="tab" title="The active sources that can be used in your Data Service">Single Source Definition</a></li>
-                  <li><a href="#joineditor" role="tab" data-toggle="tab" title="The join editor">Join Definition</a></li>
-                  <li><a href="#samples" role="tab" data-toggle="tab" title="Templates that provide a starting point for your Data Service Definition">Templates</a></li>
-                </ul>
-
-                <!-- Tab panes -->
-                <div class="tab-content">
-                  <div class="tab-pane active" id="sources">
-                    <table>
-                    <tr>
-                      <td width="100%" style="padding-left:110px;padding-top:8px">
-                        <label data-field="lbl-vieweditor-sources-message" style="font-style:italic" />
-                      </td>
-                    </tr>
-                    <!--
-                    <tr><td width="100%" style="padding-left:300px;padding-top:10px"><button data-field="btn-vieweditor-manage-sources" class="btn btn-primary btn-small">Manage Sources</button></td></tr>
-					-->
-                    <tr>
-                      <td style="padding-left:110px">
-                        <div data-field="picker-tables"></div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td width="100%" style="text-align:right;padding-right:160px;padding-bottom:10px">
-                        <button data-field="btn-vieweditor-createDdl" class="btn btn-small">Create Service View</button>
-                        <button data-field="btn-vieweditor-addToDdl" class="btn btn-small">Add columns to view</button>
-                      </td>
-                    </tr>
-                    </table>
-                  </div>
-                  <div class="tab-pane" id="joineditor">
-                    <div class="row">
-                      <span class="col-sm-12" data-field="join-editor"></span>
-                    </div>
-                  </div>
-                  <div class="tab-pane" id="samples">
-                    <table width="95%">
-                    <tr>
-                      <td width="100%" style="padding-left:30px;padding-top:8px">
-                        <label data-field="lbl-vieweditor-samples-message" style="font-style:italic" />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td width="100%" style="padding-left:30px;padding-top:5px">
-                        <span data-field="listbox-vieweditor-templates"></span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td width="100%" style="padding-left:30px;padding-top:5px"><textarea data-field="textarea-vieweditor-sampleDdl" class="form-control" style="width:100%" rows="6"></textarea></td>
-                    </tr>
-                    <tr>
-                      <td width="100%" style="text-align:right;padding-right:160px;padding-bottom:10px">
-                        <button data-field="btn-vieweditor-apply-sample" class="btn btn-small">Apply</button>
-                      </td>
-                    </tr>
-                    </table>
-                  </div>
-                </div> 
+  <div style="border-style:solid;border-width:2px;border-color:#999999;">
+  <div class="row">
+    <div class="col-sm-12">
+      <div style="background-color:#BBBBBB;border-style:solid;border-width:2px;border-color:#999999;font-weight:bold;">Service View Definition</div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-9">
+      <textarea data-field="textarea-vieweditor-viewDdl" class="form-control" rows="8"></textarea>
+    </div>
+    <div class="col-sm-3">
+      <div data-field="panel-vieweditor-viewsources"></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="accordion" id="accordion0">
+        <div class="accordion-group">
+          <div class="accordion-heading" style="background-color:#BBBBBB">
+            <div class="row">
+              <div class="col-sm-10">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion0" href="#collapseHelpers">Service Helpers</a>
+              </div>
+              <div class="col-sm-2">
+                <button data-field="btn-vieweditor-manage-sources" class="btn btn-primary btn-sm">Manage Sources</button>
               </div>
             </div>
           </div>
+          <div id="collapseHelpers" class="accordion-body collapse in">
+            <div class="accordion-inner">
+              <!-- Nav tabs -->
+              <ul class="nav nav-tabs" role="tablist">
+                <li class="active"><a href="#sources" role="tab" data-toggle="tab" title="The active sources that can be used in your Data Service">Single Source Definition</a></li>
+                <li><a href="#joineditor" role="tab" data-toggle="tab" title="The join editor">Join Definition</a></li>
+                <li><a href="#samples" role="tab" data-toggle="tab" title="Templates that provide a starting point for your Data Service Definition">Templates</a></li>
+              </ul>
+
+              <!-- Tab panes -->
+              <div class="tab-content">
+                <div class="tab-pane active" id="sources">
+                  <div class="row">
+                    <div class="col-sm-12" data-field="single-source-editor"></div>
+                  </div>
+                </div>
+                <div class="tab-pane" id="joineditor">
+                  <div class="row">
+                    <div class="col-sm-12" data-field="join-editor"></div>
+                  </div>
+                </div>
+                <div class="tab-pane" id="samples">
+                  <div class="row">
+                    <div class="col-sm-12" data-field="templates-editor"></div>
+                  </div>
+                </div>
+              </div> 
+            </div>
+          </div>
         </div>
-      
-    </td></tr>
-  </table>
-  
-  <!-- Test Button and SQL -->
-  <div class="accordion" id="accordion1">
-    <div class="accordion-group">
-      <div class="accordion-heading">
-        <table><tr>
-          <td><button data-field="btn-vieweditor-test" class="btn btn-primary">Test Service</button></td>
-          <td><a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion1" href="#collapseOne">Show Test Query</a></td>
-        </tr></table>
-      </div>
-      <div id="collapseOne" class="accordion-body collapse">
-        <div class="accordion-inner"><textarea data-field="textarea-vieweditor-testQuery" class="form-control" style="width:250px" rows="3"></textarea></div>
       </div>
     </div>
   </div>
-
+  </div>
+  
+  <!-- Test Button and SQL -->
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="accordion" id="accordion1">
+        <div class="accordion-group">
+          <div class="accordion-heading">
+            <div class="row">
+              <div class="col-sm-3">
+                <button data-field="btn-vieweditor-test" class="btn btn-primary">Test Service</button>
+ 				<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion1" href="#collapseOne">Show Test Query</a>				
+	 	      </div>
+              <div class="col-sm-9"></div>
+            </div>
+          </div>
+          <div id="collapseOne" class="accordion-body collapse">
+            <div class="accordion-inner"><textarea data-field="textarea-vieweditor-testQuery" class="form-control" style="width:250px" rows="3"></textarea></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+      
   <!-- Example Data Area -->
   <h3>Example Data</h3>
   <div data-field="table-vieweditor-queryResults"></div>
     
 </div>
-
-        

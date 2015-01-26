@@ -281,18 +281,16 @@
         <artifactId>gwt-maven-plugin</artifactId>
         <configuration>
           <server>org.jboss.errai.cdi.server.gwt.JBossLauncher</server>
+          <runTarget>teiid-authoring-webapp/teiidweb.html</runTarget>
           <localWorkers>4</localWorkers>
           <module>org.teiid.FastCompiledTeiidAuthoringWebApp</module>
           <logLevel>INFO</logLevel>
           <strict>true</strict>
           <compileSourcesArtifacts>
-
-          <!-- Teiid Authoring -->
-    	    <!-- Add here the client modules -->
-          <!--compileSourcesArtifact>org.teiid:teiid-client-module</compileSourcesArtifact-->
-
+              <!-- Teiid Authoring -->
+              <!-- Add here the client modules -->
+              <!--compileSourcesArtifact>org.teiid:teiid-client-module</compileSourcesArtifact-->
           </compileSourcesArtifacts>
-          <runTarget>teiid-authoring-webapp/teiidweb.html</runTarget>
 
           <!-- do not insert line breaks in this string; it breaks Windows compatibility -->
           <extraJvmArgs>-Xmx1g -Xms756m -XX:MaxPermSize=256m -XX:CompileThreshold=1000 -Derrai.jboss.home=${errai.jboss.home} "-Derrai.jboss.javaopts=-XX:MaxPermSize=256m -Dorg.jboss.weld.nonPortableMode=true" -Derrai.dev.context=${project.artifactId} -Derrai.jboss.javaagent.path=${settings.localRepository}/org/jboss/errai/errai-client-local-class-hider/${version.org.jboss.errai}/errai-client-local-class-hider-${version.org.jboss.errai}.jar=classPattern=${project.groupId}.client/.*</extraJvmArgs>

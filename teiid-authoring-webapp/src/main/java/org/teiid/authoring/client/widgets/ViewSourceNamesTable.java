@@ -35,7 +35,10 @@ import com.google.gwt.view.client.SelectionModel;
 public class ViewSourceNamesTable extends Composite {
 
 	private static String COLUMN_HEADER_NAME = "Required Sources";
-
+	private static int TABLE_HEIGHT_PX = 100;
+	private static int TABLE_WIDTH_PX = 250;
+	private static int TABLE_VISIBLE_ROWS = 4;
+	
     protected VerticalPanel panel = new VerticalPanel();
     protected Label label = new Label();
 
@@ -51,18 +54,15 @@ public class ViewSourceNamesTable extends Composite {
      * @return the panel widget
      */
     protected Widget createTablePanel() {
-    	table = new SimpleTable<String>();
+    	table = new SimpleTable<String>(TABLE_HEIGHT_PX,TABLE_WIDTH_PX,TABLE_VISIBLE_ROWS);
         TextColumn<String> nameColumn = new TextColumn<String>() {
             public String getValue( String row ) {
                 return row;
             }
         };
         table.addColumn( nameColumn, COLUMN_HEADER_NAME );
-        table.setColumnWidth(nameColumn, 250, Unit.PX);
+        table.setColumnWidth(nameColumn, 200, Unit.PX);
         
-    	table.setWidth("270px");
-    	table.setHeight("130px");
-    	
         VerticalPanel verticalPanel = new VerticalPanel();
         verticalPanel.add(table);
         return verticalPanel;
