@@ -19,7 +19,8 @@
              xmlns:g="urn:import:com.google.gwt.user.client.ui"
              xmlns:f="urn:import:com.google.gwt.user.cellview.client" 
              xmlns:b="urn:import:org.gwtbootstrap3.client.ui"
-             xmlns:b.gwt="urn:import:org.gwtbootstrap3.client.ui.gwt">
+             xmlns:b.gwt="urn:import:org.gwtbootstrap3.client.ui.gwt"
+             xmlns:t="urn:import:org.teiid.authoring.client.widgets.table">
 
   <ui:style>
     .dataGridContainer {
@@ -58,8 +59,7 @@
     <g:SimplePanel>
       <b.gwt:DataGrid ui:field="dataGrid" addStyleNames="table table-bordered table-striped table-hover"/>
     </g:SimplePanel>
-    <!-- <b:Pager ui:field="pager" addStyleNames="pagination pagination-right pull-right {style.horizontalContainer}"/> -->
-    <f:SimplePager ui:field="pager" addStyleNames="{style.horizontalContainer}" location='RIGHT' />
+    <t:TeiidSimplePager ui:field="pager" addStyleNames="pagination pagination-right pull-right {style.horizontalContainer}" />
   </g:FlowPanel>
 
 </ui:UiBinder>

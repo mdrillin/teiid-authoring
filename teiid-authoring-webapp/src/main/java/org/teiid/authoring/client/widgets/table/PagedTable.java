@@ -1,5 +1,3 @@
-package org.teiid.authoring.client.widgets.table;
-
 /*
  * Copyright 2011 JBoss Inc
  * 
@@ -15,6 +13,7 @@ package org.teiid.authoring.client.widgets.table;
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+package org.teiid.authoring.client.widgets.table;
 
 import java.util.List;
 
@@ -30,8 +29,6 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.RowStyles;
-import com.google.gwt.user.cellview.client.SimplePager;
-import com.google.gwt.user.cellview.client.SimplePager.TextLocation;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HasWidgets;
@@ -64,7 +61,7 @@ public class PagedTable<T>
     private static Binder uiBinder = GWT.create( Binder.class );
 
     @UiField
-    public SimplePager pager;
+    public TeiidSimplePager pager;
 
     private int pageSize;
     private AsyncDataProvider<T> dataProvider;
@@ -88,8 +85,6 @@ public class PagedTable<T>
         setupGridTable();
         this.pageSize = pageSize;
         this.dataGrid.setPageSize( pageSize );
-        SimplePager.Resources pagerResources = GWT.create(SimplePager.Resources.class);
-        pager = new SimplePager(TextLocation.RIGHT, pagerResources, false, 0, true);
         pager.setDisplay(dataGrid);
         pager.setPageSize(pageSize);
         
@@ -101,8 +96,6 @@ public class PagedTable<T>
         setupGridTable();
         this.pageSize = pageSize;
         this.dataGrid.setPageSize( pageSize );
-        SimplePager.Resources pagerResources = GWT.create(SimplePager.Resources.class);
-        pager = new SimplePager(TextLocation.RIGHT, pagerResources, false, 0, true);
         this.pager.setDisplay( dataGrid );
         this.pager.setPageSize( pageSize );
     }
@@ -114,7 +107,6 @@ public class PagedTable<T>
         dataGrid.setSkipRowHoverStyleUpdate( false );
         dataGrid.setWidth( "100%" );
         dataGrid.setHeight( "300px" );
-        //dataGrid.addStyleName( CommonResources.INSTANCE.CSS().dataGrid() );
 
         setEmptyTableWidget();
 
