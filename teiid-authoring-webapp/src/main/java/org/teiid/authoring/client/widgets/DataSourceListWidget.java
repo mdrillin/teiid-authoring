@@ -22,6 +22,7 @@ import java.util.List;
 import org.teiid.authoring.client.resources.AppResource;
 import org.teiid.authoring.client.resources.CellListResources;
 import org.teiid.authoring.client.resources.ImageHelper;
+import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
 
 import com.google.gwt.cell.client.AbstractCell;
@@ -60,9 +61,6 @@ public class DataSourceListWidget extends Composite {
     	dsList = new CellList<DataSourcePageRow>(dataSourceCell,resources);
     	dsList.setPageSize(3);
     	
-    	//dsList.setKeyboardPagingPolicy(KeyboardPagingPolicy.INCREASE_RANGE);
-    	//dsList.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.BOUND_TO_SELECTION);
-    	
         scrollPanel.add(dsList);
         scrollPanel.setHeight("600px");
     }
@@ -95,6 +93,14 @@ public class DataSourceListWidget extends Composite {
     			break;
     		}
     	}
+    }
+    
+    public void selectFirstItem() {
+    	SelectionModel<? super DataSourcePageRow> selModel = dsList.getSelectionModel();
+    	DataSourcePageRow firstRow = getData().get(0);
+    	if(firstRow!=null) {
+    		selModel.setSelected(firstRow,true);
+    	} 
     }
     
     public void setSelectionModel( final SelectionModel<DataSourcePageRow> selectionModel ) {
@@ -131,11 +137,16 @@ public class DataSourceListWidget extends Composite {
         	statusImageHtml = this.okImageHtml;
         } else if(dsRow.getState()==DataSourcePageRow.State.DEPLOYING) {
             statusImageHtml = this.deployingImageHtml;
+        } else if(dsRow.getState()==DataSourcePageRow.State.PLACEHOLDER) {
+            statusImageHtml = Constants.BLANK;
         } else {
         	statusImageHtml = this.errorImageHtml;
         }
         String dType = dsRow.getType();
-        String dTypeImageHtml = ImageHelper.getInstance().getDataSourceForTypeSmallImageHtml(dType);
+        String dTypeImageHtml = Constants.BLANK;
+        if(dType!=null) {
+        	dTypeImageHtml = ImageHelper.getInstance().getDataSourceForTypeSmallImageHtml(dType);
+        }
                 
         sb.appendHtmlConstant("<table>");
 
@@ -149,9 +160,9 @@ public class DataSourceListWidget extends Composite {
         sb.appendHtmlConstant("</td>");
         
         // Add the name and address.
-        sb.appendHtmlConstant("<td style=\"width:3px;\"></td><td><strong>");
+        sb.appendHtmlConstant("<td style=\"width:3px;\"></td><td><em>");
         sb.appendEscaped(dsRow.getName());
-        sb.appendHtmlConstant("</strong></td></tr></table>");
+        sb.appendHtmlConstant("</em></td></tr></table>");
       }
     }  
 }

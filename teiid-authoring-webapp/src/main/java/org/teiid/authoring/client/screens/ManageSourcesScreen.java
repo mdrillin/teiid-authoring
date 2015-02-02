@@ -16,7 +16,6 @@
 package org.teiid.authoring.client.screens;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,9 +40,8 @@ import org.teiid.authoring.client.widgets.DataSourceListPanel;
 import org.teiid.authoring.client.widgets.DataSourcePropertiesPanel;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.beans.DataSourcePageRow;
-import org.teiid.authoring.share.beans.DataSourcePropertyBean;
-import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
 import org.teiid.authoring.share.beans.NotificationBean;
+import org.teiid.authoring.share.services.StringUtils;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
@@ -76,6 +74,8 @@ public class ManageSourcesScreen extends Composite {
 	private List<DataSourcePageRow> currentDataSourceList = new ArrayList<DataSourcePageRow>();
 	private boolean propPanelVisible = false;
 	private String requestingScreen;
+	private String previousDSSelection = null;
+	private DataSourcePageRow currentRowSelection = null;
 
     @Inject
     protected ClientMessages i18n;
@@ -144,10 +144,15 @@ public class ManageSourcesScreen extends Composite {
     	listSelectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
     		public void onSelectionChange(SelectionChangeEvent event) {
     			DataSourcePageRow row = listSelectionModel.getSelectedObject();
+    			currentRowSelection = row;
     			if(row!=null) {
-        			showPropertiesPanel(row.getName());
+        			showPropertiesPanel(row,currentDataSourceList);
         			propsPanel.setExternalError(row.getErrorMessage());
         			dsListPanel.setDeleteButtonEnabled(true);
+        			// Keep track of previous non-placeholder selection
+        			if(row.getState()!=DataSourcePageRow.State.PLACEHOLDER) {
+        				previousDSSelection = row.getName();
+        			}
     			} else {
     				showBlankMessagePanel();
     				dsListPanel.setDeleteButtonEnabled(false);
@@ -164,8 +169,8 @@ public class ManageSourcesScreen extends Composite {
     	}
     }
     
-    private void showPropertiesPanel(String dsName) {
-		propsPanel.setDataSource(dsName);
+    private void showPropertiesPanel(DataSourcePageRow dsRow, List<DataSourcePageRow> allDSRows) {
+		propsPanel.setDataSource(dsRow,allDSRows);
     	if(!propPanelVisible) {
 			detailsDeckPanel.showWidget(0);
 			propPanelVisible=true;
@@ -191,6 +196,22 @@ public class ManageSourcesScreen extends Composite {
     		onDeleteButtonClicked();
     	} else if(dEvent.getType() == UiEventType.DELETE_SOURCE_OK) {
     		onDeleteConfirm();
+    	// User cancelled edits on propery page
+    	} else if(dEvent.getType() == UiEventType.SOURCE_EDIT_CANCEL) {
+			// Cancel on new Source create.  Deletes the placeholder and selects previous selection
+			if(currentRowSelection!=null && currentRowSelection.getState()==DataSourcePageRow.State.PLACEHOLDER) {
+				currentDataSourceList.remove(currentRowSelection);
+				dsListPanel.setData(currentDataSourceList);
+				// Set previous selection, or first item
+				if(!StringUtils.isEmpty(previousDSSelection)) {
+					dsListPanel.setSelection(previousDSSelection);
+				} else {
+					dsListPanel.selectFirstItem();
+				}
+			// Cancel existing source changes.  just reselect the source to refresh.
+			} else if(currentRowSelection!=null){
+				dsListPanel.setSelection(currentRowSelection.getName());
+			}
     	// User has cancelled source deletion
     	} else if(dEvent.getType() == UiEventType.DELETE_SOURCE_CANCEL) {
     	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DEPLOY_STARTING) {
@@ -227,31 +248,31 @@ public class ManageSourcesScreen extends Composite {
      * @param event
      */
     public void onAddButtonClicked() {
-    	// Add a default Data Source
-    	String newSourceName = getNewSourceName();
-        DataSourceWithVdbDetailsBean sourceWithVdbBean = getDefaultSource(newSourceName);
-        
-        doCreateDataSource(sourceWithVdbBean);
+    	DataSourcePageRow newDSRow = new DataSourcePageRow();
+    	newDSRow.setName("New Data Source");
+    	newDSRow.setState(DataSourcePageRow.State.PLACEHOLDER);
+    	
+    	currentDataSourceList.add(newDSRow);
+    	
+		dsListPanel.setData(currentDataSourceList);
+		dsListPanel.setSelection("New Data Source");
     }
-    
-    private String getNewSourceName() {
-    	String sourceRootName = Constants.DATA_SOURCE_NEW_NAME;
-    	String newSourceName = Constants.DATA_SOURCE_NEW_NAME;
-    	Collection<String> existingNames = this.dsListPanel.getDataSourceNames();
-    	int i = 1;
-    	while(existingNames.contains(newSourceName)) {
-    		newSourceName = sourceRootName+i;
-    		i++;
-    	}
-    	return newSourceName;
-    }
-    
+
     /**
      * Handler for DataSource delete button clicks
      */
     public void onDeleteButtonClicked() {
-    	// Show confirmation dialog before the deletion
-    	showConfirmDeleteDialog();
+		DataSourcePageRow row = listSelectionModel.getSelectedObject();
+		DataSourcePageRow.State dsState = row.getState();
+		// If row is a placeholder, go ahead and delete
+		if(dsState==DataSourcePageRow.State.PLACEHOLDER) {
+			this.currentDataSourceList.remove(row);
+			this.dsListPanel.setData(this.currentDataSourceList);
+			this.dsListPanel.setSelection(previousDSSelection);
+		// Confirm the delete
+		} else {
+	    	showConfirmDeleteDialog();
+		}
     }
     
     /**
@@ -278,39 +299,7 @@ public class ManageSourcesScreen extends Composite {
     	String dsName = row.getName();
 		dsNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
     	dsNames.add(dsName);
-		doDeleteDataSourcesAndVdb(dsNames,Constants.SERVICE_SOURCE_VDB_PREFIX+dsName,null);
-    }
-    
-    /**
-     * Creates a DataSource
-     * @param dsDetailsBean the data source details
-     */
-    private void doCreateDataSource(final DataSourceWithVdbDetailsBean detailsBean) {
-    	dsListDeckPanel.showWidget(0);
-    	final String dsName = detailsBean.getName();
-        final NotificationBean notificationBean = notificationService.startProgressNotification(
-                i18n.format("managesources.creating-datasource-title"), //$NON-NLS-1$
-                i18n.format("managesources.creating-datasource-msg", dsName)); //$NON-NLS-1$
-        
-        teiidService.createDataSourceWithVdb(detailsBean, new IRpcServiceInvocationHandler<Void>() {
-            @Override
-            public void onReturn(Void data) {
-                notificationService.completeProgressNotification(notificationBean.getUuid(),
-                        i18n.format("managesources.datasource-created"), //$NON-NLS-1$
-                        i18n.format("managesources.create-success-msg")); //$NON-NLS-1$
-
-                // Refresh Page
-            	doGetDataSourceInfos(detailsBean.getName());
-            	dsListDeckPanel.showWidget(1);
-            }
-            @Override
-            public void onError(Throwable error) {
-                notificationService.completeProgressNotification(notificationBean.getUuid(),
-                        i18n.format("managesources.create-error"), //$NON-NLS-1$
-                        error);
-            	dsListDeckPanel.showWidget(1);
-            }
-        });
+		doDeleteDataSourcesAndVdb(dsNames,Constants.SERVICE_SOURCE_VDB_PREFIX+dsName,previousDSSelection);
     }
     
     /**
@@ -395,39 +384,6 @@ public class ManageSourcesScreen extends Composite {
     			notificationService.sendErrorNotification(i18n.format("managesources.error-populating-translatormappings"), error); //$NON-NLS-1$
     		}
     	});
-    }
-    
-	/**
-	 * Create a Default data source connected to the DashboardDS (for now)
-	 * @return
-	 */
-    private DataSourceWithVdbDetailsBean getDefaultSource(String dsName) {
-    	DataSourceWithVdbDetailsBean resultBean = new DataSourceWithVdbDetailsBean();
-    	resultBean.setName(dsName);
-    	resultBean.setSourceVdbName(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
-    	resultBean.setTranslator("h2");
-    	resultBean.setType("h2");
-    	
-    	List<DataSourcePropertyBean> props = new ArrayList<DataSourcePropertyBean>();
-    	DataSourcePropertyBean urlProp = new DataSourcePropertyBean();
-    	urlProp.setName("connection-url");
-    	urlProp.setValue("jdbc:h2:file:${jboss.server.data.dir}/teiid-dashboard/teiid-dashboard-ds;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1");
-    	
-    	DataSourcePropertyBean userProp = new DataSourcePropertyBean();
-    	userProp.setName("user-name");
-    	userProp.setValue("sa");
-
-    	DataSourcePropertyBean pwProp = new DataSourcePropertyBean();
-    	pwProp.setName("password");
-    	pwProp.setValue("sa");
-    	
-    	props.add(urlProp);
-    	props.add(userProp);
-    	props.add(pwProp);
-    	
-    	resultBean.setProperties(props);
-
-    	return resultBean;
     }
     
     public void setRequestingScreen(String screen) {

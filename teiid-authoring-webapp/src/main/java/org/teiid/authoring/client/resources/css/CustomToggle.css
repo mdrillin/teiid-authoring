@@ -1,8 +1,6 @@
 .customToggle
 {
-    background-color:#FFFFFF;
-    border-style: solid;
-    border-width: 2px;
+    background-color: white;
     font-size: 120%; 
     font-weight: bold;
     width:180px;
@@ -13,9 +11,11 @@
 }
 .customToggle-up, .customToggle-up-hovering
 {
-    background-color:#F8F8F8;
+    background-color:white;
+    border: #DDDDDD 2px solid;
 }
 .customToggle-down, .customToggle-down-hovering
 {
-    background-color:#AAAAAA;
+    background-color:white;
+    border: #0000FF 4px solid;
 }

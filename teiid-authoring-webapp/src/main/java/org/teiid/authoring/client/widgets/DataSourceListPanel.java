@@ -90,6 +90,7 @@ public class DataSourceListPanel extends Composite {
  
     public void setData(List<DataSourcePageRow> rows) {
     	listWidget.setData(rows);
+    	updateAddButtonState();
     }
     
     public List<DataSourcePageRow> getData( ) {
@@ -98,6 +99,33 @@ public class DataSourceListPanel extends Composite {
     
     public List<String> getDataSourceNames() {
     	return listWidget.getDataSourceNames();
+    }
+    
+    private boolean hasNewSourcePlaceholder( ) {
+    	boolean hasPlaceholder = false;
+    	List<DataSourcePageRow> allRows = listWidget.getData();
+    	for(DataSourcePageRow aRow : allRows) {
+    		if(aRow.getState()==DataSourcePageRow.State.PLACEHOLDER) {
+    			hasPlaceholder = true;
+    			break;
+    		}
+     	}
+    	return hasPlaceholder;
+    }
+    
+    /*
+     * Only allow one 'NewSource' place holder to be created.
+     */
+    public void updateAddButtonState() {
+    	if(hasNewSourcePlaceholder()) {
+    		addButton.setEnabled(false);
+    	} else {
+    		addButton.setEnabled(true);
+    	}
+    }
+
+    public void selectFirstItem() {
+    	listWidget.selectFirstItem();
     }
     
     public void setSelection(String dsName) {

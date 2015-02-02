@@ -43,6 +43,7 @@ import org.teiid.authoring.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.authoring.client.utils.UiUtils;
 import org.teiid.authoring.share.Constants;
 import org.teiid.authoring.share.TranslatorHelper;
+import org.teiid.authoring.share.beans.DataSourcePageRow;
 import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
 import org.teiid.authoring.share.beans.NotificationBean;
@@ -83,6 +84,7 @@ public class DataSourcePropertiesPanel extends Composite {
     private ApplicationStateService stateService;
     
 	private String statusEnterName = null;
+	private String statusSelectDSType = null;
 	private String statusSelectTrans = null;
 	private String statusClickSave = null;
 	private String statusEnterProps = null;
@@ -108,6 +110,8 @@ public class DataSourcePropertiesPanel extends Composite {
     private String originalType;
     private String originalName;
     private String originalTranslator;
+    private boolean isNewSource = false;  // Tracks if DataSourcePageRow is for a brand new source
+    private List<String> existingDSNames = new ArrayList<String>();
     
     @Inject
     protected TeiidRpcService teiidService;
@@ -130,11 +134,10 @@ public class DataSourcePropertiesPanel extends Composite {
     @Inject @DataField("editor-dsprops-adv-properties")
     protected DataSourcePropertyEditor dataSourceAdvancedPropertyEditor;
     
-    @Inject @DataField("btn-dsprops-save1")
-    protected Button saveSourceChanges1;
-    
-    @Inject @DataField("btn-dsprops-save2")
-    protected Button saveSourceChanges2;
+    @Inject @DataField("btn-dsprops-save")
+    protected Button saveSourceChanges;
+    @Inject @DataField("btn-dsprops-cancel")
+    protected Button cancelSourceChanges;
     
     @Inject Event<UiEvent> statusEvent;
     
@@ -145,16 +148,15 @@ public class DataSourcePropertiesPanel extends Composite {
     protected void postConstruct() {
     	AppResource.INSTANCE.css().customToggleStyle().ensureInjected();
     	
-    	dsDetailsPanelTitle.setText("Data Source: [New Source]");
+    	dsDetailsPanelTitle.setText("[New Source]");
     	
 		statusEnterName = i18n.format("ds-properties-panel.status-enter-name");
+		statusSelectDSType = i18n.format("ds-properties-panel.status-select-dstype");
 		statusSelectTrans = i18n.format("ds-properties-panel.status-select-translator");
 		statusClickSave = i18n.format("ds-properties-panel.status-click-save");
 		statusEnterProps = i18n.format("ds-properties-panel.status-enter-props");
 		
     	doPopulateSourceTypesPanel(null);
-    	
-    	doPopulateTranslatorListBox();
     	
     	dataSourceCorePropertyEditor.clear();
     	dataSourceAdvancedPropertyEditor.clear();
@@ -174,11 +176,10 @@ public class DataSourcePropertiesPanel extends Composite {
                 updateStatus();
         	}
         });
-        updateStatus();
         
         // Tooltips
-        saveSourceChanges1.setTitle(i18n.format("ds-properties-panel.saveSourceChanges1.tooltip"));
-        saveSourceChanges2.setTitle(i18n.format("ds-properties-panel.saveSourceChanges2.tooltip"));
+        cancelSourceChanges.setTitle(i18n.format("ds-properties-panel.cancelSourceChanges.tooltip"));
+        saveSourceChanges.setTitle(i18n.format("ds-properties-panel.saveSourceChanges.tooltip"));
         nameTextBox.setTitle(i18n.format("ds-properties-panel.nameTextBox.tooltip"));
         translatorListBox.setTitle(i18n.format("ds-properties-panel.translatorListBox.tooltip"));
     }
@@ -192,26 +193,29 @@ public class DataSourcePropertiesPanel extends Composite {
     }
     
     /**
-     * Event handler that fires when the user clicks the top save button.
+     * Event handler that fires when the user clicks the save button.
      * @param event
      */
-    @EventHandler("btn-dsprops-save1")
-    public void onSaveChangesTopButtonClick(ClickEvent event) {
+    @EventHandler("btn-dsprops-save")
+    public void onSaveChangesButtonClick(ClickEvent event) {
     	saveChangesButtonClick(event);
     }
     
     /**
-     * Event handler that fires when the user clicks the top save button.
+     * Event handler that fires when the user clicks the cancel button.
      * @param event
      */
-    @EventHandler("btn-dsprops-save2")
-    public void onSaveChangesBottomButtonClick(ClickEvent event) {
-    	saveChangesButtonClick(event);
+    @EventHandler("btn-dsprops-cancel")
+    public void onCancelButtonClick(ClickEvent event) {
+    	cancelButtonClick(event);
     }
     
     private void saveChangesButtonClick(ClickEvent event) {
+    	// New source - bypass confirm dialog and create
+    	if(isNewSource) {
+    		onRedeployConfirmed();    		
         // Only the translator changed.  No need to muck with DS - just redeploy VDB and its source
-        if(!hasNameChange() && !hasPropertyChanges() && !hasDataSourceTypeChange() && hasTranslatorChange()) {
+    	} else if(!hasNameChange() && !hasPropertyChanges() && !hasDataSourceTypeChange() && hasTranslatorChange()) {
             DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
             doCreateSourceVdbWithTeiidDS(sourceBean);
         // No name change
@@ -221,6 +225,15 @@ public class DataSourcePropertiesPanel extends Composite {
         } else {
         	showConfirmRenameDialog();
         }
+    }
+    
+    private void cancelButtonClick(ClickEvent event) {
+    	// refresh panel if editing existing source
+    	if(!isNewSource) {
+    		doGetDataSourceDetails(this.originalName);
+    	}
+		
+		statusEvent.fire(new UiEvent(UiEventType.SOURCE_EDIT_CANCEL));
     }
     
     /**
@@ -360,7 +373,13 @@ public class DataSourcePropertiesPanel extends Composite {
             				String sourceType = sourceWidget.getElement().getId();
             				
             				clickedSourceType = sourceType;
-            				showConfirmChangeTypeDialog();
+            				// No current selection, just set it
+            				if(StringUtils.isEmpty(selectedSourceType)) {
+            		    		statusEvent.fire(new UiEvent(UiEventType.SOURCE_CHANGETYPE_OK));
+            		    	// Have current selection, confirm first
+            				} else {
+            					showConfirmChangeTypeDialog();
+            				}
                 		}
                 	});                	
                 	DOM.setStyleAttribute(button.getElement(), "cssFloat", "left");
@@ -387,6 +406,9 @@ public class DataSourcePropertiesPanel extends Composite {
             	dTypesButtonPanel.add(addTypeButton);
             	
             	if(selectedType!=null) setSelectedDataSourceType(selectedType);
+            	
+            	// Populate Translator ListBox
+            	doPopulateTranslatorListBox();
             }
             @Override
             public void onError(Throwable error) {
@@ -410,14 +432,8 @@ public class DataSourcePropertiesPanel extends Composite {
      */
     public void setSelectedDataSourceType(String dsType) {
     	if(dsType!=null) {
-    		// First de-select all to clear current toggle
-    		for(ToggleButton tButton : dsTypeButtons) {
-   				tButton.setValue(false);
-    		}
-    		// Also make sure addType button is unToggled
-    		if(this.addTypeButton!=null) {
-    			this.addTypeButton.setValue(false);
-    		}
+    		// de-select all toggle buttons
+    		deselectDSTypeButtons();
     		
     		// Set new button toggle state down
     		for(ToggleButton tButton : dsTypeButtons) {
@@ -428,6 +444,17 @@ public class DataSourcePropertiesPanel extends Composite {
     			}
     		}
     	}
+    }
+    
+    private void deselectDSTypeButtons() {
+		// First de-select all to clear current toggle
+		for(ToggleButton tButton : dsTypeButtons) {
+				tButton.setValue(false);
+		}
+		// Also make sure addType button is unToggled
+		if(this.addTypeButton!=null) {
+			this.addTypeButton.setValue(false);
+		}
     }
         
     /**
@@ -440,6 +467,7 @@ public class DataSourcePropertiesPanel extends Composite {
             	allTranslators.clear();
             	allTranslators.addAll(translators);
                 populateTranslatorListBox(translators);
+                updateStatus();
             }
             @Override
             public void onError(Throwable error) {
@@ -519,7 +547,7 @@ public class DataSourcePropertiesPanel extends Composite {
             	currentPropList.addAll(propList);
                 populateCorePropertiesTable();
                 populateAdvancedPropertiesTable();
-                //updateDialogStatus();
+        		updateStatus();
             }
             @Override
             public void onError(Throwable error) {
@@ -700,8 +728,49 @@ public class DataSourcePropertiesPanel extends Composite {
     	return resultList;
     }
     
-    public void setDataSource(String dsName) {
-    	doGetDataSourceDetails(dsName);
+    public void setDataSource(DataSourcePageRow dsRow, List<DataSourcePageRow> allDSRows) {
+    	updateExistingDSNames(dsRow,allDSRows);
+    	
+    	// PlaceHolder
+    	if(dsRow.getState()==DataSourcePageRow.State.PLACEHOLDER) {
+    		isNewSource = true;
+    		
+    		String title = i18n.format("ds-properties-panel.createnew-title");
+        	dsDetailsPanelTitle.setText(title);
+        	
+        	nameTextBox.setText(Constants.BLANK);
+        	originalName = Constants.BLANK;
+        	
+        	deselectDSTypeButtons();
+        	this.selectedSourceType = dsRow.getType();
+        	originalType = selectedSourceType;
+        	
+   			setSelectedTranslator(Constants.NO_TRANSLATOR_SELECTION);
+   			originalTranslator=Constants.NO_TRANSLATOR_SELECTION;
+
+        	currentPropList.clear();
+        	populateCorePropertiesTable();
+        	populateAdvancedPropertiesTable();
+        	
+        	updateStatus();
+    	// Existing Source
+    	} else {
+    		isNewSource = false;
+    		doGetDataSourceDetails(dsRow.getName());
+    	}
+    }
+    
+    /*
+     * Updates the list of DSNames used for checking existing sources when user enters a name.  The selectedRow name is omitted from the list
+     * since it is by definition valid.
+     */
+    private void updateExistingDSNames(DataSourcePageRow selectedRow, List<DataSourcePageRow> allDSRows) {
+    	this.existingDSNames.clear();
+    	for(DataSourcePageRow aRow : allDSRows) {
+    		if(aRow.getState()!=DataSourcePageRow.State.PLACEHOLDER && !aRow.getName().equals(selectedRow.getName())) {
+    			this.existingDSNames.add(aRow.getName());
+    		}
+    	}
     }
     
     /**
@@ -714,7 +783,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	teiidService.getDataSourceWithVdbDetails(dataSourceName, new IRpcServiceInvocationHandler<DataSourceWithVdbDetailsBean>() {
             @Override
             public void onReturn(DataSourceWithVdbDetailsBean dsDetailsBean) {
-            	String title = "Data Source : "+dsDetailsBean.getName();
+            	String title = dsDetailsBean.getName();
             	dsDetailsPanelTitle.setText(title);
             	
             	nameTextBox.setText(dsDetailsBean.getName());
@@ -750,11 +819,27 @@ public class DataSourcePropertiesPanel extends Composite {
     
     private void updateStatus( ) {
     	String statusText = Constants.OK;
-    	
+    			
     	// Warn for missing source name
     	String serviceName = nameTextBox.getText();
     	if(StringUtils.isEmpty(serviceName)) {
     		statusText = statusEnterName;
+    	}
+    	
+    	// Ensure that dataSource name is not already being used
+    	if(statusText.equals(Constants.OK)) {
+    		String nameStatus = checkDSNameInUse(serviceName);
+    		if(!nameStatus.equals(Constants.OK)) {
+    			statusText = nameStatus;
+    		}
+    	}
+    	
+    	// Warn for no type selection
+    	if(statusText.equals(Constants.OK)) {
+    		String dsType = getSelectedDataSourceType();
+    		if(StringUtils.isEmpty(dsType)) {
+    			statusText = statusSelectDSType;
+    		}
     	}
     	
 		// Warn for translator not selected
@@ -770,16 +855,26 @@ public class DataSourcePropertiesPanel extends Composite {
         	statusText = getPropertyStatus();
     	}
     	
+		boolean hasNameChange = hasNameChange();
+		boolean hasTypeChange = hasDataSourceTypeChange();
+		boolean hasTranslatorChange = hasTranslatorChange();
+    	boolean hasPropChanges = hasPropertyChanges();
+		if(this.isNewSource) {
+			cancelSourceChanges.setEnabled(true);
+		} else {
+    		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges) {
+    			cancelSourceChanges.setEnabled(true);
+    		} else {
+    			cancelSourceChanges.setEnabled(false);
+    		}
+		}
+		
     	// Determine if any properties were changed
     	if(statusText.equals(Constants.OK)) {
-    		boolean hasNameChange = hasNameChange();
-    		boolean hasTypeChange = hasDataSourceTypeChange();
-    		boolean hasTranslatorChange = hasTranslatorChange();
-        	boolean hasPropChanges = hasPropertyChanges();
     		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges) {
     			setInfoMessage(statusClickSave);
-        		saveSourceChanges1.setEnabled(true);
-        		saveSourceChanges2.setEnabled(true);
+        		saveSourceChanges.setEnabled(true);
+        		cancelSourceChanges.setEnabled(true);
     		} else {
     			// External error was set - show it
     			if(!StringUtils.isEmpty(this.externalError)) {
@@ -788,14 +883,21 @@ public class DataSourcePropertiesPanel extends Composite {
     			} else {
         			setInfoMessage(statusEnterProps);
     			}
-        		saveSourceChanges1.setEnabled(false);
-        		saveSourceChanges2.setEnabled(false);
+        		saveSourceChanges.setEnabled(false);
     		}
     	} else {
 			setErrorMessage(statusText);
-    		saveSourceChanges1.setEnabled(false);
-    		saveSourceChanges2.setEnabled(false);
+    		saveSourceChanges.setEnabled(false);
     	}
+    }
+    
+    private String checkDSNameInUse(String dsName) {
+    	String statusMsg = Constants.OK;
+    	
+    	if(this.existingDSNames.contains(dsName)) {
+    		statusMsg = i18n.format("ds-properties-panel.status-name-exists",dsName); //$NON-NLS-1$
+    	}
+    	return statusMsg;
     }
     
     /**

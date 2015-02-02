@@ -32,7 +32,8 @@ public class DataSourcePageRow extends AbstractPageRow {
     public enum State {
         DEPLOYING, 
         OK,
-        ERROR
+        ERROR,
+        PLACEHOLDER
     }
     
     public String getName() {

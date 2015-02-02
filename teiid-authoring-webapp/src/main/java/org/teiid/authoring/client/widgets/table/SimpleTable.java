@@ -96,7 +96,7 @@ public class SimpleTable<T>
     }
 
     private void setEmptyTableWidget() {
-        String caption = "No rows";
+        String caption = "No data";
         if ( !( emptyTableCaption == null || emptyTableCaption.trim().isEmpty() ) ) {
             caption = emptyTableCaption;
         }
