@@ -48,6 +48,7 @@ import org.teiid.authoring.share.beans.DataSourcePropertyBean;
 import org.teiid.authoring.share.beans.DataSourceWithVdbDetailsBean;
 import org.teiid.authoring.share.beans.NotificationBean;
 import org.teiid.authoring.share.beans.PropertyBeanComparator;
+import org.teiid.authoring.share.beans.TranslatorImportPropertyBean;
 import org.teiid.authoring.share.services.StringUtils;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
@@ -94,11 +95,14 @@ public class DataSourcePropertiesPanel extends Composite {
     
 	// List of all available translators
 	private List<String> allTranslators = new ArrayList<String>();
+	private Map<String,List<TranslatorImportPropertyBean>> importPropertyMap = new HashMap<String,List<TranslatorImportPropertyBean>>();
 	
 	// Map of server sourceName to corresponding default translator
 	private Map<String,String> defaultTranslatorMap = new HashMap<String,String>();
 	// Current properties
     private List<DataSourcePropertyBean> currentPropList = new ArrayList<DataSourcePropertyBean>();
+	// Current import properties
+    private List<TranslatorImportPropertyBean> currentImportPropList = new ArrayList<TranslatorImportPropertyBean>();
 	// The type of the current source
     private String selectedSourceType;
     // List of Data Source type Toggle Buttons
@@ -133,6 +137,8 @@ public class DataSourcePropertiesPanel extends Composite {
     protected DataSourcePropertyEditor dataSourceCorePropertyEditor;
     @Inject @DataField("editor-dsprops-adv-properties")
     protected DataSourcePropertyEditor dataSourceAdvancedPropertyEditor;
+    @Inject @DataField("editor-dsprops-import-properties")
+    protected TranslatorImportPropertyEditor dataSourceImportPropertyEditor;
     
     @Inject @DataField("btn-dsprops-save")
     protected Button saveSourceChanges;
@@ -160,6 +166,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	
     	dataSourceCorePropertyEditor.clear();
     	dataSourceAdvancedPropertyEditor.clear();
+    	dataSourceImportPropertyEditor.clear();
     	
     	nameTextBox.addKeyUpHandler(new KeyUpHandler() {
             @Override
@@ -173,6 +180,8 @@ public class DataSourcePropertiesPanel extends Composite {
         	// Changing the Type selection will re-populate property table with defaults for that type
         	public void onChange(ChangeEvent event)
         	{
+        		currentImportPropList = importPropertyMap.get(getSelectedTranslator());
+        		populateImportPropertiesTableWithCurrent();
                 updateStatus();
         	}
         });
@@ -186,9 +195,17 @@ public class DataSourcePropertiesPanel extends Composite {
     
     /**
      * Event from properties table when property is edited
-     * @param propertyName
+     * @param propertyBean
      */
     public void onPropertyChanged(@Observes DataSourcePropertyBean propertyBean) {
+    	updateStatus();
+    }
+
+    /**
+     * Event from translator import table when property is edited
+     * @param propertyBean
+     */
+    public void onImportPropertyChanged(@Observes TranslatorImportPropertyBean propertyBean) {
     	updateStatus();
     }
     
@@ -320,6 +337,9 @@ public class DataSourcePropertiesPanel extends Composite {
     	String sourceType = clickedSourceType;
 		String defaultTranslator = TranslatorHelper.getTranslator(sourceType, allTranslators);
 		setSelectedTranslator(defaultTranslator);
+		this.currentImportPropList.clear();
+		this.currentImportPropList = importPropertyMap.get(getSelectedTranslator());
+		populateImportPropertiesTableWithCurrent();
 
 		doPopulatePropertiesTable(sourceType);
 		selectedSourceType = sourceType;
@@ -333,13 +353,18 @@ public class DataSourcePropertiesPanel extends Composite {
     	resultBean.setTranslator(getSelectedTranslator());
     	resultBean.setSourceVdbName(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
 
+    	// Set the Source properties
     	List<DataSourcePropertyBean> props = new ArrayList<DataSourcePropertyBean>();
     	List<DataSourcePropertyBean> coreProps = dataSourceCorePropertyEditor.getBeansWithRequiredOrNonDefaultValue();
     	List<DataSourcePropertyBean> advancedProps = dataSourceAdvancedPropertyEditor.getBeansWithRequiredOrNonDefaultValue();
     	props.addAll(coreProps);
     	props.addAll(advancedProps);
-
     	resultBean.setProperties(props);
+
+    	// Set the translator import properties
+    	List<TranslatorImportPropertyBean> importProps = dataSourceImportPropertyEditor.getBeansWithRequiredOrNonDefaultValue();
+    	resultBean.setImportProperties(importProps);
+    	
     	return resultBean;
     }
     
@@ -467,6 +492,21 @@ public class DataSourcePropertiesPanel extends Composite {
             	allTranslators.clear();
             	allTranslators.addAll(translators);
                 populateTranslatorListBox(translators);
+                doPopulateImportPropertyMap(translators);
+            }
+            @Override
+            public void onError(Throwable error) {
+                notificationService.sendErrorNotification(i18n.format("ds-properties-panel.error-populating-translators"), error); //$NON-NLS-1$
+            }
+        });
+    }
+    
+    protected void doPopulateImportPropertyMap(List<String> translators) {
+    	teiidService.getImportPropertiesMap(translators, new IRpcServiceInvocationHandler<Map<String,List<TranslatorImportPropertyBean>>>() {
+            @Override
+            public void onReturn(Map<String,List<TranslatorImportPropertyBean>> importPropMap) {
+            	importPropertyMap.clear();
+            	importPropertyMap.putAll(importPropMap);
                 updateStatus();
             }
             @Override
@@ -537,6 +577,7 @@ public class DataSourcePropertiesPanel extends Composite {
         if(selectedType.equals(Constants.NO_TYPE_SELECTION)) {
         	dataSourceCorePropertyEditor.clear();
         	dataSourceAdvancedPropertyEditor.clear();
+        	dataSourceImportPropertyEditor.clear();
         	return;
         }
 
@@ -684,7 +725,6 @@ public class DataSourcePropertiesPanel extends Composite {
     
     /*
      * Populate the core properties table
-     * @param dsDetailsBean the Data Source details
      */
     private void populateCorePropertiesTable( ) {
     	dataSourceCorePropertyEditor.clear();
@@ -695,13 +735,21 @@ public class DataSourcePropertiesPanel extends Composite {
 
     /*
      * Populate the advanced properties table
-     * @param dsDetailsBean the Data Source details
      */
     private void populateAdvancedPropertiesTable() {
     	dataSourceAdvancedPropertyEditor.clear();
 
     	List<DataSourcePropertyBean> advPropList = getPropList(this.currentPropList, false, true);
     	dataSourceAdvancedPropertyEditor.setProperties(advPropList);
+    }
+    
+    /*
+     * Populate the import properties table with current prop list
+     */
+    private void populateImportPropertiesTableWithCurrent( ) {
+    	dataSourceImportPropertyEditor.clear();
+
+    	dataSourceImportPropertyEditor.setProperties(this.currentImportPropList);
     }
     
     /*
@@ -751,6 +799,9 @@ public class DataSourcePropertiesPanel extends Composite {
         	currentPropList.clear();
         	populateCorePropertiesTable();
         	populateAdvancedPropertiesTable();
+        	
+        	currentImportPropList.clear();
+        	populateImportPropertiesTableWithCurrent();
         	
         	updateStatus();
     	// Existing Source
@@ -807,6 +858,11 @@ public class DataSourcePropertiesPanel extends Composite {
             	populateCorePropertiesTable();
             	populateAdvancedPropertiesTable();
             	
+            	currentImportPropList.clear();
+            	List<TranslatorImportPropertyBean> importProps = dsDetailsBean.getImportProperties();
+            	currentImportPropList.addAll(importProps);
+            	populateImportPropertiesTableWithCurrent();
+            	
             	updateStatus();
             }
             @Override
@@ -855,14 +911,20 @@ public class DataSourcePropertiesPanel extends Composite {
         	statusText = getPropertyStatus();
     	}
     	
+		// Get import properties message
+    	if(statusText.equals(Constants.OK)) {
+        	statusText = getImportPropertyStatus();
+    	}
+    	
 		boolean hasNameChange = hasNameChange();
 		boolean hasTypeChange = hasDataSourceTypeChange();
 		boolean hasTranslatorChange = hasTranslatorChange();
     	boolean hasPropChanges = hasPropertyChanges();
+    	boolean hasImportPropChanges = hasImportPropertyChanges();
 		if(this.isNewSource) {
 			cancelSourceChanges.setEnabled(true);
 		} else {
-    		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges) {
+    		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges || hasImportPropChanges) {
     			cancelSourceChanges.setEnabled(true);
     		} else {
     			cancelSourceChanges.setEnabled(false);
@@ -871,7 +933,7 @@ public class DataSourcePropertiesPanel extends Composite {
 		
     	// Determine if any properties were changed
     	if(statusText.equals(Constants.OK)) {
-    		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges) {
+    		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges || hasImportPropChanges) {
     			setInfoMessage(statusClickSave);
         		saveSourceChanges.setEnabled(true);
         		cancelSourceChanges.setEnabled(true);
@@ -966,6 +1028,26 @@ public class DataSourcePropertiesPanel extends Composite {
     	String propStatus = this.dataSourceCorePropertyEditor.getStatus();
     	if(propStatus.equalsIgnoreCase(Constants.OK)) {
     		propStatus = this.dataSourceAdvancedPropertyEditor.getStatus();
+    	}
+
+    	return propStatus;
+    }
+    
+    /**
+     * Returns 'true' if any import properties have changed, false if no changes
+     * @return import property changed status
+     */
+    private boolean hasImportPropertyChanges() {
+    	return this.dataSourceImportPropertyEditor.anyPropertyHasChanged();
+    }
+    
+    private String getImportPropertyStatus() {
+    	// ------------------
+    	// Set status message
+    	// ------------------
+    	String propStatus = this.dataSourceImportPropertyEditor.getStatus();
+    	if(propStatus.equalsIgnoreCase(Constants.OK)) {
+    		propStatus = this.dataSourceImportPropertyEditor.getStatus();
     	}
 
     	return propStatus;

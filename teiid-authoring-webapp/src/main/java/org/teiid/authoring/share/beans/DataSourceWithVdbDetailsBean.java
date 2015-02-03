@@ -16,6 +16,8 @@
 package org.teiid.authoring.share.beans;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jboss.errai.common.client.api.annotations.Portable;
 import org.jboss.errai.databinding.client.api.Bindable;
@@ -35,6 +37,7 @@ public class DataSourceWithVdbDetailsBean extends DataSourceDetailsBean implemen
 
     private String sourceVdbName;
     private String translator;
+    private List<TranslatorImportPropertyBean> importProperties = new ArrayList<TranslatorImportPropertyBean>();
     
 	public String getSourceVdbName() {
 		return sourceVdbName;
@@ -47,6 +50,12 @@ public class DataSourceWithVdbDetailsBean extends DataSourceDetailsBean implemen
 	}
 	public void setTranslator(String translator) {
 		this.translator = translator;
+	}    
+    public List<TranslatorImportPropertyBean> getImportProperties() {
+		return importProperties;
+	}
+	public void setImportProperties(List<TranslatorImportPropertyBean> properties) {
+		this.importProperties = properties;
 	}
 	    
 }

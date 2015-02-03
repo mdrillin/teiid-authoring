@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -276,6 +277,9 @@ public class TeiidService implements ITeiidService {
         dsWithVdbDetailsBean.setTranslator(getTranslatorForSrcVdb(srcVdbName));
         dsWithVdbDetailsBean.setSourceVdbName(srcVdbName);
 
+        // Set the importer properties
+        dsWithVdbDetailsBean.setImportProperties(getImportPropertiesForSrcVdb(srcVdbName));
+        
     	return dsWithVdbDetailsBean;
     }
     
@@ -305,6 +309,48 @@ public class TeiidService implements ITeiidService {
     	}
 
         return translator;
+    }
+    
+    private List<TranslatorImportPropertyBean> getImportPropertiesForSrcVdb(String srcVdbName) throws DataVirtUiException {
+    	List<TranslatorImportPropertyBean> modelImportProps = null;
+    	
+    	VDBMetaData vdb = null;
+    	try {
+    		vdb = clientAccessor.getClient().getVDB(srcVdbName,1);
+    	} catch (Exception e) {
+    		throw new DataVirtUiException(e.getMessage());
+    	}
+
+    	// Details for this VDB
+    	VdbDetailsBean vdbDetailsBean = VdbHelper.getInstance().getVdbDetails(vdb);
+    	// The modelName in VDB is same as VDB, but without the prefix
+    	String physModelName = srcVdbName.substring(srcVdbName.indexOf(Constants.SERVICE_SOURCE_VDB_PREFIX)+Constants.SERVICE_SOURCE_VDB_PREFIX.length());
+
+    	// Get source models from VDB, find matching model and get translator
+    	Collection<VdbModelBean> vdbModels = vdbDetailsBean.getModels();
+    	for(VdbModelBean vdbModel : vdbModels) {
+    		String modelName = vdbModel.getName();
+    		if(modelName.equals(physModelName)) {
+    			// default import props for the translator
+    			modelImportProps = getTranslatorImportProperties(vdbModel.getTranslator());
+    			
+    			// Get the import properties. 
+    			for(String propKey : vdbModel.getImportProperties().keySet()) {
+    				for(TranslatorImportPropertyBean defaultProp : modelImportProps) {
+    					if(defaultProp.getName().equals(propKey)) {
+    						String propValue = vdbModel.getImportProperties().get(propKey);
+    						if(propValue!=null) {
+    							defaultProp.setOriginalValue(propValue);
+    							defaultProp.setValue(propValue);
+    						}
+    					}
+    				}
+    			}
+    			break;
+    		}
+    	}
+
+        return modelImportProps;
     }
 
     /**
@@ -405,14 +451,23 @@ public class TeiidService implements ITeiidService {
     	return mappings;
     }
 
+    public Map<String,List<TranslatorImportPropertyBean>> getImportPropertiesMap(List<String> translators) throws DataVirtUiException {
+    	Map<String,List<TranslatorImportPropertyBean>> resultMap = new HashMap<String,List<TranslatorImportPropertyBean>>();
+    	
+    	for(String translator : translators) {
+    		resultMap.put(translator,getTranslatorImportProperties(translator));
+    	}
+    	
+    	return resultMap;
+    }
+    
     public List<TranslatorImportPropertyBean> getTranslatorImportProperties(String translatorName) throws DataVirtUiException {
     	List<TranslatorImportPropertyBean> importPropBeanList = new ArrayList<TranslatorImportPropertyBean>();
     	
 		Collection<? extends PropertyDefinition> propDefnList = null;
     	try {
     		propDefnList = clientAccessor.getClient().getTranslatorImportProperties(translatorName);
-		} catch (AdminApiClientException e) {
-			throw new DataVirtUiException(e.getMessage());
+		} catch (Exception e) {
 		}
     	
     	if(propDefnList==null || propDefnList.isEmpty()) {
@@ -428,6 +483,31 @@ public class TeiidService implements ITeiidService {
 			// Name
 			String name = propDefn.getName();
 			propBean.setName(name);
+			// DisplayName
+			String displayName = propDefn.getDisplayName();
+			propBean.setDisplayName(displayName);
+			// Description
+			String description = propDefn.getDescription();
+			propBean.setDescription(description);
+			// isModifiable
+			boolean isModifiable = propDefn.isModifiable();
+			propBean.setModifiable(isModifiable);
+			// isRequired
+			boolean isRequired = propDefn.isRequired();
+			propBean.setRequired(isRequired);
+			// isMasked
+			boolean isMasked = propDefn.isMasked();
+			propBean.setMasked(isMasked);
+			// defaultValue
+			Object defaultValue = propDefn.getDefaultValue();
+			if(defaultValue!=null) {
+				propBean.setDefaultValue(defaultValue.toString());
+			}
+			// Set the value and original Value
+			if(defaultValue!=null) {
+				propBean.setValue(defaultValue.toString());
+				propBean.setOriginalValue(defaultValue.toString());
+			}
 
 			// ------------------------
 			// Add PropertyObj to List
@@ -693,7 +773,12 @@ public class TeiidService implements ITeiidService {
     	deleteVdb(bean.getSourceVdbName());
     	
     	// Deploy the VDB
-    	String sourceVDBStatus = deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator());
+    	List<TranslatorImportPropertyBean> importPropBeans = bean.getImportProperties();
+    	Properties importProps = new Properties();
+    	for(TranslatorImportPropertyBean importPropBean : importPropBeans) {
+    		importProps.put(importPropBean.getName(),importPropBean.getValue());
+    	}
+    	String sourceVDBStatus = deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator(), importProps);
     	
     	// Create the teiid dataSource for the deployed source VDB
     	createVdbDataSource(bean.getSourceVdbName());
@@ -742,8 +827,9 @@ public class TeiidService implements ITeiidService {
      * @param dataSourceName the name of the datasource
      * @param jndiName the JNDI name of the datasource
      * @param translator the name of the translator
+     * @param importProps the import properties
      */
-    private String deploySourceVDB(String sourceVDBName, String modelName, String dataSourceName, String jndiName, String translator) throws DataVirtUiException {
+    private String deploySourceVDB(String sourceVDBName, String modelName, String dataSourceName, String jndiName, String translator, Properties importProps) throws DataVirtUiException {
     	try {
         	// Get VDB with the supplied name.
         	// -- If it already exists, return its status
@@ -761,7 +847,7 @@ public class TeiidService implements ITeiidService {
         	sourceVdb = vdbHelper.createVdb(sourceVDBName,1,new Properties());
 
         	// Create source model - same name as dataSource.  Use model name for source mapping - will be unique
-        	ModelMetaData model = vdbHelper.createSourceModel(modelName, modelName, jndiName, translator);
+        	ModelMetaData model = vdbHelper.createSourceModel(modelName, modelName, jndiName, translator, importProps);
 
         	// Adding the SourceModel to the VDB
         	sourceVdb.addModel(model);
@@ -1006,7 +1092,12 @@ public class TeiidService implements ITeiidService {
     	deleteVdb(bean.getSourceVdbName());
     	
     	// Deploy the VDB
-    	String sourceVDBStatus = deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator());
+    	List<TranslatorImportPropertyBean> importPropBeans = bean.getImportProperties();
+    	Properties importProps = new Properties();
+    	for(TranslatorImportPropertyBean importPropBean : importPropBeans) {
+    		importProps.put(importPropBean.getName(),importPropBean.getValue());
+    	}
+    	String sourceVDBStatus = deploySourceVDB(bean.getSourceVdbName(), bean.getName(), bean.getName(), jndiName, bean.getTranslator(), importProps);
     	
     	// Create the teiid dataSource for the deployed source VDB
     	createVdbDataSource(bean.getSourceVdbName());

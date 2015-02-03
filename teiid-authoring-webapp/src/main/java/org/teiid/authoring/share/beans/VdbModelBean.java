@@ -15,6 +15,9 @@
  */
 package org.teiid.authoring.share.beans;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jboss.errai.common.client.api.annotations.Portable;
 import org.jboss.errai.databinding.client.api.Bindable;
 import org.teiid.authoring.share.Constants;
@@ -33,6 +36,7 @@ public class VdbModelBean {
     private String status;
     private String type;
     private String translator;
+    private Map<String,String> importProps = new HashMap<String,String>();
     private String jndiSource;
     private String ddl;
     private boolean isVisible = false;
@@ -100,7 +104,11 @@ public class VdbModelBean {
         return translator;
     }
     
-    /**
+    public Map<String,String> getImportProperties() {
+		return importProps;
+	}
+
+	/**
      * @return the jndiSource
      */
     public String getJndiSource() {
@@ -145,6 +153,14 @@ public class VdbModelBean {
     public void setTranslator(String translator) {
         this.translator = translator;
     }
+
+    /**
+     * @param props the properties to set
+     */
+	public void setImportProperties(Map<String,String> propMap) {
+		this.importProps.clear();
+		this.importProps.putAll(propMap);
+	}
 
     /**
      * @param type the type to set

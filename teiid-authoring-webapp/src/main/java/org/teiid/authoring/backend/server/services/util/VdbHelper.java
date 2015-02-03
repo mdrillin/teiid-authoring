@@ -18,6 +18,7 @@ package org.teiid.authoring.backend.server.services.util;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -124,12 +125,14 @@ public class VdbHelper {
 	 * @param sourceMappingName the name of the source mapping
 	 * @param jndiName the jndi name
 	 * @param translator the translator name
+	 * @param importProps the import properties
 	 * @return the ModelMetaData
 	 */
-	public ModelMetaData createSourceModel(String modelName, String sourceMappingName, String jndiName, String translator) {
+	public ModelMetaData createSourceModel(String modelName, String sourceMappingName, String jndiName, String translator, Properties importProps) {
 		ModelMetaData modelMetaData = new ModelMetaData();
 		modelMetaData.addSourceMapping(sourceMappingName, translator, jndiName);
 		modelMetaData.setName(modelName);
+		modelMetaData.setProperties(importProps);
 		return modelMetaData;
 	}
 
@@ -200,6 +203,7 @@ public class VdbHelper {
 				String modelDescription = modelMeta.getDescription();
 				String modelType = modelMeta.getModelType().toString();
 				boolean isVisible = modelMeta.isVisible();
+				Properties modelProps = modelMeta.getProperties();
 				String jndiName = null;
 				String translatorName = null;
 				String modelStatus = null;
@@ -285,6 +289,12 @@ public class VdbHelper {
 				modelBean.setType(modelType);
 				modelBean.setJndiSource(jndiName);
 				modelBean.setTranslator(translatorName);
+				Map<String,String> propMap = new HashMap<String,String>();
+				for(Object propKey : modelProps.keySet()) {
+					Object value = modelProps.get(propKey);
+					propMap.put(propKey.toString(), value.toString());
+				}
+				modelBean.setImportProperties(propMap);
 				modelBean.setStatus(modelStatus);
 				modelBean.setDdl(ddl);
 				modelBean.setVisible(isVisible);

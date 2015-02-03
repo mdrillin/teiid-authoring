@@ -146,6 +146,16 @@ public class TeiidRpcService {
         }
     }
     
+    public void getImportPropertiesMap(List<String> translators, final IRpcServiceInvocationHandler<Map<String,List<TranslatorImportPropertyBean>>> handler) {
+        RemoteCallback<Map<String,List<TranslatorImportPropertyBean>>> successCallback = new DelegatingRemoteCallback<Map<String,List<TranslatorImportPropertyBean>>>(handler);
+        ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
+        try {
+        	remoteTeiidService.call(successCallback, errorCallback).getImportPropertiesMap(translators);
+        } catch (DataVirtUiException e) {
+            errorCallback.error(null, e);
+        }
+    }
+    
     public void getTranslatorImportProperties(String translatorName, final IRpcServiceInvocationHandler<List<TranslatorImportPropertyBean>> handler) {
         RemoteCallback<List<TranslatorImportPropertyBean>> successCallback = new DelegatingRemoteCallback<List<TranslatorImportPropertyBean>>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
