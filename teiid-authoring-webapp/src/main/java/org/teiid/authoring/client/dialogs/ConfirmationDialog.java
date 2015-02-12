@@ -6,20 +6,19 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
 import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.gwt.FlowPanel;
 import org.teiid.authoring.client.messages.ClientMessages;
 import org.teiid.authoring.share.Constants;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchPopup;
 import org.uberfire.client.mvp.PlaceManager;
+import org.uberfire.lifecycle.OnClose;
 import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.PlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-
-import org.gwtbootstrap3.client.ui.gwt.FlowPanel;
-
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.IsWidget;
@@ -69,7 +68,6 @@ public class ConfirmationDialog {
 		hPanel.add(closeButton);
 		view.add( messagePanel );
 		view.add( hPanel );
-		view.setHeight("200px");
 	}
 	
 	@OnStartup
@@ -87,6 +85,11 @@ public class ConfirmationDialog {
 		okButton.setFocus( true );
 	}
 	
+	@OnClose
+	public void onClose( ) {
+		fireCancelEvent();
+	}
+		
 	@WorkbenchPartTitle
 	public String getTitle() {
 		String dialogTitle = "Confirm the Operation";

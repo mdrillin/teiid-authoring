@@ -68,7 +68,7 @@ public interface ITeiidService {
 
     public void deleteDataSources(Collection<String> dsNames) throws DataVirtUiException;
 
-    public void deleteDataSourcesAndVdb(Collection<String> dsNames, String vdbName) throws DataVirtUiException;
+    public List<DataSourcePageRow> deleteDataSourcesAndVdb(Collection<String> dsNames, String vdbName) throws DataVirtUiException;
     
     public void deleteSourcesAndVdbRedeployRenamed(Collection<String> dsNames, String vdbName, DataSourceWithVdbDetailsBean bean) throws DataVirtUiException;
 

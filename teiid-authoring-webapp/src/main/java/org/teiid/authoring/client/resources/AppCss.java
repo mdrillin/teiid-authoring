@@ -26,6 +26,10 @@ public interface AppCss extends ClientBundle {
     CssResource customToggleStyle();
 
 	@NotStrict
+    @Source("css/JoinToggle.css")
+    CssResource joinToggleStyle();
+
+	@NotStrict
     @Source("css/DataGrid.css")
     CssResource customDataGridStyle();
 

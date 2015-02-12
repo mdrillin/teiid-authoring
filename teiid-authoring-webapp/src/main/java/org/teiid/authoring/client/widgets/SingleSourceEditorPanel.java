@@ -227,7 +227,7 @@ public class SingleSourceEditorPanel extends Composite {
 //    	String filterText = (String)stateService.get(ApplicationStateKeys.QUERY_COLUMNS_FILTER_TEXT,"");
 //        stateService.put(ApplicationStateKeys.QUERY_COLUMNS_PAGE, currentQueryColumnsPage);
 
-    	queryService.getQueryColumnResultSet(page, filterText, vdbSrcJndi, table,
+    	queryService.getQueryColumnResultSet(page, 10000, filterText, vdbSrcJndi, table,
     			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
     		@Override
     		public void onReturn(QueryColumnResultSetBean data) {

@@ -206,8 +206,8 @@ public class TeiidRpcService {
         }
     }
     
-    public void deleteDataSourcesAndVdb(Collection<String> dsNames, String vdbName, final IRpcServiceInvocationHandler<Void> handler) {
-        RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
+    public void deleteDataSourcesAndVdb(Collection<String> dsNames, String vdbName, final IRpcServiceInvocationHandler<List<DataSourcePageRow>> handler) {
+        RemoteCallback<List<DataSourcePageRow>> successCallback = new DelegatingRemoteCallback<List<DataSourcePageRow>>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
         	remoteTeiidService.call(successCallback, errorCallback).deleteDataSourcesAndVdb(dsNames,vdbName);

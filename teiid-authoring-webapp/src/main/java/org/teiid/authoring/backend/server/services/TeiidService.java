@@ -1029,13 +1029,14 @@ public class TeiidService implements ITeiidService {
     }
     
     /**
-     * Delete the dataSources and VDBs.
+     * Delete the dataSources and VDB.
      * @param dsNames the source names
-     * @param vdbNames the vdb names
+     * @param vdbName the vdb name
+     * @return the sources list after delete
      * @throws DataVirtUiException
      */
     @Override
-    public void deleteDataSourcesAndVdb(Collection<String> dsNames, String vdbName) throws DataVirtUiException {
+    public List<DataSourcePageRow> deleteDataSourcesAndVdb(Collection<String> dsNames, String vdbName) throws DataVirtUiException {
     	// Delete the dataSources
     	try {
 			clientAccessor.getClient().deleteDataSources(dsNames);
@@ -1045,6 +1046,9 @@ public class TeiidService implements ITeiidService {
     	
     	// Delete the VDBs
     	deleteVdb(vdbName);
+    	
+    	// Return list of sources
+    	return getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX);
     }
     
     /**

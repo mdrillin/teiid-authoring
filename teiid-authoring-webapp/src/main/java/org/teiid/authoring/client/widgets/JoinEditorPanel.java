@@ -133,6 +133,8 @@ public class JoinEditorPanel extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
+    	AppResource.INSTANCE.css().joinToggleStyle().ensureInjected();
+    	
     	msgDefineLeftRightTables = i18n.format("joineditor.define-left-right-tables.message");
     	msgCheckOneOrMoreColumns = i18n.format("joineditor.check-one-or-more-columns.message");
     	msgSelectLeftJoinCriteria = i18n.format("joineditor.select-left-join-criteria.message");
@@ -153,6 +155,10 @@ public class JoinEditorPanel extends Composite {
         joinLeftOuterButton.setTitle(i18n.format("joineditor.left-outer-join.tooltip"));
         joinRightOuterButton.setTitle(i18n.format("joineditor.right-outer-join.tooltip"));
         joinFullOuterButton.setTitle(i18n.format("joineditor.full-outer-join.tooltip"));
+        joinInnerButton.setStylePrimaryName("joinToggle");
+        joinLeftOuterButton.setStylePrimaryName("joinToggle");
+        joinRightOuterButton.setStylePrimaryName("joinToggle");
+        joinFullOuterButton.setStylePrimaryName("joinToggle");
         
     	DOM.setStyleAttribute(joinInnerButton.getElement(), "padding", "0px");
     	DOM.setStyleAttribute(joinLeftOuterButton.getElement(), "padding", "0px");
@@ -525,7 +531,7 @@ public class JoinEditorPanel extends Composite {
     	String filterText = "";
     	String vdbSrcJndi = Constants.JNDI_PREFIX+Constants.SERVICE_SOURCE_VDB_PREFIX+source;
 
-    	queryService.getQueryColumnResultSet(1, filterText, vdbSrcJndi, table,
+    	queryService.getQueryColumnResultSet(1, 10000, filterText, vdbSrcJndi, table,
     			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
     		@Override
     		public void onReturn(QueryColumnResultSetBean data) {
@@ -559,7 +565,7 @@ public class JoinEditorPanel extends Composite {
     	String filterText = "";
     	String vdbSrcJndi = Constants.JNDI_PREFIX+Constants.SERVICE_SOURCE_VDB_PREFIX+source;
 
-    	queryService.getQueryColumnResultSet(1, filterText, vdbSrcJndi, table,
+    	queryService.getQueryColumnResultSet(1, 10000, filterText, vdbSrcJndi, table,
     			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
     		@Override
     		public void onReturn(QueryColumnResultSetBean data) {

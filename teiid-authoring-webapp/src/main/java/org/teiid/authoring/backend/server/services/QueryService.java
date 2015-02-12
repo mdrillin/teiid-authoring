@@ -72,9 +72,7 @@ public class QueryService implements IQueryService {
     }
     
     @Override
-    public QueryColumnResultSetBean getQueryColumnResultSet(int page, String filterText, String dataSource, String fullTableName) throws DataVirtUiException {
-    	int pageSize = Constants.QUERY_COLUMNS_TABLE_PAGE_SIZE;
-        
+    public QueryColumnResultSetBean getQueryColumnResultSet(int page, int pageSize, String filterText, String dataSource, String fullTableName) throws DataVirtUiException {
     	// Get DataSources Map
     	Map<String,DataSource> mDatasources = JdbcSourceHelper.getInstance().getDataSourceMap();
 

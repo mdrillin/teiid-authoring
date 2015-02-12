@@ -72,7 +72,6 @@ public class ManageSourcesScreen extends Composite {
 	private Map<String,String> defaultTranslatorMap = new HashMap<String,String>();
 	private SingleSelectionModel<DataSourcePageRow> listSelectionModel;
 	private List<DataSourcePageRow> currentDataSourceList = new ArrayList<DataSourcePageRow>();
-	private boolean propPanelVisible = false;
 	private String requestingScreen;
 	private String previousDSSelection = null;
 	private DataSourcePageRow currentRowSelection = null;
@@ -128,14 +127,12 @@ public class ManageSourcesScreen extends Composite {
     	// Add properties panel and Select label to deckPanel
     	detailsDeckPanel.add(propsPanel);
     	detailsDeckPanel.add(selectSourcePanel);
-    	detailsDeckPanel.showWidget(1);
-    	propPanelVisible=false;
+    	showDetailsPanelBlankMessage();
     	
     	// Deck panel for DataSource list
     	HTMLPanel spinnerPanel = new HTMLPanel(AbstractImagePrototype.create(AppResource.INSTANCE.images().spinnner24x24Image()).getHTML());
     	dsListDeckPanel.add(spinnerPanel);
     	dsListDeckPanel.add(dsListPanel);
-    	dsListDeckPanel.showWidget(0);
     	doGetDataSourceInfos(null);
 
     	// Selection model for the dsList
@@ -146,7 +143,7 @@ public class ManageSourcesScreen extends Composite {
     			DataSourcePageRow row = listSelectionModel.getSelectedObject();
     			currentRowSelection = row;
     			if(row!=null) {
-        			showPropertiesPanel(row,currentDataSourceList);
+    				showDetailsPanelProperties(row,currentDataSourceList);
         			propsPanel.setExternalError(row.getErrorMessage());
         			dsListPanel.setDeleteButtonEnabled(true);
         			// Keep track of previous non-placeholder selection
@@ -154,7 +151,7 @@ public class ManageSourcesScreen extends Composite {
         				previousDSSelection = row.getName();
         			}
     			} else {
-    				showBlankMessagePanel();
+    				showDetailsPanelBlankMessage();
     				dsListPanel.setDeleteButtonEnabled(false);
     			}
     		}
@@ -169,19 +166,21 @@ public class ManageSourcesScreen extends Composite {
     	}
     }
     
-    private void showPropertiesPanel(DataSourcePageRow dsRow, List<DataSourcePageRow> allDSRows) {
+    private void showDetailsPanelProperties(DataSourcePageRow dsRow, List<DataSourcePageRow> allDSRows) {
 		propsPanel.setDataSource(dsRow,allDSRows);
-    	if(!propPanelVisible) {
-			detailsDeckPanel.showWidget(0);
-			propPanelVisible=true;
-    	}
+		detailsDeckPanel.showWidget(0);
     }
     
-    private void showBlankMessagePanel() {
-    	if(propPanelVisible) {
-			detailsDeckPanel.showWidget(1);
-			propPanelVisible=false;
-    	}
+    private void showDetailsPanelBlankMessage() {
+		detailsDeckPanel.showWidget(1);
+    }
+    
+    private void showDSListPanelSpinner() {
+    	dsListDeckPanel.showWidget(0);
+    }
+    
+    private void showDSListPanelList() {
+    	dsListDeckPanel.showWidget(1);
     }
     
     /**
@@ -238,6 +237,8 @@ public class ManageSourcesScreen extends Composite {
     			} else if(eventType==UiEventType.DATA_SOURCE_DEPLOY_FAIL) {
     				dsRow.setState(DataSourcePageRow.State.ERROR);
     			}
+    		} else if(dsRow.getState()==DataSourcePageRow.State.PLACEHOLDER) {
+    			dsRow.setState(DataSourcePageRow.State.DEPLOYING);
     		}
     	}
     	dsListPanel.setData(this.currentDataSourceList);
@@ -268,7 +269,11 @@ public class ManageSourcesScreen extends Composite {
 		if(dsState==DataSourcePageRow.State.PLACEHOLDER) {
 			this.currentDataSourceList.remove(row);
 			this.dsListPanel.setData(this.currentDataSourceList);
-			this.dsListPanel.setSelection(previousDSSelection);
+			if(previousDSSelection!=null) {
+				this.dsListPanel.setSelection(previousDSSelection);
+			} else {
+				showDetailsPanelBlankMessage();
+			}
 		// Confirm the delete
 		} else {
 	    	showConfirmDeleteDialog();
@@ -306,26 +311,25 @@ public class ManageSourcesScreen extends Composite {
      * Called when the user confirms the dataSource deletion.
      */
     private void doDeleteDataSourcesAndVdb(final List<String> dsNames, final String vdbName, final String selectedDS) {
-    	dsListDeckPanel.showWidget(0);
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("managesources.deleting-datasource-title"), //$NON-NLS-1$
                 i18n.format("managesources.deleting-datasource-msg", "sourceList")); //$NON-NLS-1$
-        teiidService.deleteDataSourcesAndVdb(dsNames, vdbName, new IRpcServiceInvocationHandler<Void>() {
+        teiidService.deleteDataSourcesAndVdb(dsNames, vdbName, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
             @Override
-            public void onReturn(Void data) {
+            public void onReturn(List<DataSourcePageRow> dsInfos) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("managesources.datasource-deleted"), //$NON-NLS-1$
                         i18n.format("managesources.delete-success-msg")); //$NON-NLS-1$
-
-            	doGetDataSourceInfos(selectedDS);
-            	dsListDeckPanel.showWidget(1);
+                
+                // Update the page
+                update(dsInfos,selectedDS);
             }
             @Override
             public void onError(Throwable error) {
-              notificationService.completeProgressNotification(notificationBean.getUuid(),
-              i18n.format("managesources.delete-error"), //$NON-NLS-1$
-              error);
-          	  dsListDeckPanel.showWidget(1);
+            	showDSListPanelList();
+            	notificationService.completeProgressNotification(notificationBean.getUuid(),
+            			i18n.format("managesources.delete-error"), //$NON-NLS-1$
+            			error);
             }
         });
     }
@@ -335,37 +339,53 @@ public class ManageSourcesScreen extends Composite {
      * @param selectedDS the selected DataSource, if selection is desired.
      */
     protected void doGetDataSourceInfos(final String selectedDS) {
-    	dsListDeckPanel.showWidget(0);
+    	showDSListPanelSpinner();
     	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
     		@Override
     		public void onReturn(List<DataSourcePageRow> dsInfos) {
-    			// Filter out the sources starting with SERVICE_SOURCE_VDB_PREFIX and SERVICES_VDBs
-    			List<DataSourcePageRow> tableRowList = new ArrayList<DataSourcePageRow>();
-    			for(DataSourcePageRow row : dsInfos) {
-    				String name = row.getName();
-    				if(!name.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX)) {
-    					tableRowList.add(row);
-    				}
-    			}
-    			currentDataSourceList.clear();
-    			currentDataSourceList.addAll(tableRowList);
-    			
-    			dsListPanel.setData(tableRowList);
-    			if(selectedDS!=null) {
-    				dsListPanel.setSelection(selectedDS);
-    			} else {
-    				showBlankMessagePanel();
-    			}
-    			
-    	    	doPopulateDefaultTranslatorMappings();
-    	    	dsListDeckPanel.showWidget(1);
+                // Update the page
+                update(dsInfos,selectedDS);
     		}
     		@Override
     		public void onError(Throwable error) {
-    	    	dsListDeckPanel.showWidget(1);
+            	showDSListPanelList();
     			notificationService.sendErrorNotification(i18n.format("managesources.error-getting-datasources"), error); //$NON-NLS-1$
     		}
     	});
+    }
+    
+    /**
+     * Update the dsList and details panel selection
+     * @param dsRows the data source rows
+     * @param selectedDS the selected data source
+     */
+    private void update(final List<DataSourcePageRow> dsRows, final String selectedDS) {
+		DataSourcePageRow selectedRow = null;
+		
+		// Filter out the sources starting with SERVICE_SOURCE_VDB_PREFIX and SERVICES_VDBs
+		List<DataSourcePageRow> tableRowList = new ArrayList<DataSourcePageRow>();
+		for(DataSourcePageRow row : dsRows) {
+			String name = row.getName();
+			if(!name.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX)) {
+				if(name.equals(selectedDS)) {
+					selectedRow = row;
+				}
+				tableRowList.add(row);
+			}
+		}
+		currentDataSourceList.clear();
+		currentDataSourceList.addAll(tableRowList);
+		
+		dsListPanel.setData(tableRowList);
+		if(selectedDS!=null) {
+			dsListPanel.setSelection(selectedDS);
+			showDetailsPanelProperties(selectedRow,tableRowList);
+		} else {
+			showDetailsPanelBlankMessage();
+		}
+		
+    	doPopulateDefaultTranslatorMappings();
+    	showDSListPanelList();
     }
     
     /**

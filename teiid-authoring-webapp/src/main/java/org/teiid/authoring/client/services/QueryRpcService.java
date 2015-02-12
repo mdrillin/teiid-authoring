@@ -80,7 +80,7 @@ public class QueryRpcService {
         }
     }
     
-    public void getQueryColumnResultSet(int page, String filterText, String dataSource, String fullTableName,
+    public void getQueryColumnResultSet(int page, int pageSize, String filterText, String dataSource, String fullTableName,
             final IRpcServiceInvocationHandler<QueryColumnResultSetBean> handler) {
         // TODO only allow one search at a time.  If another search comes in before the previous one
         // finished, cancel the previous one.  In other words, only return the results of the *last*
@@ -88,7 +88,7 @@ public class QueryRpcService {
         RemoteCallback<QueryColumnResultSetBean> successCallback = new DelegatingRemoteCallback<QueryColumnResultSetBean>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
-        	remoteQueryService.call(successCallback, errorCallback).getQueryColumnResultSet(page, filterText, dataSource, fullTableName);
+        	remoteQueryService.call(successCallback, errorCallback).getQueryColumnResultSet(page, pageSize, filterText, dataSource, fullTableName);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }

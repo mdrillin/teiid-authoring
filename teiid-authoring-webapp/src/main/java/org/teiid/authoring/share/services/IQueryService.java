@@ -41,7 +41,7 @@ public interface IQueryService {
 
     public List<QueryTableProcBean> getTablesAndProcedures(String dataSourceJndiName, String dsName) throws DataVirtUiException;
 
-    public QueryColumnResultSetBean getQueryColumnResultSet(int page, String filterText, String dataSource, String fullTableName) throws DataVirtUiException;
+    public QueryColumnResultSetBean getQueryColumnResultSet(int page, int pageSize, String filterText, String dataSource, String fullTableName) throws DataVirtUiException;
 
     public QueryResultSetBean executeSql(int page, String dataSource, String sql) throws DataVirtUiException;
 
