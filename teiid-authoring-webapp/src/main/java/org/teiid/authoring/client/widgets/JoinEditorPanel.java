@@ -16,6 +16,7 @@
 package org.teiid.authoring.client.widgets;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,11 @@ public class JoinEditorPanel extends Composite {
 	private String msgSelectLeftJoinCriteria;
 	private String msgSelectRightJoinCriteria;
 	private String msgClickApplyWhenFinished;
+	
+	private enum Side {
+		LEFT,
+		RIGHT
+	}
     
     /**
      * Called after construction.
@@ -233,6 +239,10 @@ public class JoinEditorPanel extends Composite {
     			setRHSTableButton.setEnabled(false);
         	}
         });
+        
+        populateCriteriaListBox(Side.LEFT, Collections.<String>emptyList());
+        populateCriteriaListBox(Side.RIGHT, Collections.<String>emptyList());
+        
         // Change Listener for LHS criteria ListBox
         lhCriteriaListBox.addChangeHandler(new ChangeHandler()
         {
@@ -381,7 +391,7 @@ public class JoinEditorPanel extends Composite {
     	lhTableSource = srcName;
     	String longTableName = shortToLongTableNameMap.get(lhTableName);
     	
-    	populateLHSTable(srcName,longTableName);
+    	populateTable(srcName,longTableName,Side.LEFT);
     }
 
     /**
@@ -396,24 +406,43 @@ public class JoinEditorPanel extends Composite {
     	rhTableSource = srcName;
     	String longTableName = shortToLongTableNameMap.get(rhTableName);
     	
-    	populateRHSTable(srcName,longTableName);
+    	populateTable(srcName,longTableName,Side.RIGHT);
     }
     
-    private void populateLHCriteriaListBox(List<String> columnNames) {
+    /**
+     * Populate left or right criteria listBox
+     * @param side left or right
+     * @param columnNames list of columnNames for the listBox
+     */
+    private void populateCriteriaListBox(Side side, List<String> columnNames) {
+    	ListBox criteriaListBox = null;
+    	if(side==Side.LEFT) {
+    		criteriaListBox = this.lhCriteriaListBox;
+    	} else {
+    		criteriaListBox = this.rhCriteriaListBox;
+    	}
     	// Make sure clear first
-    	lhCriteriaListBox.clear();
+    	criteriaListBox.clear();
 
-    	lhCriteriaListBox.insertItem(Constants.NO_CRITERIA_SELECTION, 0);
+    	// For no columns, the displayed item0 is different
+    	String item0 = null;
+    	if(columnNames.size()==0) {
+    		item0 = Constants.NO_CRITERIA_COLUMNS;
+    	} else {
+    		item0 = Constants.NO_CRITERIA_SELECTION;
+    	}
+    	
+    	criteriaListBox.insertItem(item0, 0);
     	
     	// Repopulate the ListBox with column names
     	int i = 1;
     	for(String columnName: columnNames) {
-    		lhCriteriaListBox.insertItem(columnName, i);
+    		criteriaListBox.insertItem(columnName, i);
     		i++;
     	}
 
     	// Initialize by setting the selection to the first item.
-    	lhCriteriaListBox.setSelectedIndex(0);
+    	criteriaListBox.setSelectedIndex(0);
     }
     
     /**
@@ -442,23 +471,6 @@ public class JoinEditorPanel extends Composite {
 		lhCriteriaListBox.setSelectedIndex(indx);
 	}
 	
-    private void populateRHCriteriaListBox(List<String> columnNames) {
-    	// Make sure clear first
-    	rhCriteriaListBox.clear();
-
-    	rhCriteriaListBox.insertItem(Constants.NO_CRITERIA_SELECTION, 0);
-    	
-    	// Repopulate the ListBox with column names
-    	int i = 1;
-    	for(String columnName: columnNames) {
-    		rhCriteriaListBox.insertItem(columnName, i);
-    		i++;
-    	}
-
-    	// Initialize by setting the selection to the first item.
-    	rhCriteriaListBox.setSelectedIndex(0);
-    }
-    
     /**
      * Get the selected RH Criteria Column
      * @return
@@ -525,9 +537,9 @@ public class JoinEditorPanel extends Composite {
     }
     
     /**
-     * Populate LHS Table
+     * Populate Table
      */
-    protected void populateLHSTable(String source, String table) {
+    protected void populateTable(String source, String table, final Side side) {
     	String filterText = "";
     	String vdbSrcJndi = Constants.JNDI_PREFIX+Constants.SERVICE_SOURCE_VDB_PREFIX+source;
 
@@ -545,44 +557,15 @@ public class JoinEditorPanel extends Composite {
     				colList.add(cRow);
     				colNames.add(col.getName());
     			}
-    			lhsJoinTable.setData(colList);
-    			populateLHCriteriaListBox(colNames);
-    	    	lhsTableTitleLabel.setText("LHS (" + lhTableName + ")");
+    			if(side==Side.LEFT) {
+        			lhsJoinTable.setData(colList);
+        	    	lhsTableTitleLabel.setText("LHS (" + lhTableName + ")");
+    			} else if (side==Side.RIGHT) {
+        			rhsJoinTable.setData(colList);
+        	    	rhsTableTitleLabel.setText("RHS (" + rhTableName + ")");
+    			}
+    			populateCriteriaListBox(side, colNames);
     			updateStatus();
-    		}
-    		@Override
-    		public void onError(Throwable error) {
-    			notificationService.sendErrorNotification(i18n.format("joineditor-panel.error-getting-tablecols"), error); //$NON-NLS-1$
-    		}
-    	});
-
-    }
-    
-    /**
-     * Populate RHS Table
-     */
-    protected void populateRHSTable(String source, String table) {
-    	String filterText = "";
-    	String vdbSrcJndi = Constants.JNDI_PREFIX+Constants.SERVICE_SOURCE_VDB_PREFIX+source;
-
-    	queryService.getQueryColumnResultSet(1, 10000, filterText, vdbSrcJndi, table,
-    			new IRpcServiceInvocationHandler<QueryColumnResultSetBean>() {
-    		@Override
-    		public void onReturn(QueryColumnResultSetBean data) {
-    			List<CheckableNameTypeRow> colList = new ArrayList<CheckableNameTypeRow>();
-    			List<String> colNames = new ArrayList<String>();
-    			List<QueryColumnBean> qColumns = data.getQueryColumns();
-    			for(QueryColumnBean col : qColumns) {
-    				CheckableNameTypeRow cRow = new CheckableNameTypeRow();
-    				cRow.setName(col.getName());
-    				cRow.setType(col.getType());
-    				colList.add(cRow);
-    				colNames.add(col.getName());
-    			}
-    			rhsJoinTable.setData(colList);
-    			populateRHCriteriaListBox(colNames);
-    	    	rhsTableTitleLabel.setText("RHS (" + rhTableName + ")");
-   			    updateStatus();
     		}
     		@Override
     		public void onError(Throwable error) {

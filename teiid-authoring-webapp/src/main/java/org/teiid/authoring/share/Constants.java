@@ -138,6 +138,7 @@ public class Constants {
 	public static final String NO_TRANSLATOR_SELECTION = "[Select a Translator]";
 	public static final String NO_CRITERIA_SELECTION = "[Select Criteria Column]";
 	public static final String NO_DATASOURCE_SELECTION = "[Select a DataSource]";
+	public static final String NO_CRITERIA_COLUMNS = "[No columns]";
 	
 	public static final String SORT_COLID_NAME = "name"; //$NON-NLS-1$
     public static final String SORT_COLID_MODIFIED_ON = "lastModifiedTimestamp"; //$NON-NLS-1$

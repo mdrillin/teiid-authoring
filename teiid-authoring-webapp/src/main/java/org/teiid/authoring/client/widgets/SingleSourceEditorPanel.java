@@ -149,6 +149,10 @@ public class SingleSourceEditorPanel extends Composite {
     	
     	sourcesMessageLabel.setText(i18n.format("ssource-editor-panel.picksource-message"));
     	
+    	// Buttons initially disabled
+    	createDdlButton.setEnabled(false);
+    	addToDdlButton.setEnabled(false);
+    	
     	// Tooltips
     	createDdlButton.setTitle(i18n.format("ssource-editor-panel.createDdlButton.tooltip"));
     	addToDdlButton.setTitle(i18n.format("ssource-editor-panel.addToDdlButton.tooltip"));
