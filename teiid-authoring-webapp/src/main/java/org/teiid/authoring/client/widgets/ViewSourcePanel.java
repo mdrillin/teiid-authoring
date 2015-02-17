@@ -148,6 +148,7 @@ public class ViewSourcePanel extends Composite {
     	}
     	
     	viewSourceNamesTable.setData(newSources);
+    	fireSourcesChanged();
     }
 
     /**
@@ -165,6 +166,7 @@ public class ViewSourcePanel extends Composite {
     	viewSourceNamesTable.setData(newSources);
     	dsSelectionModel.clear();
 		deleteButton.setEnabled(false);
+    	fireSourcesChanged();
     }
  
     public void setData(List<String> tableSourceNames, List<String> allSources) {

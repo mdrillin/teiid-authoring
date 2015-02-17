@@ -509,7 +509,10 @@ public class JoinEditorPanel extends Composite {
 		uiEvent.setViewDdl(ddl);
 		List<String> viewSources = new ArrayList<String>();
 		viewSources.add(getLHTableSource());
-		viewSources.add(getRHTableSource());
+		String rhTable = getRHTableSource();
+		if(!viewSources.contains(rhTable)) {
+			viewSources.add(rhTable);
+		}
 		uiEvent.setViewSources(viewSources);
 		
 		setDdlEvent.fire(uiEvent);
